@@ -1,0 +1,32 @@
+@startuml
+!theme plain
+skinparam maxMessageSize 150
+autonumber
+
+actor "Estoquista" as user
+boundary "TelaMovimentacaoEstoque" as view <<view>>
+control "ControleMovimentacaoEstoque" as ctrl <<Controller>>
+entity "PedidoCompra" as pedido <<Entity>>
+entity "Material" as material <<Entity>>
+entity "SaldoEstoque" as saldo <<Entity>>
+entity "MovimentacaoEstoque" as movimentacao <<Entity>>
+
+user -> view : Confirma a receçao da encomenda
+view -> ctrl : registrarEntradaEstoque(pedidoId)
+ctrl -> pedido : buscarPorId(pedidoId)
+
+loop Para cada item do pedido
+    ctrl -> material : buscarPorId(MaterialId)
+    return dadosMaterial
+
+    ctrl -> saldo : buscarPorMaterial(material)
+    return saldoAtual
+
+    ctrl -> movimentacao : criarMovimentacao(dadosMaterial, quantidade, tipo=ENTRADA_COMPRA)
+    return movimentacaoCriada
+
+    ctrl -> saldo : atualizarSaldo(saldoAtual, quantidade)
+    return saldoAtualizado
+end
+
+@enduml
