@@ -1,0 +1,45 @@
+@startuml
+!theme plain
+skinparam maxMessageSize 150
+autonumber
+
+actor "Estoquista" as user
+boundary "TelaMovimentacaoEstoque" as view <<view>>
+control "ControleMovimentacaoEstoque" as ctrl <<Controller>>
+entity "Material" as material <<Entity>>
+entity "SaldoEstoque" as saldo <<Entity>>
+entity "MovimentacaoEstoque" as movimentacao <<Entity>>
+
+user -> view : Solicita a saída de materiais do estoque\n (material, quantidade, tipo = SAIDA_CONSUMO)
+view -> ctrl : registrarSaidaEstoque(materialId, quantidade)
+
+ctrl -> material : buscarPorId(materialId)
+return dadosMaterial
+
+ctrl -> saldo : buscarPorMaterial(dadosMaterial)
+return saldoAtual
+
+ctrl -> saldo : getQuantidadeAtual()
+return quantidadeAtual
+
+alt QuantidadeAtual >= quantidade solicidada
+    ctrl -> movimentacao : criarMovimentacao(dadosMaterial, quantidade, TipoMovimentacao.SAIDA_CONSUMO)
+    return movimentacaoCriada
+
+    ctrl -> movimentacao : salvarMovimentacao()
+    return movimentacaoSalva
+
+    crtl -> saldo : subtrairSaldo(quantidade)
+    return quandidadeAtualizada
+
+    ctrl -> saldo : salvarSaldo()
+    return saldoSalvo
+
+    ctrl -> view : confirmarSaidaEstoqueRegistrada()
+    view --> user : Exibir confirmação da saída de estoque registrada
+else QuantidadeAtual < quantidade solicitada
+    ctrl -> view : exibirMensagemErro("Quantidade insuficiente em estoque")
+    view --> user : Exibir mensagem de erro 
+end
+
+@enduml

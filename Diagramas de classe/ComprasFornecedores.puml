@@ -1,0 +1,88 @@
+@startuml
+!theme plain
+skinparam classAtributeIconSize 0
+skinparam classFrontSize 14
+skinparam classHeaderBackgroundColor #EAEAEA
+hide empty methods
+
+package "modulo: compras e fornecedores" {
+        enum StatusPedido{
+             SOLICITACAO
+             EM_COTACAO
+             COMPRADO
+             EM_TRANSITO
+             ENTREGUE
+        }
+        enum StatusPrioridade{
+             BAIXA
+             MEDIA
+             ALTA
+        }
+        
+        class Fornecedor <<Entity>>{
+            -id: Long
+            -nome: String
+            -razaoSocial: String
+            -cnpj: String
+            -email: String
+            -telefone: String
+            -ativo: Boolean
+            --
+            +cadastrar() : void
+            +atualizarDados() : void
+        }
+
+        class PedidoCompra <<Entity>>{
+            -id: Long
+            -dataSolicitacao: LocalDate
+            -dataPrevista: LocalDate
+            -valorTotal: BigDecimal
+            -status: StatusPedido
+            -prioridade: StatusPrioridade
+            --
+            +adicionarItem(item: itemPedido) : void
+            +removerItem(item: itemPedido) : void
+            +alterarStatus(novoStatus: StatusPedido) : void
+            +calcularValorTotal() : BigDecimal
+
+        }     
+
+        class itemPedido <<Entity>>{
+            -id: Long
+            -quantidade: Integer
+            -valorUnitario: BigDecimal
+            --
+            +calcularValorSubTotal() : BigDecimal
+        }
+
+        class Material <<Entity>>{
+            -id: Long
+            -nome: String
+            -descricao: String
+            -unidadeMedida: String
+        }
+
+package "Modulo Externos"{
+    class obra <<Entity>>{
+        -id: Long
+        -nome: String
+        -endereco: String
+    }
+    class usuario <<Entity>>{
+        -id: Long
+        -nome: String
+        -email: String
+    }
+}
+
+'Relacionamentos
+Fornecedor "1" <-- "0..n" PedidoCompra : > fornecido por 
+Obra "1" <-- "0..n" PedidoCompra : > Destinado a
+Usuario "1" <-- "0..n" PedidoCompra : > solicitado por
+
+PedidoCompra "1" <-- "0..n" itemPedido : > contem
+Material "1" <-- "0..n" itemPedido : > contem
+PedidoCompra -[dashed]-> "0..n" Material : > contem
+
+}
+@enduml

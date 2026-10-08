@@ -1,0 +1,42 @@
+@startuml
+!theme plain
+skinparam maxMessageSize 150
+autonumber
+
+actor "Estoquista" as user
+boundary "TelaPedidoCompra" as view <<view>>
+control "ControlePedido" as ctrl <<Controller>>
+entity "Fornecedor" as fornecedor <<Entity>>
+entity "PedidoCompra" as pedido <<Entity>>
+entity "ItemPedido" as item <<Entity>>
+entity "Material" as material <<Entity>>
+
+user -> view : Preencher dados do pedido
+view -> ctrl : criarPedido(pedido)
+ctrl -> fornecedor : buscarPorId(FornecedorId)
+return dadosFornecedor
+
+ctrl -> pedido : criarPedido(dadosFornecedor, dadosPedido)
+loop Para cada item na lista da interface
+    ctrl -> material : buscarPorId(MaterialId)
+    return dadosMaterial
+
+    ctrl -> item : criarItem(dadosMaterial, quantidade, valorUnitario)
+    return itemCriado
+
+    ctrl -> item : calcularValorSubTotal()
+    return valorSubTotal
+
+    ctrl -> pedido : adicionarItem(item)
+    return ConfirmacaoAdicaoItem
+end
+
+ctrl -> pedido : calcularValorTotal()
+return valorTotal
+
+ctrl -> pedido : salvarPedido()
+return pedidoSalvo
+ctrl -> view: confirmarPedidoCriado(PedidoCompra)
+view --> user : Exibir confirmação do pedido criado
+
+@enduml

@@ -7,26 +7,43 @@ actor "Estoquista" as user
 boundary "TelaMovimentacaoEstoque" as view <<view>>
 control "ControleMovimentacaoEstoque" as ctrl <<Controller>>
 entity "PedidoCompra" as pedido <<Entity>>
+entity "ItemPedido" as item <<Entity>>
 entity "Material" as material <<Entity>>
 entity "SaldoEstoque" as saldo <<Entity>>
 entity "MovimentacaoEstoque" as movimentacao <<Entity>>
 
 user -> view : Confirma a receçao da encomenda
 view -> ctrl : registrarEntradaEstoque(pedidoId)
+
 ctrl -> pedido : buscarPorId(pedidoId)
+return dadosPedido
 
 loop Para cada item do pedido
-    ctrl -> material : buscarPorId(MaterialId)
-    return dadosMaterial
+    ctrl -> item : getMaterial()
+    return material
+
+    ctrl -> item: getQuantidade()
+    return quantidadeItem
+
+    ctrl -> movimentacao : criarMovimentacao(material, quantidadeItem, TipoMovimentacao.ENTRADA_COMPRA)
+    return movimentacaoCriada
+
+    ctrl -> movimentacao : salvarMovimentacao()
+    return movimentacaoSalva
 
     ctrl -> saldo : buscarPorMaterial(material)
     return saldoAtual
 
-    ctrl -> movimentacao : criarMovimentacao(dadosMaterial, quantidade, tipo=ENTRADA_COMPRA)
-    return movimentacaoCriada
-
-    ctrl -> saldo : atualizarSaldo(saldoAtual, quantidade)
+    ctrl -> saldo : adicionarSaldo(quantidadeItem)
     return saldoAtualizado
+
+    ctrl -> saldo : salvarSaldo()
+    return saldoSalvo
 end
 
+ctrl -> pedido : setStatus(ENTREGUE)
+return statusAtualizado
+
+ctrl -> view : confirmarEntradaEstoqueRegistrada()
+view --> user : Exibir confirmação da entrada de estoque registrada
 @enduml

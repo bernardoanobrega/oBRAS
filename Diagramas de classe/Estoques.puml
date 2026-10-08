@@ -1,0 +1,82 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classHeaderBackgroundColor #EAEAEA
+hide empty methods
+
+package "Catálogo Base" {
+    class Material <<Entity>> {
+        - id: Long
+        - nome: String
+        - unidadeDeMedida: String
+        --
+        + getId(): Long
+        + getNome(): String
+    }
+}
+
+package "Módulo: Compras" {
+    class PedidoCompra <<Entity>> {
+        - id: Long
+        - dataSolicitacao: LocalDate
+        - status: StatusPedido
+        --
+        + adicionarItem(item: ItemPedido): void
+        + calcularValorTotal(): BigDecimal
+        + alterarStatus(novoStatus: StatusPedido): void
+    }
+
+    class ItemPedido <<Entity>> {
+        - id: Long
+        - quantidade: Double
+        - precoUnitario: BigDecimal
+        --
+        + calcularSubtotal(): BigDecimal
+    }
+}
+
+package "Módulo: Controle de Estoque" {
+    class SaldoEstoque <<Entity>> {
+        - id: Long
+        - quantidadeAtual: Double
+        - quantidadeMinima: Double
+        --
+        + adicionarSaldo(quantidade: Double): void
+        + subtrairSaldo(quantidade: Double): void
+        + verificarAlertaMinimo(): Boolean
+    }
+
+    class MovimentacaoEstoque <<Entity>> {
+        - id: Long
+        - tipo: TipoMovimentacao
+        - quantidade: Double
+        - dataMovimentacao: LocalDateTime
+        --
+        + registrarMovimentacao(): void
+    }
+    
+    enum TipoMovimentacao {
+        ENTRADA_COMPRA
+        SAIDA_CONSUMO
+        TRANSFERENCIA
+    }
+}
+
+' Relacionamentos Internos de Compras
+PedidoCompra "1" *-- "1..*" ItemPedido : > contém
+ItemPedido "*" --> "1" Material : > refere-se a
+
+' Relacionamentos Internos de Estoque
+SaldoEstoque "*" --> "1" Material : > contabiliza
+MovimentacaoEstoque "*" --> "1" Material : > movimenta
+
+MovimentacaoEstoque "*" --> "0..1" PedidoCompra : > originada de (opcional)
+
+note right of MovimentacaoEstoque
+  Se o tipo for ENTRADA_COMPRA, 
+  esta classe guarda o ID do 
+  PedidoCompra para rastreabilidade.
+end note
+
+@enduml
