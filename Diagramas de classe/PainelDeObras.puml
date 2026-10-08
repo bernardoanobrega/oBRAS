@@ -1,0 +1,127 @@
+@startuml class-diagram
+title OBRAS - Diagrama de Classes (Módulo Detalhes de Obra)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Usuario <<externa>>
+class Cargo <<externa>>
+class Orcamento <<externa>>
+class Cronograma <<externa>>
+
+' ===== NÚCLEO =====
+class Obra <<Entity>> {
+  -id : int
+  -nome : String
+  -descricao : String
+  -tipologia : Tipologia
+  -endereco : String
+  -inicioPrevisto : Date
+  -fimPrevisto : Date
+  -status : StatusObra
+  -responsavel : Usuario
+  --
+  +alocarUsuario(u : Usuario, cargos : Cargo[]) : AlocacaoObra
+  +desalocarUsuario(u: Usuario) : Usuario
+  +encerrarAlocacao(a : AlocacaoObra) : void
+  +adicionarFoto(arquivo : String, legenda : String, autor : Usuario) : RegistroFotografico
+  +listarOcorrencias(inicio : Date, fim : Date) : Ocorrencia[]
+  +alterarResponsavel() : void
+}
+
+class RegistroDiario <<Entity>> {
+  -id : int
+  -idObra: int
+  -data : Date
+  -clima : CondicaoClimatica
+  -descricao: String
+  -equipePresente : Usuario[]
+  -autor : Usuario[]
+  --
+  +registrarOcorrencia(cat : CategoriaOcorrencia, descricao : String, autor : Usuario) : Ocorrencia
+  +alterarOcorrencia(Ocorrencia) : void
+  +excluirOcorrencia() : Ocorrencia
+}
+
+class Ocorrencia <<Entity>> {
+  -id : int
+  -idRegistro: int
+  -dataHora : DateTime
+  -categoria : CategoriaOcorrencia
+  -descricao : String
+  -inicioParalisacao : DateTime
+  -fimParalisacao : DateTime
+  -autor : Usuario[]
+  --
+  +registrarFotografia(f : RegistroFotografico) : void
+  +alterarFotografia(f : RegistroFotografico) : void
+  +excluirFotografia(f : RegistroFotografico) : void
+}
+
+class RegistroFotografico <<Entity>> {
+  -id : int
+  -idOcorrencia: int
+  -arquivo : String
+  -legenda : String
+  -dataEnvio : DateTime
+}
+
+class AlocacaoObra <<Entity>> {
+  -id : int
+  -idUsuario : int
+  -cargos : Cargo[]
+  -dataInicio : Date
+  -dataFim : Date
+  --
+  +definirCargos(cargos : Cargo[]) : void
+}
+
+' ===== ENUMERAÇÕES =====
+enum StatusObra {
+  PLANEJADA
+  EM_ANDAMENTO
+  PARALISADA
+  CANCELADA
+  CONCLUIDA
+}
+
+enum Tipologia {
+  RESIDENCIAL
+  COMERCIAL
+  INDUSTRIAL
+  INFRAESTRUTURA
+  REFORMA
+  RESTAURO
+}
+
+enum CondicaoClimatica {
+  ENSOLARADO
+  NUBLADO
+  CHUVA_FRACA
+  CHUVA_FORTE
+}
+
+enum CategoriaOcorrencia {
+  INTEMPERIE
+  PARALISACAO
+  LOGISTICA
+  SEGURANCA
+  OUTRO
+}
+
+' ===== RELAÇÕES =====
+RegistroDiario "0..1" --> "0..*" Ocorrencia : contem
+Ocorrencia "0..1" --> "0..*" RegistroFotografico : contem
+AlocacaoObra "1" --> "0..*" Ocorrencia : registra
+Usuario "1" --> "0..*" AlocacaoObra : alocado em
+Cargo "1..*" --> "0..*" AlocacaoObra : define papeis
+Obra "1" *-- "0..*" AlocacaoObra : membro de
+Orcamento "0..1" --> "1" Obra : informa
+Cronograma "0..1" --> "1" Obra : informa
+Obra "1" *-- "0..*" RegistroDiario : possui
+
+@enduml
