@@ -50,6 +50,7 @@ class AlocacaoObra <<Entity>> {
 
 abstract class Auditavel <<Entity>> {
   -id : int
+  -excluido : boolean
 }
 
 class RegistroDiario <<Entity>> {

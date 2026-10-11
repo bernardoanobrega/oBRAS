@@ -17,7 +17,7 @@ state ENCERRADA <<final>> : Alocação encerrada; dataFim preenchida
 ' ===== TRANSIÇÕES =====
 [*] --> ATIVA : alocarUsuario(u, cargos)\n[sem alocação ativa do mesmo usuário na obra;\n cargos não vazio; dataInicio = hoje]
 ATIVA --> ATIVA : definirCargos(cargos)\n[cargos não vazio]
-ATIVA --> ENCERRADA : encerrarAlocacao()\n dataFim = hoje
+ATIVA --> ENCERRADA : encerrarAlocacao()/concluir()/cancelar()\n dataFim = hoje
 ENCERRADA --> [*]
 
 @enduml
