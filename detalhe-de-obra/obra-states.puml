@@ -1,0 +1,32 @@
+@startuml obra-states
+title Diagrama de Estados da Classe Obra
+
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+  BackgroundColor<<final>> #EEEEEE
+}
+skinparam ArrowFontSize 12
+skinparam NoteBackgroundColor #FFFBE6
+hide empty description
+
+' ===== ESTADOS =====
+state PLANEJADA : Obra cadastrada, ainda não iniciada
+state EM_ANDAMENTO : Obra em execução
+state PARALISADA : Atividades interrompidas
+state CONCLUIDA <<final>> : Obra finalizada
+state CANCELADA <<final>> : Obra cancelada (nunca apagada)
+
+' ===== TRANSIÇÕES =====
+[*] --> PLANEJADA : cadastrar [usuário autorizado]
+PLANEJADA --> EM_ANDAMENTO : iniciar() \n[há responsável técnico alocado]
+EM_ANDAMENTO --> PARALISADA : paralisar()
+PARALISADA --> EM_ANDAMENTO : retomar()
+EM_ANDAMENTO --> CONCLUIDA : concluir()
+PLANEJADA --> CANCELADA : cancelar()
+EM_ANDAMENTO --> CANCELADA : cancelar()
+PARALISADA --> CANCELADA : cancelar()
+CONCLUIDA --> [*]
+CANCELADA --> [*]
+
+@enduml
