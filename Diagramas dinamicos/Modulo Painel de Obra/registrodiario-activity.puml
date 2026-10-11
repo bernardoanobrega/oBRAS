@@ -1,5 +1,5 @@
 @startuml registro-diario-activity
-title Diagrama de Atividades - Registro Diário
+title Diagrama de Atividades - RegistroDiario
 skinparam activity {
   BackgroundColor #FFFFFF
   BorderColor #444444

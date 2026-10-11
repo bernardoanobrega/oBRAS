@@ -1,0 +1,33 @@
+@startuml robustness-detalhes-obra-convencao
+title Diagrama de Robustez - Módulo Detalhes de Obra (Convenção BCE)
+
+skinparam monochrome true
+skinparam defaultTextAlignment center
+skinparam shadowing false
+
+actor "Mestre de Obras / Gestor" as usuario
+
+' ===== BOUNDARIES (Telas / Formulários) =====
+boundary "PainelObraTela" as painelUI
+boundary "RegistroDiarioTela" as diarioUI
+
+' ===== CONTROLS (Controladores / Lógica de Negócio) =====
+control "GerenciarObraControl" as obraCtrl
+control "RegistrarDiarioControl" as diarioCtrl
+
+' ===== ENTITIES (Objetos de Domínio) =====
+entity "Obra" as obraEnt
+entity "RegistroDiario" as diarioEnt
+entity "AlocacaoObra" as alocacaoEnt
+
+' ===== FLUXOS DE ROBUSTEZ =====
+usuario --> painelUI : visualizar painel / ações
+painelUI --> obraCtrl : acionar transição de status
+obraCtrl --> obraEnt : atualizar estado e responsável
+
+usuario --> diarioUI : submeter dados diários
+diarioUI --> diarioCtrl : processar diário e validar (RN-07)
+diarioCtrl --> diarioEnt : instanciar / persistir
+diarioEnt --> alocacaoEnt : consultar equipe alocada
+
+@enduml
