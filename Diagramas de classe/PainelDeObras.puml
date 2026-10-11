@@ -24,50 +24,18 @@ class Obra <<Entity>> {
   -fimPrevisto : Date
   -status : StatusObra
   -responsavel : Usuario
+  -art : String
   --
   +alocarUsuario(u : Usuario, cargos : Cargo[]) : AlocacaoObra
-  +desalocarUsuario(u: Usuario) : Usuario
-  +encerrarAlocacao(a : AlocacaoObra) : void
+  +encerrarAlocacao(a : AlocacaoObra) : AlocacaoObra
   +adicionarFoto(arquivo : String, legenda : String, autor : Usuario) : RegistroFotografico
   +listarOcorrencias(inicio : Date, fim : Date) : Ocorrencia[]
   +alterarResponsavel() : void
-}
-
-class RegistroDiario <<Entity>> {
-  -id : int
-  -idObra: int
-  -data : Date
-  -clima : CondicaoClimatica
-  -descricao: String
-  -equipePresente : Usuario[]
-  -autor : Usuario[]
-  --
-  +registrarOcorrencia(cat : CategoriaOcorrencia, descricao : String, autor : Usuario) : Ocorrencia
-  +alterarOcorrencia(Ocorrencia) : void
-  +excluirOcorrencia() : Ocorrencia
-}
-
-class Ocorrencia <<Entity>> {
-  -id : int
-  -idRegistro: int
-  -dataHora : DateTime
-  -categoria : CategoriaOcorrencia
-  -descricao : String
-  -inicioParalisacao : DateTime
-  -fimParalisacao : DateTime
-  -autor : Usuario[]
-  --
-  +registrarFotografia(f : RegistroFotografico) : void
-  +alterarFotografia(f : RegistroFotografico) : void
-  +excluirFotografia(f : RegistroFotografico) : void
-}
-
-class RegistroFotografico <<Entity>> {
-  -id : int
-  -idOcorrencia: int
-  -arquivo : String
-  -legenda : String
-  -dataEnvio : DateTime
+  +iniciar()
+  +paralisar()
+  +retomar()
+  +concluir()
+  +cancelar()
 }
 
 class AlocacaoObra <<Entity>> {
@@ -78,6 +46,59 @@ class AlocacaoObra <<Entity>> {
   -dataFim : Date
   --
   +definirCargos(cargos : Cargo[]) : void
+  +encerrar() : void
+  +estaAtiva() : boolean
+}
+
+abstract class Auditavel <<Entity>> {
+  -id : int
+  -excluido : boolean
+}
+
+class RegistroDiario <<Entity>> {
+  -id : int
+  -idObra: int
+  -data : Date
+  -clima : CondicaoClimatica
+  -descricao: String
+  -equipePresente : AlocacaoObra[]
+  --
+  +registrarOcorrencia(cat : CategoriaOcorrencia, descricao : String, autor : Usuario) : Ocorrencia
+  +alterarOcorrencia(Ocorrencia) : void
+  +excluirOcorrencia(Ocorrencia) : Ocorrencia
+}
+
+class Ocorrencia <<Entity>> {
+  -id : int
+  -idRegistro: int
+  -dataHora : DateTime
+  -categoria : CategoriaOcorrencia
+  -descricao : String
+  --
+  +registrarFotografia(f : RegistroFotografico) : void
+  +alterarFotografia(f : RegistroFotografico) : void
+  +excluirFotografia(f : RegistroFotografico) : void
+}
+
+class Paralisacao <<Entity>> {
+  -inicioParalisacao : DateTime
+  -fimParalisacao : DateTime
+}
+
+class RegistroAuditoria <<Entity>> {
+  -id : int
+  -idAuditavel : int
+  -acao : AcaoAuditoria
+  -usuario : Usuario
+  -dataHora : DateTime
+}
+
+class RegistroFotografico <<Entity>> {
+  -id : int
+  -idOcorrencia: int
+  -arquivo : String
+  -legenda : String
+  -dataEnvio : DateTime
 }
 
 ' ===== ENUMERAÇÕES =====
@@ -113,6 +134,12 @@ enum CategoriaOcorrencia {
   OUTRO
 }
 
+enum AcaoAuditoria {
+  CRIACAO
+  EDICAO
+  EXCLUSAO
+}
+
 ' ===== RELAÇÕES =====
 RegistroDiario "0..1" --> "0..*" Ocorrencia : contem
 Ocorrencia "0..1" --> "0..*" RegistroFotografico : contem
@@ -123,5 +150,10 @@ Obra "1" *-- "0..*" AlocacaoObra : membro de
 Orcamento "0..1" --> "1" Obra : informa
 Cronograma "0..1" --> "1" Obra : informa
 Obra "1" *-- "0..*" RegistroDiario : possui
+Auditavel "1" --> "0..*" RegistroAuditoria : historico
+Auditavel <|-- Ocorrencia
+Auditavel <|-- RegistroDiario
+Auditavel <|-- RegistroFotografico
+Ocorrencia <|-- Paralisacao
 
 @enduml

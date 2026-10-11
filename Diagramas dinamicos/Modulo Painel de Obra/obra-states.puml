@@ -19,13 +19,13 @@ state CANCELADA <<final>> : Obra cancelada (nunca apagada)
 
 ' ===== TRANSIÇÕES =====
 [*] --> PLANEJADA : cadastrar [usuário autorizado]
-PLANEJADA --> EM_ANDAMENTO : iniciar() \n[há responsável técnico alocado]
+PLANEJADA --> EM_ANDAMENTO : iniciar() \n[há responsável técnico definido]
 EM_ANDAMENTO --> PARALISADA : paralisar()
 PARALISADA --> EM_ANDAMENTO : retomar()
-EM_ANDAMENTO --> CONCLUIDA : concluir()
-PLANEJADA --> CANCELADA : cancelar()
-EM_ANDAMENTO --> CANCELADA : cancelar()
-PARALISADA --> CANCELADA : cancelar()
+EM_ANDAMENTO --> CONCLUIDA : concluir()\n/ encerrar alocações ativas\n(dataFim = hoje)
+PLANEJADA --> CANCELADA : cancelar()\n/ encerrar alocações ativas\n(dataFim = hoje)
+EM_ANDAMENTO --> CANCELADA : cancelar()\n/ encerrar alocações ativas\n(dataFim = hoje)
+PARALISADA --> CANCELADA : cancelar()\n/ encerrar alocações ativas\n(dataFim = hoje)
 CONCLUIDA --> [*]
 CANCELADA --> [*]
 

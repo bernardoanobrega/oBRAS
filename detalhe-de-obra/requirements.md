@@ -13,10 +13,11 @@
 
 O Plano de Projeto define o Painel Detalhes de Obra como o "módulo central para rotinas diárias (registro de ocorrências com fotos, aferição e aprovação de medições e consulta de revisões de projetos), edição de equipe e responsável e consulta de informações gerais".
 
+**Decisão da equipe:** aferição e aprovação de medições (RF-05) ficam fora da responsabilidade deste módulo. Os requisitos, regras e pendências sobre medição foram retirados; os IDs retirados não são reutilizados.
+
 | RF do SRS | Tema | Por que está no módulo |
 | --- | --- | --- |
 | RF-02 | Cadastro de obras, equipe e responsáveis técnicos | Edição de equipe e responsável |
-| RF-05 | Aferição e aprovação de medições | Rotina diária do painel |
 | RF-11 | Consulta de projetos executivos e revisões | Acesso a partir do painel; os arquivos pertencem ao módulo Contratos e Documentos (ver P-14) |
 | RF-12 | Registro diário de ocorrências | Rotina diária do painel |
 | RF-18 | Painel visual de cada obra | É o próprio painel |
@@ -26,6 +27,7 @@ O Plano de Projeto define o Painel Detalhes de Obra como o "módulo central para
 - RF-00 e RF-13: usuários e login (módulo de acessos). Inclui a definição de cargos e permissões, e de quem é "usuário autorizado" (ver P-17 e P-23).
 - RF-10: upload dos arquivos de projeto (Contratos e Documentos).
 - RF-04: avanço físico (Cronograma).
+- RF-05: aferição e aprovação de medições (fora da responsabilidade deste módulo, por decisão da equipe).
 - RF-06 e RF-19: orçamento (Orçamento).
 
 ## 2. Requisitos funcionais detalhados
@@ -49,22 +51,6 @@ O Plano de Projeto define o Painel Detalhes de Obra como o "módulo central para
 | RF-02.9 | O sistema deve restringir a edição de obras a usuários autorizados. | UC03 ("usuário autorizado"; ver P-17) |
 | RF-02.10 | O sistema deve manter um status do ciclo de vida de cada obra. | Inferido; decisão da equipe (ver P-06) |
 | RF-02.11 | O sistema deve registrar o número da ART do responsável técnico da obra. | Inferido; conhecimento de domínio informado pela equipe (ver P-15; **a confirmar**) |
-
-### RF-05 — Aferição e aprovação de medições
-
-> SRS: "O sistema deve permitir que a equipe de campo insira as quantidades de serviços executados e fornecer uma interface para o Gestor da Obra analisar, aprovar ou rejeitar a liberação do fluxo financeiro correspondente."
-> Prioridade: Alta. Dependências: RF-02, RF-13. Referência no SRS: UC05 (o caso de uso correspondente é o **UC07**; ver P-01).
-
-| ID | Requisito | Fonte |
-| --- | --- | --- |
-| RF-05.1 | A equipe de campo deve poder inserir as quantidades de serviços executados (aferição). | SRS RF-05; UC07; SRS 2.3 (Mestre de Obras: "aferições iniciais") |
-| RF-05.2 | O Gestor da Obra deve poder analisar as medições aferidas. | SRS RF-05 |
-| RF-05.3 | O Gestor da Obra deve poder aprovar uma medição. | SRS RF-05; UC07 |
-| RF-05.4 | O Gestor da Obra deve poder rejeitar uma medição. | SRS RF-05 (o UC07 não menciona rejeição; ver P-13) |
-| RF-05.5 | A aprovação de uma medição deve liberar o fluxo financeiro correspondente. | SRS RF-05; UC07 (ver P-12) |
-| RF-05.6 | A rejeição de uma medição deve bloquear o fluxo financeiro correspondente. | SRS RF-05; UC07 (ver P-12) |
-| RF-05.7 | Cada medição deve ter um estado (por exemplo: aferida, aprovada, rejeitada). | Inferido |
-| RF-05.8 | O sistema deve permitir o envio de comprovantes de medições por upload de arquivo pelo navegador. | Plano 9.2 (ver P-03) |
 
 ### RF-11 — Consulta de projetos executivos e revisões
 
@@ -95,12 +81,12 @@ O Plano de Projeto define o Painel Detalhes de Obra como o "módulo central para
 | RF-12.7 | O sistema deve permitir registrar imprevistos. | UC06 |
 | RF-12.8 | O sistema deve permitir anexar fotos a uma ocorrência. | UC06; SRS (escopo); Plano 9.1 |
 | RF-12.9 | O sistema deve oferecer suporte a "digitalização" no registro. | SRS (escopo) (ver P-11) |
-| RF-12.10 | Cada ocorrência deve identificar o usuário que a registrou. | Inferido (rastreabilidade, UC06) |
-| RF-12.11 | Cada ocorrência deve identificar o usuário que a editou. | Inferido (rastreabilidade, UC06; ver P-19) |
-| RF-12.12 | Cada ocorrência deve identificar o usuário que a excluiu. | Inferido (rastreabilidade, UC06; ver P-19) |
+| RF-12.10 | Cada ocorrência deve identificar o usuário que a registrou. | Inferido (rastreabilidade, UC06); registrado em `RegistroAuditoria` (ação CRIACAO) |
+| RF-12.11 | Cada ocorrência deve identificar o usuário que a editou. | Inferido (rastreabilidade, UC06; ver P-19); registrado em `RegistroAuditoria` (ação EDICAO) |
+| RF-12.12 | Cada ocorrência deve identificar o usuário que a excluiu. | Inferido (rastreabilidade, UC06; ver P-19); registrado em `RegistroAuditoria` (ação EXCLUSAO) |
 | RF-12.13 | O sistema deve permitir consultar as ocorrências de um período. | Inferido |
 | RF-12.14 | Cada ocorrência deve ter uma categoria. | Inferido (ver P-10) |
-| RF-12.15 | Cada foto deve identificar o usuário que a enviou. | Inferido (rastreabilidade, UC06) |
+| RF-12.15 | Cada foto deve identificar o usuário que a enviou. | Inferido (rastreabilidade, UC06); registrado em `RegistroAuditoria` (ação CRIACAO) |
 | RF-12.16 | A edição e a exclusão de ocorrências e de registros diários não devem apagar dados: a edição registra quem editou e quando, e a exclusão é lógica. | Inferido; decisão da equipe (ver P-19, RN-15) |
 
 ### RF-18 — Painel visual da obra
@@ -135,15 +121,14 @@ O Plano de Projeto define o Painel Detalhes de Obra como o "módulo central para
 | RN-06 | Uma foto ligada a uma ocorrência deve pertencer à mesma obra da ocorrência. | Inferido |
 | RN-07 | Existe no máximo um registro diário não excluído por dia. | Inferido (proposta de modelagem; ajustada pela RN-15) |
 | RN-08 | O avanço físico é atualizado por inserção manual. | SRS 2.4 (Restrições de Automação) |
-| RN-09 | O Gestor da Obra aprova ou rejeita medições. | SRS RF-05; UC07 (que somente ele possa fazê-lo é interpretação) |
 | RN-10 | Anexos aceitam apenas PDF, PNG e JPG, com no máximo 10 MB por arquivo. | SRS RNF-10 |
 | RN-11 | Não há operação offline: registrar ou consultar exige conexão. | SRS 2.4 e 2.5 |
 | RN-12 | Projetos executivos são gerenciados apenas em 2D. | UC13; SRS (escopo) |
 | RN-13 | A consulta de ocorrências por período filtra pela data do registro diário. | Inferido (decisão de modelagem) |
-| RN-14 | Ao concluir ou cancelar uma obra, todas as suas alocações ativas são encerradas (`dataFim` = data do evento). Em PARALISADA as alocações continuam, porque a obra pode ser retomada. | Inferido; decisão da equipe (o estado da alocação é derivado de `dataFim`) |
-| RN-15 | Ocorrências e registros diários podem ser editados ou excluídos, mas nada é apagado fisicamente: a edição registra quem editou e quando, e a exclusão é lógica e registra quem excluiu e quando. | Inferido; decisão da equipe (ver P-19, RF-12.11, RF-12.12) |
-| RN-16 | Uma medição rejeitada é final; uma nova aferição cria uma nova medição. | Inferido; decisão da equipe (ver P-13) |
-| RN-17 | Aprovar ou rejeitar uma medição apenas muda o seu estado e sinaliza a liberação ou o bloqueio do fluxo financeiro; o módulo não executa lógica financeira. | Inferido; decisão da equipe (ver P-12; o SRS exclui transações financeiras diretas) |
+| RN-14 | Ao concluir ou cancelar uma obra, todas as suas alocações ativas são encerradas (`AlocacaoObra.encerrar()`, com `dataFim` = data do evento). Em PARALISADA as alocações continuam, porque a obra pode ser retomada. | Inferido; decisão da equipe (o estado da alocação é derivado de `dataFim`) |
+| RN-15 | Ocorrências e registros diários podem ser editados ou excluídos, mas nada é apagado fisicamente: a edição registra quem editou e quando, e a exclusão é lógica (`Auditavel.excluido`) e registra quem excluiu e quando. Toda criação, edição e exclusão fica em `RegistroAuditoria` (ação, usuário, data e hora), e as classes auditáveis herdam de `Auditavel`. | Inferido; decisão da equipe (ver P-19, RF-12.11, RF-12.12) |
+
+> RN-09, RN-16 e RN-17 (medição) foram retiradas junto com o RF-05; os IDs não são reutilizados.
 
 ## 4. Requisitos não funcionais aplicáveis
 
@@ -164,10 +149,8 @@ Legenda: **✓** = definido nos documentos. **✓\*** = interpretação a confir
 | Cadastrar obra (RF-02.1) | ✓ | ? | ? | ? | ? |
 | Editar equipe e responsável (RF-02.5) | ✓ | ✓\* | ? | ? | ? |
 | Consultar painel da obra (RF-18) | ✓ | ✓\* | ? | ? | ? |
-| Ver resumo de orçamento no painel (RF-18.5) | ✓ | ✓\* | ✓\* | ? | ? |
+| Ver resumo de orçamento no painel (RF-18.7) | ✓ | ✓\* | ✓\* | ? | ? |
 | Registrar ocorrências (RF-12) | ✓ | ✓\* | ? | ? | ✓ |
-| Lançar quantidades executadas (RF-05.1) | ✓ | ✓\* | ? | ? | ✓ |
-| Aprovar ou rejeitar medição (RF-05.3, 05.4) | ✓ | ✓ | ? | ? | ? |
 | Consultar projetos e revisões (RF-11) | ✓ | ✓\* | ? | ? | ✓ |
 
 Base no Plano de Projeto: Administrador tem "acesso global e irrestrito". Gestor da Obra tem "acesso pleno de gestão às obras sob sua responsabilidade". Engenheiro Orçamentário tem acesso aos módulos financeiros. Mestre de Obras tem "acesso operacional de campo".
@@ -186,7 +169,6 @@ As definições são paráfrases nossas. Só "Canteiro de obras" reproduz o glos
 | Registro diário | Registro cronológico, feito por canteiro, do que ocorreu no dia (clima, equipe, ocorrências). | SRS RF-12; proposta de modelagem |
 | Paralisação | Interrupção das atividades do canteiro. | Inferido |
 | Intempérie | Evento climático adverso que afeta o trabalho. | Termo em UC06 |
-| Aferição / medição | Apuração das quantidades de serviços executados, aprovada pelo Gestor da Obra. | UC07 |
 | Projeto executivo | Projeto técnico de execução, gerenciado em 2D (PDF ou imagem), com revisões. | Termo em UC13 |
 | Revisão | Versão atualizada de um projeto executivo. | UC13 |
 | Responsável técnico | Usuário indicado como responsável técnico da obra (`Obra.responsavel`), identificado pelo número da ART. | Termo em SRS RF-02; definição por decisão de modelagem (ver P-15, P-21; **a confirmar**) |
@@ -198,8 +180,8 @@ As definições são paráfrases nossas. Só "Canteiro de obras" reproduz o glos
 | ID | Pendência | Por que importa |
 | --- | --- | --- |
 | P-01 | As referências de UC no SRS não batem com o documento de casos de uso: RF-05 aponta UC05 (deveria ser UC07), RF-11 aponta UC11 (UC13) e RF-12 aponta UC12 (UC06). | Quebra a rastreabilidade. Este documento usa o mapeamento por conteúdo. |
-| P-02 | O RF-00 diz "remover" usuário, e o UC01 e o Plano dizem "deleção". A nota do diagrama diz "desativar, não apagar". **Dependência externa:** este módulo só exige que o usuário não seja apagado fisicamente, para `AlocacaoObra` e os autores continuarem válidos. A política é da equipe de acessos. | `AlocacaoObra` e o autor de `Ocorrencia` apontam para o usuário. Precisa ser alinhado com a equipe de acessos e com a LGPD (RNF-05). |
-| P-03 | O Plano 9.2 cita o "envio de comprovantes de medições", mas nenhum RF ou UC descreve esse anexo (tipo de arquivo, obrigatoriedade). | Pode exigir anexos na medição. |
+| P-02 | O RF-00 diz "remover" usuário, e o UC01 e o Plano dizem "deleção". A nota do diagrama diz "desativar, não apagar". **Dependência externa:** este módulo só exige que o usuário não seja apagado fisicamente, para `AlocacaoObra` e os registros de auditoria continuarem válidos. A política é da equipe de acessos. | `AlocacaoObra` e `RegistroAuditoria` apontam para o usuário. Precisa ser alinhado com a equipe de acessos e com a LGPD (RNF-05). |
+| P-03 | **Descartada:** envio de comprovantes de medições. Medição está fora da responsabilidade do módulo. | — |
 | P-04 | "Parâmetros operacionais" (RF-02) não é definido nos documentos. **Decisão da equipe:** mantêm-se em `Obra` nome, tipologia, endereco, inicioPrevisto e fimPrevisto (todos inferidos) e acrescenta-se `descricao` (RF-18.2). | Levar a definição ao SRS. |
 | P-05 | O SRS fala em "obras e projetos". São a mesma entidade? | Pode haver uma classe a mais. |
 | P-06 | Nenhum documento define o status da obra ou suas transições. **Decisão da equipe:** `StatusObra` é mantido (PLANEJADA, EM_ANDAMENTO, PARALISADA, CANCELADA, CONCLUIDA) e não é derivado do avanço físico (SRS 2.4). **Transições definidas** em `state-diagrams.md` (DE-01), com a ação de RN-14 em concluir e cancelar. | Levar ao SRS. |
@@ -208,55 +190,48 @@ As definições são paráfrases nossas. Só "Canteiro de obras" reproduz o glos
 | P-09 | Relação entre "clima" (RF-12) e "intempérie" (UC06). **Decisão da equipe:** o `clima` do dia fica em `RegistroDiario`; INTEMPERIE é a categoria de uma ocorrência causada pelo clima. Os dois coexistem. | Levar a definição ao SRS. |
 | P-10 | As categorias LOGISTICA e SEGURANCA não aparecem nos documentos. **Decisão da equipe:** são mantidas e acrescenta-se OUTRO, para cobrir os "imprevistos" do UC06 que não sejam clima nem paralisação. | Levar a definição ao SRS. |
 | P-11 | O que é "digitalização" (SRS, escopo)? Foto de documento em papel? | Pode exigir um tipo de anexo diferente. |
-| P-12 | O que significa "liberar o fluxo financeiro", se o SRS exclui transações financeiras diretas? **Resolvida:** aprovar ou rejeitar apenas muda o estado da medição e sinaliza a liberação ou o bloqueio, sem lógica financeira (RN-17). | Define o efeito da aprovação de medição. |
-| P-13 | RF-05 prevê rejeitar medição, o UC07 não. **Resolvida:** REJEITADA é estado final; uma nova aferição cria uma nova medição (RN-16). | Define o ciclo de estados da medição. |
-| P-14 | O diagrama não tinha classes para medição nem para projeto executivo e revisão. **Resolvida:** `Medicao` entra no diagrama (RF-05). Projetos e revisões (RF-11) ficam de fora: os arquivos pertencem ao RF-10 (Contratos e Documentos), e este módulo apenas consulta. | Define o escopo dos diagramas dinâmicos (UC07 dentro, UC13 fora). |
+| P-12 | **Descartada:** efeito financeiro da aprovação de medições. Medição está fora da responsabilidade do módulo. | — |
+| P-13 | **Descartada:** rejeição de medições. Medição está fora da responsabilidade do módulo. | — |
+| P-14 | O diagrama não tinha classes para medição nem para projeto executivo e revisão. **Resolvida:** medição fica fora da responsabilidade do módulo (sem classe `Medicao`). Projetos e revisões (RF-11) também ficam de fora: os arquivos pertencem ao RF-10 (Contratos e Documentos), e este módulo apenas consulta. | Define o escopo dos diagramas dinâmicos (UC07 e UC13 fora). |
 | P-15 | ART não está nos documentos; "responsáveis técnicos" está (RF-02, UC03). Estava resolvida (responsável técnico = usuário alocado com um Cargo específico, ART removida). **Reaberta pela equipe:** a ART é o documento legal que identifica o responsável técnico. **Proposta, a confirmar:** manter `Obra.responsavel` e acrescentar `art : String` com o número (RF-02.11). Alternativa mais pesada: uma classe `ART` própria, só se houver mais de uma por obra. | Ver P-21 e P-22. |
 | P-16 | **Leitura adotada:** `Cargo` é o papel do usuário, com permissões. Base: o Plano fala em permissões "atrelado aos papéis desempenhados na organização" e o RF-15 liga usuários, permissões e obras. | Confirmar com a equipe de acessos. |
 | P-17 | Quem é o "usuário autorizado" a cadastrar obras (UC03)? **Dependência externa:** é definido pelo módulo de acessos; este módulo apenas verifica a permissão. | Define a permissão de RF-02.1. |
 | P-18 | No painel, "últimos registros" são quantos ou de qual período? "Fotos" são quais? | Define consultas e relações de `RegistroFotografico`. |
-| P-19 | Ocorrências podem ser editadas ou apagadas depois de registradas? Estava decidido que não (registro imutável), o que contradizia RF-12.11 e RF-12.12. **Decisão da equipe (revista):** podem ser editadas e excluídas **com trilha de auditoria**, sem apagar nada fisicamente. A edição registra autor e data; a exclusão é lógica; a RN-07 conta só os registros não excluídos. Vale também para o `RegistroDiario` (RN-15). | Levar a regra ao SRS. |
+| P-19 | Ocorrências podem ser editadas ou apagadas depois de registradas? Estava decidido que não (registro imutável), o que contradizia RF-12.11 e RF-12.12. **Decisão da equipe (revista):** podem ser editadas e excluídas **com trilha de auditoria**, sem apagar nada fisicamente. A trilha fica em `RegistroAuditoria` (ação, usuário, data e hora), ligada às classes que herdam de `Auditavel` (`RegistroDiario`, `Ocorrencia`, `RegistroFotografico`); a exclusão é lógica; a RN-07 conta só os registros não excluídos (RN-15). A exclusão lógica é marcada em `Auditavel.excluido`. **A confirmar:** se os valores anteriores de uma edição são guardados. | Levar a regra ao SRS. |
 | P-20 | O Plano 9.1 cita anexar "recibos" às ocorrências. Isso vale, dado o RNF-10? | Define o tipo de arquivo aceito. |
-| P-21 | O UC01 permite personalizar cargos. Como o sistema identifica o responsável técnico? **Proposta, a confirmar (junto com a P-15):** o responsável é o usuário em `Obra.responsavel`, identificado pelo número da ART, sem depender de um atributo em `Cargo` (módulo de acessos). A obra só pode ser iniciada com responsável definido. | Define a guarda de `iniciar()` e o UC03. |
+| P-21 | O UC01 permite personalizar cargos. Como o sistema identifica o responsável técnico? **Proposta, a confirmar (junto com a P-15):** o responsável é o usuário em `Obra.responsavel`, identificado pelo número da ART, sem depender de um atributo em `Cargo` (módulo de acessos). A obra só pode ser iniciada com responsável definido (guarda de `iniciar()` já usada em `obra-states.puml`). | Define a guarda de `iniciar()` e o UC03. |
 | P-22 | A unicidade de alocação por usuário e obra (RN-04) impediria que o mesmo usuário fosse, por exemplo, Gestor da Obra e outro papel técnico, pois seriam dois Cargos. O SRS descreve o Gestor como "Engenheiro Residente / Gerente de Projetos", um perfil técnico. **Resolvida:** `AlocacaoObra` aceita um ou mais Cargos, e a unicidade vale para alocações ativas por (usuário, obra). Decisão de modelagem. | Define a RN-04. |
 | P-23 | O UC01 atribui ao Administrador a definição de cargos, permissões e níveis de acesso, e o UC03 menciona "a definição das permissões de acesso por perfil" no cadastro da obra. **Resolvida:** permissões são definidas no módulo de acessos; este módulo apenas as verifica (RF-02.8 fica como dependência externa). | Remove a sobreposição entre os módulos; afeta o RF-02.6. |
 
 ## 8. Rastreabilidade com o diagrama de classes
 
-Estado do diagrama depois das decisões do RF-02 (alocação com vários Cargos e `dataFim`), do RF-12 (autoria, categoria OUTRO, edição com auditoria) e do RF-05 (`Medicao` incluída).
+Estado do diagrama depois das decisões do RF-02 (alocação com vários Cargos e `dataFim`), do RF-12 (categoria OUTRO, auditoria por `Auditavel` e `RegistroAuditoria`) e da retirada das medições (RF-05 fora do módulo).
 
 | Classe | Requisitos e regras | Observação |
 | --- | --- | --- |
 | `Obra` | RF-02.1 a 02.5, 02.10, 02.11; RF-18.2, 18.10; RN-01 a RN-04, RN-14 | `descricao` cobre o RF-18.2; os demais atributos são decisão da equipe (P-04). `responsavel` e `art` mantidos (P-15). Eventos de status em `state-diagrams.md` |
 | `StatusObra` | RF-02.10; RN-02, RN-03 | Inferido (P-06) |
 | `CanteiroDeObras` | RN-01; RF-12.1; RF-18.4 | Externa ao diagrama |
-| `AlocacaoObra` | RF-02.4, 02.6; RF-18.6; RN-04, RN-14 | Vários Cargos por alocação. Estado derivado de `dataFim`, que encerra a alocação; manter histórico é recomendação, não consta nos documentos |
+| `AlocacaoObra` | RF-02.4, 02.6; RF-18.6; RN-04, RN-14 | Vários Cargos por alocação. Estado derivado de `dataFim`: `estaAtiva()` consulta o estado e `encerrar()` preenche `dataFim` (RN-14); manter histórico é recomendação, não consta nos documentos |
 | `Cargo` | RF-02.4, 02.6 | Ver P-16 |
-| `RegistroDiario` | RF-12.1, 12.2, 12.3, 12.6; RN-07, RN-15 | `equipePresente` lista alocações presentes (P-07); campos de auditoria (P-19) |
-| `Ocorrencia` | RF-12.4, 12.5, 12.7, 12.10 a 12.12, 12.16; RF-18.4, 18.5; RN-03, RN-15 | Autor via `registrarOcorrencia(..., autor)`; campos de auditoria (P-19) |
+| `RegistroDiario` | RF-12.1, 12.2, 12.3, 12.6; RN-07, RN-15 | `equipePresente` lista alocações presentes (P-07); auditoria via `Auditavel` e `RegistroAuditoria` (P-19) |
+| `Ocorrencia` | RF-12.7, 12.10 a 12.12, 12.16; RF-18.4, 18.5; RN-03, RN-15 | Quem registrou, editou e excluiu fica em `RegistroAuditoria` (via `Auditavel`); o autor também entra em `registrarOcorrencia(..., autor)` (P-19) |
+| `Paralisacao` | RF-12.3 a 12.5; RN-03 | Subclasse de `Ocorrencia` com `inicioParalisacao` e `fimParalisacao`. O impacto no prazo (RF-12.5) ainda não tem atributo nem operação |
 | `CategoriaOcorrencia` | RF-12.7, 12.14 | `OUTRO` cobre os imprevistos em geral (P-10) |
 | `CondicaoClimatica` | RF-12.6 | Valores são proposta |
-| `RegistroFotografico` | RF-12.8, 12.15; RF-18.8; RN-06; RN-10 | Quem enviou: relação com `Usuario` (inferido) |
-| `Medicao` | RF-05.1 a 05.7; RN-09, RN-16, RN-17 | Nova (P-14). Descrição de serviço, quantidade e unidade são decisão de modelagem; comprovantes ficam de fora (P-03) |
-| `EstadoMedicao` | RF-05.7; RN-16 | Nova. AFERIDA, APROVADA e REJEITADA (final) |
+| `RegistroFotografico` | RF-12.8, 12.15; RF-18.8; RN-06; RN-10 | Quem enviou: `RegistroAuditoria` (CRIACAO), via `Auditavel` |
+| `Auditavel` | RF-12.10 a 12.12, 12.15, 12.16; RN-15 | Classe abstrata; `RegistroDiario`, `Ocorrencia` (e, por herança, `Paralisacao`) e `RegistroFotografico` herdam dela; `excluido` marca a exclusão lógica (P-19) |
+| `RegistroAuditoria` | RF-12.10 a 12.12, 12.15, 12.16; RN-15 | Guarda ação, usuário e data e hora de cada criação, edição e exclusão |
+| `AcaoAuditoria` | RN-15 | CRIACAO, EDICAO, EXCLUSAO |
 | `Usuario` | RF-12.10; RF-02.3 | Ver P-02 |
 
 **Requisitos sem classe no diagrama:**
 
 - **RF-11 (projetos e revisões):** não existe classe de projeto executivo ou revisão, por decisão da P-14. Os arquivos pertencem ao RF-10 (Contratos e Documentos); este módulo apenas consulta.
+- **RF-05 (medições):** fora da responsabilidade do módulo, por decisão da equipe; sem classe no diagrama.
 - **RF-18.5 e RF-18.7:** dados externos de Orçamento e Cronograma, já representados como classes externas.
 - **RF-02.8:** definição de permissões, tratada no módulo de acessos (P-23).
 
 ## 9. Alterações pendentes no diagrama de classes
 
-| Classe | Alteração | Origem |
-| --- | --- | --- |
-| `Obra` | Acrescentar `iniciar()`, `paralisar()`, `retomar()`, `concluir()`, `cancelar()` | P-06; `state-diagrams.md` (DE-01) |
-| `Obra` | Acrescentar `art : String` e manter `responsavel` e `alterarResponsavel()` | P-15, P-21 (a confirmar) |
-| `Obra` | Acrescentar `aferirMedicao(descricao : String, quantidade : double, unidade : String, autor : Usuario) : Medicao` e a relação com `Medicao` | P-14 |
-| `RegistroDiario` | `autor : Usuario[]` passa a `autor : Usuario` | Erro de multiplicidade |
-| `RegistroDiario` | `equipePresente : Usuario[]` passa a `equipePresente : AlocacaoObra[]` | P-07 |
-| `RegistroDiario` e `Ocorrencia` | Acrescentar `editadoPor`, `editadoEm`, `excluidoPor`, `excluidoEm` | P-19, RN-15 |
-| `Ocorrencia` | `autor : Usuario[]` passa a `autor : Usuario` | Erro de multiplicidade |
-| `RegistroDiario` | `alterarOcorrencia` e `excluirOcorrencia` passam a receber a ocorrência como parâmetro; `excluirOcorrencia` devolve a ocorrência (exclusão lógica) | P-19 |
-| `Medicao`, `EstadoMedicao` | Acrescentar as duas (rascunho abaixo) | P-14 |
+Nenhuma no momento: as alterações antes listadas (eventos de status e `art` em `Obra`, `equipePresente` como `AlocacaoObra[]`, parâmetros de `alterarOcorrencia` e `excluirOcorrencia`, `Auditavel` com `RegistroAuditoria`) já estão em `PainelDeObras.puml`, e as classes e operações de medição foram retiradas. Pode surgir alteração conforme a resolução da P-19 (representação da exclusão lógica e valores anteriores de edição) e da P-15/P-21.
