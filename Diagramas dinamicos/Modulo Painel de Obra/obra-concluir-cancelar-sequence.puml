@@ -1,0 +1,74 @@
+@startuml obra-concluir-cancelar-sequence
+title Diagrama de Sequência - Concluir ou Cancelar Obra (RN-14)
+
+skinparam sequence {
+  ParticipantBackgroundColor #FFFFFF
+  ParticipantBorderColor #444444
+  LifeLineBorderColor #444444
+  ArrowColor #444444
+}
+skinparam NoteBackgroundColor #FFFBE6
+skinparam ArrowFontSize 12
+hide footbox
+
+actor "Usuário autorizado" as U
+participant ":Obra" as O
+participant ":AlocacaoObra" as A
+
+' ===================== CONCLUIR =====================
+== Concluir obra ==
+
+U -> O : concluir()
+activate O
+
+alt status = EM_ANDAMENTO
+  O -> O : status = CONCLUIDA
+  ref over O, A : Encerrar alocações ativas
+  O --> U : obra concluída
+else status diferente de EM_ANDAMENTO
+  O --> U : operação não permitida
+end
+
+deactivate O
+
+' ===================== CANCELAR =====================
+== Cancelar obra ==
+
+U -> O : cancelar()
+activate O
+
+alt status = PLANEJADA, EM_ANDAMENTO ou PARALISADA
+  O -> O : status = CANCELADA
+  ref over O, A : Encerrar alocações ativas
+  O --> U : obra cancelada
+else status = CONCLUIDA ou CANCELADA
+  O --> U : operação não permitida 
+end
+
+deactivate O
+
+' ===================== DETALHE DA REFERÊNCIA =====================
+== Encerrar alocações ativas  ==
+
+note over O, A
+  Executado só ao concluir ou cancelar.
+  Em PARALISADA as alocações continuam,
+  porque a obra pode ser retomada.
+end note
+
+loop para cada AlocacaoObra da obra
+  O -> A : estaAtiva()
+  activate A
+  A --> O : boolean
+  deactivate A
+
+  opt estaAtiva() = true
+    O -> A : encerrar()
+    activate A
+    A -> A : dataFim = hoje
+    A --> O
+    deactivate A
+  end
+end
+
+@enduml
