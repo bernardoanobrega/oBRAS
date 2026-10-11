@@ -20,4 +20,4 @@ ATIVA --> ATIVA : definirCargos(cargos)\n[cargos não vazio]
 ATIVA --> ENCERRADA : encerrarAlocacao() ou Obra.concluir() ou Obra.cancelar( )\n dataFim = hoje
 ENCERRADA --> [*]
 
-@endum
+@enduml

@@ -64,7 +64,7 @@ class RegistroDiario <<Entity>> {
   -equipePresente : AlocacaoObra[]
   --
   +registrarOcorrencia(cat : CategoriaOcorrencia, descricao : String, autor : Usuario) : Ocorrencia
-  +registrarParalisacao(cat : CategoriaOcorrencia, descricao : String, autor : Usuario, inicioParalisacao : DateTime, fimParalisacao : DateTime) : Paralisacao
+  +registrarParalisacao(descricao : String, autor : Usuario, inicioParalisacao : DateTime, fimParalisacao : DateTime) : Paralisacao
   +alterarOcorrencia(Ocorrencia) : void
   +excluirOcorrencia(Ocorrencia) : Ocorrencia
 }
