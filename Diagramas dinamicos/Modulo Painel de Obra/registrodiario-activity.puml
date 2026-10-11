@@ -1,0 +1,59 @@
+@startuml registro-diario-activity
+title Diagrama de Atividades - RegistroDiario
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #444444
+  BarColor #444444
+  StartColor #444444
+  EndColor #444444
+}
+skinparam NoteBackgroundColor #FFFBE6
+
+start
+
+:Mestre de Obras acessa o Painel da Obra;
+:Solicita a criação do Registro Diário;
+
+' ===== VERIFICAÇÃO DE DUPLICIDADE =====
+if (Já existe RegistroDiario não excluído para esta data?) then (Sim)
+  #FFD2D2:Exibir mensagem de erro: "Ja existe registro para o dia";
+  stop
+else (Não)
+endif
+
+' ===== PREENCHIMENTO BÁSICO =====
+:Selecionar Condição Climática do dia;
+
+' ===== DEFINIÇÃO DA EQUIPE PRESENTE =====
+:Carregar lista de AlocacaoObra ativas da obra;
+:Marcar colaboradores alocados presentes;
+
+' ===== LOOP DE REGISTRO DE OCORRÊNCIAS =====
+while (Deseja registrar uma ocorrência?) is (Sim)
+  :Selecionar Categoria da Ocorrência;
+  :Informar Descrição da Ocorrência;
+  :Informar Horário da Ocorrência;
+  
+  if (Categoria é Paralisação?) then (Sim)
+    :Informar Início da Paralisação;
+    :Informar Fim da Paralisação;
+  else (Não)
+  endif
+
+  ' ===== ANEXO DE FOTOS =====
+  while (Deseja anexar uma foto?) is (Sim)
+    :Fazer upload do arquivo;
+    :Informar Legenda da foto;
+  endwhile (Não)
+
+  :Adicionar Ocorrência ao Registro Diário;
+endwhile (Não)
+
+' ===== FINALIZAÇÃO E PERSISTÊNCIA =====
+:Salvar Registro Diário;
+:Gravar dados de Auditoria;
+
+#D5E8D4:Exibir confirmação de Registro Diário salvo;
+
+stop
+@enduml
