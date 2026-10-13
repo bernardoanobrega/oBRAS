@@ -1,0 +1,73 @@
+@startuml cronograma-class-diagram
+title OBRAS - Diagrama de Classes (Módulo Cronograma)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Obra <<externa>>
+class Usuario <<externa>>
+
+' ===== NÚCLEO =====
+class Cronograma <<Entity>> {
+  -id : int
+  -dataUltimaAtualizacao : Date
+  --
+  +adicionarFase(nome : String, ordem : int, inicioPrevisto : Date, fimPrevisto : Date) : Fase
+  +removerFase(idFase : int) : void
+  +buscarFase(idFase : int) : Fase
+  +validarSequenciaFases() : boolean
+  +calcularInicioPrevisto() : Date
+  +calcularFimPrevisto() : Date
+  +calcularPercentualGeral() : double
+  +calcularDesvioPrazoDias(dataReferencia : Date) : int
+  +identificarFasesAtrasadas(dataReferencia : Date) : Fase[]
+}
+
+class Fase <<Entity>> {
+  -id : int
+  -idCronograma : int
+  -nome : String
+  -descricao : String
+  -ordem : int
+  -inicioPrevisto : Date
+  -fimPrevisto : Date
+  -inicioReal : Date
+  -fimReal : Date
+  -status : StatusFase
+  --
+  +validarPeriodo() : boolean
+  +registrarAvanco(percentualAcumulado : double, observacao : String, autor : Usuario) : AvancoFisico
+  +calcularPercentualConcluido() : double
+  +concluir(dataReal : Date) : void
+  +estaAtrasada(dataReferencia : Date) : boolean
+  +calcularDesvioDias(dataReferencia : Date) : int
+}
+
+class AvancoFisico <<Entity>> {
+  -id : int
+  -idFase : int
+  -dataRegistro : Date
+  -percentualAcumulado : double
+  -observacao : String
+  --
+  +validar(percentualAnterior : double) : boolean
+}
+
+' ===== ENUMERAÇÕES =====
+enum StatusFase {
+  NAO_INICIADA
+  EM_ANDAMENTO
+  CONCLUIDA
+}
+
+' ===== RELAÇÕES =====
+Cronograma "0..1" --> "1" Obra : informa
+Cronograma "1" *-- "0..*" Fase : composto por
+Fase "1" *-- "0..*" AvancoFisico : acumula
+Usuario "1" --> "0..*" AvancoFisico : registra
+
+@enduml
