@@ -20,11 +20,10 @@ class Cronograma <<Entity>> {
   +removerFase(idFase : int) : void
   +buscarFase(idFase : int) : Fase
   +validarSequenciaFases() : boolean
-  +calcularInicioPrevisto() : Date
-  +calcularFimPrevisto() : Date
   +calcularPercentualGeral() : double
   +calcularDesvioPrazoDias(dataReferencia : Date) : int
   +identificarFasesAtrasadas(dataReferencia : Date) : Fase[]
+  +cancelar()
 }
 
 class Fase <<Entity>> {

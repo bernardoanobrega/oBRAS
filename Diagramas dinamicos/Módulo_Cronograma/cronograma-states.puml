@@ -1,0 +1,33 @@
+@startuml cronograma-states
+title Diagrama de Estados da Classe Cronograma
+
+skinparam state {
+    BackgroundColor #FFFFFF
+    BorderColor #444444
+    BackgroundColor<<final>> #EEEEEE
+}
+skinparam ArrowFontSize 12
+skinparam NoteBackgroundColor #FFFBE6
+hide empty description
+
+' ===== ESTADOS =====
+state VAZIO : Cronograma criado, sem fases cadastradas
+state PLANEJADO : Fases cadastradas, ainda não iniciadas
+state EM_ANDAMENTO : Cronograma em execução, ao menos uma fase iniciada
+state CONCLUIDO <<final>> : Cronograma finalizado, todas as fases concluídas
+state CANCELADO <<final>> : Cronograma cancelado
+
+' ===== TRANSIÇÕES =====
+[*] --> VAZIO: cadastrar [usuário autorizado]
+VAZIO --> PLANEJADO : adicionarFase(...) \n[validador de sequência OK]
+PLANEJADO --> PLANEJADO : adicionarFase(...) / removerFase(...) \n[validarSequenciaFases() == true]
+PLANEJADO --> EM_ANDAMENTO : fase.registrarAvanco(...) \n[mudança de status da fase]
+EM_ANDAMENTO --> EM_ANDAMENTO : adicionarFase(...) / removerFase(...) / fase.registrarAvanco(...) \n[atualização de percentuais e prazos]
+EM_ANDAMENTO --> CONCLUIDO : calcularPercentualGeral() == 100% \n/ todas as fases concluídas
+VAZIO --> CANCELADO : cancelar()
+PLANEJADO --> CANCELADO : cancelar()
+EM_ANDAMENTO --> CANCELADO : cancelar()
+CONCLUIDO --> [*]
+CANCELADO --> [*]
+
+@enduml
