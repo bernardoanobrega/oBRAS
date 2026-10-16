@@ -1,0 +1,22 @@
+@startuml DiagramaEstados_PedidoMaterial
+skinparam state {
+  BackgroundColor LightBlue
+  BorderColor Blue
+}
+
+[*] --> SOLICITADO : Estoquista cria pedido (RF-15)
+
+SOLICITADO --> EM_COTACAO : Registrar cotações
+SOLICITADO --> CANCELADO : Cancelar pedido (RF-16.7)
+
+EM_COTACAO --> EM_COTACAO : Editar cotações (RFP-M02.2)
+EM_COTACAO --> CANCELADO : Cancelar pedido (RF-16.7)
+EM_COTACAO --> COMPRADO : Escolher cotação (RF-16.3 / RN-MAT-03)
+
+COMPRADO --> EM_TRANSITO : Registrar envio (RF-16.4)
+
+EM_TRANSITO --> ENTREGUE : Confirmar recebimento (RF-16.5)
+
+ENTREGUE --> [*] : Gera ordem de ENTRADA (RF-17.3)
+CANCELADO --> [*] : Regra RN-MAT-01
+@enduml

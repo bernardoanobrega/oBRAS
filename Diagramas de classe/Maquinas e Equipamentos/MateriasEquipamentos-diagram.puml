@@ -1,0 +1,182 @@
+@startuml DiagramaDeClasses_MateriaisEquipamentos
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "Classes Externas (Referência)" {
+    class Obra {
+        + idObra: UUID
+        + nome: String
+        + status: StatusObra
+    }
+    class Canteiro {
+        + idCanteiro: UUID
+        + nome: String
+    }
+    class Usuario {
+        + idUsuario: UUID
+        + nome: String
+        + perfil: PerfilAcesso
+    }
+    Obra "1" *-- "1..*" Canteiro
+}
+
+package "Módulo: Materiais e Compras" {
+    class Fornecedor {
+        + idFornecedor: UUID
+        + nome: String
+        + documento: String
+        + contato: String
+        + situacao: SituacaoRegistro
+    }
+
+    class Material {
+        + idMaterial: UUID
+        + nome: String
+        + unidadeMedida: String
+        + categoria: String
+        + situacao: SituacaoRegistro
+    }
+
+    class PedidoMaterial {
+        + idPedido: UUID
+        + dataSolicitacao: DateTime
+        + status: StatusPedido
+        + motivoCancelamento: String
+        + cancelar(motivo: String): void
+    }
+
+    class ItemPedido {
+        + idItem: UUID
+        + quantidade: Decimal
+    }
+
+    class Cotacao {
+        + idCotacao: UUID
+        + valorTotal: Decimal
+        + prazoEntregaDias: Integer
+        + escolhida: Boolean
+    }
+
+    class HistoricoStatusPedido {
+        + idHistorico: UUID
+        + statusAnterior: StatusPedido
+        + statusNovo: StatusPedido
+        + dataHora: DateTime
+    }
+
+    class MovimentacaoEstoque {
+        + idMovimentacao: UUID
+        + numeroOrdem: Integer
+        + tipo: TipoMovimentacao
+        + motivo: MotivoMovimentacao
+        + quantidade: Decimal
+        + dataHora: DateTime
+        + justificativa: String
+    }
+
+    enum StatusPedido {
+        SOLICITADO
+        EM_COTACAO
+        COMPRADO
+        EM_TRANSITO
+        ENTREGUE
+        CANCELADO
+    }
+
+    enum TipoMovimentacao {
+        ENTRADA
+        SAIDA
+    }
+
+    enum MotivoMovimentacao {
+        ENTREGA_PEDIDO
+        CONSUMO
+        AJUSTE
+    }
+}
+
+package "Módulo: Equipamentos" {
+    class Equipamento {
+        + idEquipamento: UUID
+        + codigoPatrimonio: String
+        + descricao: String
+        + tipo: TipoEquipamento
+        + origem: OrigemEquipamento
+        + situacao: SituacaoEquipamento
+        + fimLocacao: Date
+    }
+
+    class AlocacaoEquipamento {
+        + idAlocacao: UUID
+        + dataInicio: Date
+        + dataPrevistaDevolucao: Date
+        + dataFimDevolucao: Date
+        + responsavel: String
+        + observacao: String
+        + condicaoDevolucao: CondicaoDevolucao
+    }
+
+    class Manutencao {
+        + idManutencao: UUID
+        + tipo: TipoManutencao
+        + dataInicio: Date
+        + dataFim: Date
+        + descricao: String
+    }
+
+    enum TipoEquipamento {
+        MAQUINA
+        FERRAMENTA
+        OUTRO
+    }
+
+    enum OrigemEquipamento {
+        PROPRIO
+        LOCADO
+    }
+
+    enum SituacaoEquipamento {
+        DISPONIVEL
+        ALOCADO
+        EM_MANUTENCAO
+        INATIVO
+    }
+
+    enum TipoManutencao {
+        PREVENTIVA
+        CORRETIVA
+    }
+
+    enum CondicaoDevolucao {
+        BOA
+        DANIFICADO
+    }
+}
+
+enum SituacaoRegistro {
+    ATIVO
+    INATIVO
+}
+
+' Relacionamentos Materiais
+PedidoMaterial "1" *-- "1..*" ItemPedido : contém
+ItemPedido "*" --> "1" Material : refere-se a
+PedidoMaterial "1" *-- "0..*" Cotacao : possui
+Cotacao "*" --> "1" Fornecedor : fornecida por
+PedidoMaterial "*" --> "1" Canteiro : destinado a
+PedidoMaterial "*" --> "1" Usuario : autor
+PedidoMaterial "1" *-- "1..*" HistoricoStatusPedido : rastreia
+HistoricoStatusPedido "*" --> "1" Usuario : alterado por
+
+MovimentacaoEstoque "*" --> "1" Material : movimenta
+MovimentacaoEstoque "*" --> "1" Canteiro : ocorre no
+MovimentacaoEstoque "*" --> "1" Usuario : registrada por
+MovimentacaoEstoque "*" --> "0..1" MovimentacaoEstoque : estorno de
+
+' Relacionamentos Equipamentos
+Equipamento "1" *-- "0..*" AlocacaoEquipamento : historico de
+AlocacaoEquipamento "*" --> "1" Canteiro : alocado ao
+AlocacaoEquipamento "*" --> "1" Usuario : operacao por
+Equipamento "1" *-- "0..*" Manutencao : sofre
+
+@enduml
