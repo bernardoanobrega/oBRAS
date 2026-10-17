@@ -1,0 +1,44 @@
+@startuml
+!theme plain
+skinparam maxMessageSize 150
+autonumber
+
+actor "Mestre de Obras" as user
+boundary "TelaDevolucaoEquipamento" as view <<view>>
+control "ControleAlocacao" as ctrl <<Controller>>
+entity "AlocacaoEquipamento" as alocacao <<Entity>>
+entity "Equipamento" as equipamento <<Entity>>
+entity "Manutencao" as manutencao <<Entity>>
+
+user -> view : Confirma a devolução do equipamento (condição: DANIFICADO)
+view -> ctrl : registrarDevolucao(alocacaoId, dataFim, CondicaoDevolucao.DANIFICADO)
+
+ctrl -> alocacao : buscarPorId(alocacaoId)
+return dadosAlocacao
+
+ctrl -> alocacao : registrarDevolucao(dataFim, CondicaoDevolucao.DANIFICADO)
+return alocacaoAtualizada
+
+ctrl -> alocacao : getEquipamento()
+return equipamento
+
+alt Se condição for DANIFICADO
+    ctrl -> equipamento : enviarParaManutencao(TipoManutencao.CORRETIVA, "Dano reportado na devolução")
+    return manutencaoCriada
+
+    ctrl -> manutencao : salvarManutencao(manutencaoCriada)
+    return manutencaoSalva
+else Se condição for BOA
+    ctrl -> equipamento : setStatus(StatusEquipamento.DISPONIVEL)
+    return statusAtualizado
+end
+
+ctrl -> equipamento : salvarEquipamento()
+return equipamentoSalvo
+
+ctrl -> alocacao : salvarAlocacao()
+return alocacaoSalva
+
+ctrl -> view : confirmarDevolucaoRegistrada()
+view --> user : Exibir confirmação da devolução registada
+@enduml
