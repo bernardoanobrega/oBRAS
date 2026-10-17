@@ -1,0 +1,51 @@
+@startuml fase-adicao-validacao-sequence
+title Diagrama de Sequência - Adição e Validaçao de Sequência de Fases
+
+skinparam sequence {
+  ParticipantBackgroundColor #FFFFFF
+  ParticipantBorderColor #444444
+  LifeLineBorderColor #444444
+  ArrowColor #444444
+}
+skinparam NoteBackgroundColor #FFFBE6
+skinparam ArrowFontSize 12
+hide footbox
+
+actor "Usuário autorizado" as Usuário
+participant ":Fase" as Fase
+participant ":Cronograma" as Cronograma
+
+Usuário -> Cronograma : adicionarFase(...)
+activate Cronograma
+
+Cronograma --> Fase : create(...)
+activate Fase
+
+Fase -> Fase : validarPeriodo()
+activate Fase
+Fase --> Cronograma : boolean (período válido)
+deactivate Fase
+
+alt Período válido
+    Cronograma -> Cronograma : validarSequenciaFases()
+    activate Cronograma
+    note right : Verifica conflitos de datas entre fases
+    
+    Cronograma --> Cronograma : boolean (sequência correta)
+    deactivate Cronograma
+
+    alt Sequência correta
+        Cronograma --> Usuário : confirmação de sucesso na adição da fase
+    else Sequência inválida
+        Cronograma -> Fase : excluir fase
+        Cronograma --> Usuário : Exceção: conflito de ordem ou datas no cronograma
+    end
+else Período inválido
+    Cronograma -> Fase : excluir fase
+    Cronograma --> Usuário : Exceção: período da fase inválido
+end
+
+deactivate Fase
+deactivate Cronograma
+
+@enduml
