@@ -1,0 +1,39 @@
+@startuml orcamento-estouro-desvios-activity
+title Diagrama de Atividades - Identificaçao de Estouros e Análise de Desvios
+
+skinparam DefaultTextAlignment center
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #444444
+
+start
+
+:Acionar Análise de Desvios\ne Varredura Orçamentária;
+
+:Recuperar Orcamento e a lista de ItensOrcados;
+
+:Inicializar lista vazia de\nItens em Desvio / Estouro;
+
+repeat
+  :Selecionar próximo ItemOrcado;
+  
+  :Calcular métricas do item:\n- calcularTotalRealizado()\n- calcularDesvioFinanceiro();
+  
+  if (Item está em estouro?\nestaEmEstouro() == true) then (sim)
+    :Adicionar item à lista de\nItens em Desvio / Estouro;
+  else (não)
+    :Item em conformidade financeira;
+  endif
+
+repeat while (Existem mais itens a serem verificados?) is (sim)
+
+-> não;
+
+:Consolidar lista de itens críticos:\nlistarItensEmDesvio();
+
+:Gerar indicadores globais de saúde:\ngerarIndicadoresSaude();
+
+:Exibir Relatório de Desvios e Alertas ao Usuário;
+
+stop
+
+@enduml
