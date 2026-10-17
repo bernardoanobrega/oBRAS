@@ -23,7 +23,7 @@ VAZIO --> PLANEJADO : adicionarFase(...) \n[validador de sequência OK]
 PLANEJADO --> PLANEJADO : adicionarFase(...) / removerFase(...) \n[validarSequenciaFases() == true]
 PLANEJADO --> EM_ANDAMENTO : fase.registrarAvanco(...) \n[mudança de status da fase]
 EM_ANDAMENTO --> EM_ANDAMENTO : adicionarFase(...) / removerFase(...) / fase.registrarAvanco(...) \n[atualização de percentuais e prazos]
-EM_ANDAMENTO --> CONCLUIDO : calcularPercentualGeral() == 100% \n/ todas as fases concluídas
+EM_ANDAMENTO --> CONCLUIDO : calcularPercentualGeral() == 100% \n[todas as fases concluídas]
 VAZIO --> CANCELADO : cancelar()
 PLANEJADO --> CANCELADO : cancelar()
 EM_ANDAMENTO --> CANCELADO : cancelar()

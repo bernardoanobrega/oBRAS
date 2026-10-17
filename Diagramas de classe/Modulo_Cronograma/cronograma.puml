@@ -15,6 +15,7 @@ class Usuario <<externa>>
 class Cronograma <<Entity>> {
   -id : int
   -dataUltimaAtualizacao : Date
+  -status : StatusCronograma
   --
   +adicionarFase(nome : String, ordem : int, inicioPrevisto : Date, fimPrevisto : Date) : Fase
   +removerFase(idFase : int) : void
@@ -44,6 +45,7 @@ class Fase <<Entity>> {
   +concluir(dataReal : Date) : void
   +estaAtrasada(dataReferencia : Date) : boolean
   +calcularDesvioDias(dataReferencia : Date) : int
+  +cancelar()
 }
 
 class AvancoFisico <<Entity>> {
@@ -57,10 +59,19 @@ class AvancoFisico <<Entity>> {
 }
 
 ' ===== ENUMERAÇÕES =====
+enum StatusCronograma {
+  VAZIO
+  PLANEJADO
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+}
+
 enum StatusFase {
   NAO_INICIADA
   EM_ANDAMENTO
   CONCLUIDA
+  CANCELADA
 }
 
 ' ===== RELAÇÕES =====
