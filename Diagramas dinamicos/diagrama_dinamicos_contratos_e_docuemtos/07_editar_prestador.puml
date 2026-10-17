@@ -1,0 +1,43 @@
+@startuml 07_editar_prestador
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Editar prestador de serviço\nRF-07.8 e RF-07.9 - detalhamentos propostos
+
+actor "Administrador / Gestor da Obra" as user
+boundary "TelaPrestadorServico" as view <<view>>
+control "ControlePrestador" as ctrl <<Controller>>
+entity "prestador : PrestadorServico" as prestador <<Entity>>
+
+note over user, ctrl : Pré-condição: prestador existente selecionado e permissão explícita de edição.
+user -> view ++ : Alterar nome ou razão social, CPF/CNPJ e contato
+view -> ctrl ++ : editarPrestador(prestador, nome, cpfCnpj, contato, usuario)
+break campos obrigatórios inválidos
+  ctrl --> view : informarFalha("Preencha os dados obrigatórios")
+  view --> user : Exibir motivo da rejeição
+end
+ctrl -> prestador ++ : cpfCnpjExiste(cpfCnpj, prestador.id)
+return duplicadoEmOutroPrestador
+alt duplicadoEmOutroPrestador
+  ctrl --> view : informarFalha("CPF/CNPJ utilizado por outro prestador")
+  view --> user : Exibir motivo; manter dados anteriores
+else não duplicadoEmOutroPrestador
+  ctrl -> prestador ++ : alterarDados(nome, cpfCnpj, contato)
+  return
+  ctrl -> prestador ++ : salvarPrestador()
+  return salvo
+  alt salvo
+    ctrl --> view : confirmarPrestadorAtualizado(prestador)
+    view --> user : Exibir dados atualizados
+  else não salvo
+    ctrl --> view : informarFalha("Alteração não registrada")
+    view --> user : Exibir falha; manter dados persistidos anteriores
+  end
+end
+note right of ctrl : A edição não altera a situação nem remove contratos ou histórico.
+deactivate ctrl
+deactivate view
+@enduml

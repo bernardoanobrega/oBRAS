@@ -1,0 +1,49 @@
+@startuml 03_consultar_revisao_atual
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Consultar revisão atual\nUC20 - RF-23 e RF-24
+
+actor "Mestre de Obras" as user
+boundary "TelaDocumentos" as view <<view>>
+control "ControleDocumento" as ctrl <<Controller>>
+entity "documento : Documento" as documento <<Entity>>
+entity "versaoAtual : VersaoDocumento" as versao <<Entity>>
+
+note over user, ctrl
+  Pré-condição: documento existente selecionado no painel, usuário autenticado
+  e com permissão de consulta ao documento e à obra.
+end note
+user -> view ++ : Abrir documento selecionado
+view -> ctrl ++ : consultarRevisaoAtual(documento, usuario)
+loop primeiraTentativa ou (falhaAnterior e usuarioSolicitouNovaTentativa)
+  ctrl -> documento ++ : obterVersaoAtual()
+  return versaoAtual
+  ctrl -> versao ++ : obterArquivo()
+  return arquivo
+  ctrl -> ctrl ++ : carregarArquivo(arquivo)
+  return resultadoCarregamento
+  alt carregamento concluído
+    ctrl --> view : apresentarDocumento(resultadoCarregamento, versaoAtual.numero)
+    view --> user : Exibir conteúdo e número da versão atual
+  else falha de conexão ou leitura
+    ctrl --> view : informarFalha("Não foi possível carregar a versão atual")
+    view --> user : Exibir falha e opção Tentar novamente
+    opt usuário deseja nova tentativa
+      user -> view : Acionar Tentar novamente
+      view -> ctrl : tentarNovamente()
+    end
+  end
+end
+note over view, ctrl
+  O ciclo termina com sucesso ou quando o usuário encerra a consulta.
+  Cada tentativa solicita novamente a versão atual.
+  Uma versão anterior nunca é apresentada como atual.
+  Acesso online; UC20 não representa publicação de versão.
+end note
+deactivate ctrl
+deactivate view
+@enduml

@@ -1,0 +1,47 @@
+@startuml 04_consultar_versoes_anteriores
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Consultar versões anteriores\nRF-23.7 - detalhamento proposto, complementar ao UC20
+
+actor "Usuário autorizado" as user
+boundary "TelaRevisoesDocumento" as view <<view>>
+control "ControleDocumento" as ctrl <<Controller>>
+entity "documento : Documento" as documento <<Entity>>
+entity "versaoSelecionada : VersaoDocumento" as versao <<Entity>>
+
+note over user, ctrl : Pré-condição: documento selecionado e permissão explícita para consultar seu histórico de versões.
+user -> view ++ : Solicitar histórico de versões
+view -> ctrl ++ : listarVersoes(documento, usuario)
+ctrl -> documento ++ : listarVersoes()
+return versoes
+ctrl --> view : apresentarVersoes(versoes)
+view --> user : Exibir números e datas; diferenciar versão atual das anteriores
+deactivate ctrl
+deactivate view
+user -> view ++ : Selecionar número de uma versão anterior
+view -> ctrl ++ : consultarVersao(documento, numero, usuario)
+ctrl -> documento ++ : buscarVersao(numero)
+return versaoSelecionada
+alt versão encontrada
+  ctrl -> versao ++ : obterArquivo()
+  return arquivo
+  ctrl -> ctrl ++ : carregarArquivo(arquivo)
+  return resultadoCarregamento
+  alt carregamento concluído
+    ctrl --> view : apresentarVersaoAnterior(resultadoCarregamento, numero)
+    view --> user : Exibir conteúdo identificado como versão anterior
+  else falha no carregamento
+    ctrl --> view : informarFalha("Falha ao carregar a versão selecionada")
+    view --> user : Exibir falha e opção de repetir a consulta
+  end
+else versão inexistente no documento
+  ctrl --> view : informarFalha("Versão não encontrada neste documento")
+  view --> user : Exibir motivo
+end
+deactivate ctrl
+deactivate view
+@enduml

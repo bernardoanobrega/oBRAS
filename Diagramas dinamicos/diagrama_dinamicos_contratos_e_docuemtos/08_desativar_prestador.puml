@@ -1,0 +1,44 @@
+@startuml 08_desativar_prestador
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Desativar prestador de serviço\nRF-07.10 e RF-07.11 - detalhamentos propostos
+
+actor "Administrador / Gestor da Obra" as user
+boundary "TelaPrestadorServico" as view <<view>>
+control "ControlePrestador" as ctrl <<Controller>>
+entity "prestador : PrestadorServico" as prestador <<Entity>>
+
+note over user, ctrl : Pré-condição: prestador existente selecionado e permissão explícita de desativação.
+user -> view ++ : Solicitar desativação do prestador
+view -> ctrl ++ : desativarPrestador(prestador, usuario)
+ctrl -> prestador ++ : estaAtivo()
+return ativo
+alt ativo
+  ctrl -> prestador ++ : desativar()
+  note right of prestador
+    Situação passa a INATIVO.
+    Preserva todos os contratos e registros de histórico.
+    Novos vínculos ficam impedidos pela RN-PRE-02.
+  end note
+  return
+  ctrl -> prestador ++ : salvarPrestador()
+  return salvo
+  alt salvo
+    ctrl --> view : confirmarDesativacao(prestador)
+    view --> user : Exibir situação INATIVO
+  else não salvo
+    ctrl --> view : informarFalha("Desativação não registrada")
+    view --> user : Exibir falha; manter situação persistida anterior
+  end
+else não ativo
+  ctrl --> view : informarSituacaoAtual(prestador)
+  view --> user : Informar que o prestador já está INATIVO
+end
+note over view, ctrl : O modelo não oferece exclusão de prestador, inclusive quando existe histórico.
+deactivate ctrl
+deactivate view
+@enduml
