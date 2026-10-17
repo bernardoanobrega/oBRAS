@@ -28,6 +28,7 @@ class Orcamento <<Entity>> {
   +calcularPercentualDesvio() : double
   +listarItensEmDesvio() : ItemOrcado[]
   +gerarIndicadoresSaude() : IndicadorSaudeFinanceira
+  +cancelar()
 }
 
 class ItemOrcado <<Entity>> {
