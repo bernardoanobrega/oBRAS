@@ -1,0 +1,108 @@
+@startuml class-diagram
+title OBRAS - Diagrama de Classes (Módulo de Máquinas e Ferramentas)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Usuario <<externa>>
+
+class Obra <<externa>> {
+  -id : int
+  -status : StatusObra
+  --
+  +podeSerEncerrada() : boolean
+}
+
+class Canteiro <<externa>> {
+  -id : int
+  -idObra : int
+  -nomeCanteiro : String
+}
+
+' ===== NÚCLEO =====
+class Equipamento <<Entity>> {
+  -id : int
+  -codigoPatrimonio : String
+  -descricao : String
+  -tipo : TipoEquipamento
+  -origem : OrigemEquipamento
+  -fimLocacao : Date
+  -status : StatusEquipamento
+  --
+  +cadastrar() : void
+  +desativar() : void
+  +enviarParaManutencao(tipo : TipoManutencao, descricao : String) : Manutencao
+  +verificarLocacaoAVencer() : boolean
+}
+
+class AlocacaoEquipamento <<Entity>> {
+  -id : int
+  -idEquipamento : int
+  -idCanteiro : int
+  -dataInicio : Date
+  -dataPrevistaDevolucao : Date
+  -dataFim : Date
+  -condicaoDevolucao : CondicaoDevolucao
+  -responsavel : String
+  -observacao : String
+  --
+  +realizarAlocacao(canteiro : Canteiro, prevDevolucao : Date) : void
+  +registrarDevolucao(dataFim : Date, condicao : CondicaoDevolucao) : void
+  +isAtrasada() : boolean
+}
+
+class Manutencao <<Entity>> {
+  -id : int
+  -idEquipamento : int
+  -tipo : TipoManutencao
+  -dataInicio : Date
+  -dataFim : Date
+  -descricao : String
+  --
+  +registrarInicio(tipo : TipoManutencao, descricao : String) : void
+  +registrarConclusao(dataFim : Date) : void
+}
+
+' ===== ENUMERAÇÕES =====
+enum TipoEquipamento {
+  MAQUINA
+  FERRAMENTA
+  OUTRO
+}
+
+enum OrigemEquipamento {
+  PROPRIO
+  LOCADO
+}
+
+enum StatusEquipamento {
+  DISPONIVEL
+  ALOCADO
+  EM_MANUTENCAO
+  INATIVO
+}
+
+enum TipoManutencao {
+  PREVENTIVA
+  CORRETIVA
+}
+
+enum CondicaoDevolucao {
+  BOA
+  DANIFICADO
+}
+
+' ===== RELAÇÕES =====
+Obra "1" *-- "1..*" Canteiro : possui
+Equipamento "1" *-- "0..*" AlocacaoEquipamento : possui
+Equipamento "1" *-- "0..*" Manutencao : possui
+AlocacaoEquipamento "1" --> "1" Canteiro : destinada a
+Usuario "1" --> "0..*" Equipamento : gerencia
+Usuario "1" --> "0..*" AlocacaoEquipamento : aloca/devolve
+AlocacaoEquipamento "0..1" --> "0..1" Manutencao : gera (se danificado)
+
+@enduml
