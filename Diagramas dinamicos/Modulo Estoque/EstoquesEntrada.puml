@@ -1,5 +1,6 @@
-@startuml
+@startuml estoques-entrada-sequence
 !theme plain
+title Diagrama de Sequência - Entrada de Material no Estoque por Compra
 skinparam maxMessageSize 150
 autonumber
 
@@ -12,38 +13,54 @@ entity "Material" as material <<Entity>>
 entity "SaldoEstoque" as saldo <<Entity>>
 entity "MovimentacaoEstoque" as movimentacao <<Entity>>
 
-user -> view : Confirma a receçao da encomenda
+user -> view : Confirma a recepção da encomenda (pedidoId)
+activate view
+
 view -> ctrl : registrarEntradaEstoque(pedidoId)
+activate ctrl
 
 ctrl -> pedido : buscarPorId(pedidoId)
-return dadosPedido
+activate pedido
+pedido --> ctrl : dadosPedido
+deactivate pedido
 
 loop Para cada item do pedido
     ctrl -> item : getMaterial()
-    return material
+    activate item
+    item --> ctrl : material
+    deactivate item
 
-    ctrl -> item: getQuantidade()
-    return quantidadeItem
+    ctrl -> item : getQuantidade()
+    activate item
+    item --> ctrl : quantidadeItem
+    deactivate item
 
-    ctrl -> movimentacao : criarMovimentacao(material, quantidadeItem, TipoMovimentacao.ENTRADA_COMPRA)
-    return movimentacaoCriada
-
+    ctrl --> movimentacao ** : <<create>> criarMovimentacao(material, quantidadeItem, ENTRADA_COMPRA)
+    activate movimentacao
     ctrl -> movimentacao : salvarMovimentacao()
-    return movimentacaoSalva
+    movimentacao --> ctrl : movimentacaoSalva
+    deactivate movimentacao
 
     ctrl -> saldo : buscarPorMaterial(material)
-    return saldoAtual
+    activate saldo
+    saldo --> ctrl : saldoAtual
 
     ctrl -> saldo : adicionarSaldo(quantidadeItem)
-    return saldoAtualizado
+    saldo --> ctrl : saldoAtualizado
 
     ctrl -> saldo : salvarSaldo()
-    return saldoSalvo
+    saldo --> ctrl : saldoSalvo
+    deactivate saldo
 end
 
-ctrl -> pedido : setStatus(ENTREGUE)
-return statusAtualizado
+ctrl -> pedido : alterarStatus(StatusPedido.ENTREGUE)
+activate pedido
+pedido --> ctrl : statusAtualizado
+deactivate pedido
 
 ctrl -> view : confirmarEntradaEstoqueRegistrada()
 view --> user : Exibir confirmação da entrada de estoque registrada
+
+deactivate ctrl
+deactivate view
 @enduml
