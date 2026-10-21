@@ -1,0 +1,54 @@
+@startuml orcamento-geracaodeindicadores-saude-sequence
+title Diagrama de Sequência - Geração de Indicadores e Avaliação da Saúde Financeira
+
+skinparam sequence {
+  ParticipantBackgroundColor #FFFFFF
+  ParticipantBorderColor #444444
+  LifeLineBorderColor #444444
+  ArrowColor #444444
+}
+skinparam NoteBackgroundColor #FFFBE6
+skinparam ArrowFontSize 12
+hide footbox
+
+actor "Usuário autorizado" as Usuario
+participant ":ItemOrcado" as Item
+participant ":IndicadorSaudeFinanceira" as Indicador
+participant ":Orcamento" as Orcamento
+
+Usuario -> Orcamento : gerarIndicadoresSaude()
+activate Orcamento
+
+Orcamento -> Orcamento : calcularTotalOrcado()
+activate Orcamento
+Orcamento --> Orcamento : totalOrcado (BigDecimal)
+deactivate Orcamento
+
+loop Para cada ItemOrcado
+    Orcamento -> Item : calcularTotalRealizado()
+    activate Item
+    Item --> Orcamento : totalRealizadoItem (BigDecimal)
+    deactivate Item
+end
+
+Orcamento -> Orcamento : calcularTotalRealizado() / calcularDesvioFinanceiro()
+activate Orcamento
+Orcamento --> Orcamento : desvioAbsoluto, desvioPercentual, percentualExecutado
+deactivate Orcamento
+
+Orcamento --> Indicador : create(...)
+activate Indicador
+
+Indicador -> Indicador : classificarSaude(...)
+activate Indicador
+note right : Avalia se a saúde é SAUDAVEL,\nATENCAO ou CRITICA com base no limite
+Indicador --> Indicador : saude (SaudeFinanceira)
+deactivate Indicador
+
+Indicador --> Orcamento : objeto IndicadorSaudeFinanceira pronto
+deactivate Indicador
+
+Orcamento --> Usuario : Indicadores de Saúde Financeira gerados
+deactivate Orcamento
+
+@enduml

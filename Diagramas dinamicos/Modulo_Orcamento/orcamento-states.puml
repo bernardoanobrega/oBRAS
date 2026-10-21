@@ -1,0 +1,42 @@
+@startuml orcamento-states
+title Diagrama de Estados da classe Orcamento
+
+skinparam state {
+    BackgroundColor #FFFFFF
+    BorderColor #444444
+    BackgroundColor<<final>> #EEEEEE
+}
+skinparam ArrowFontSize 12
+skinparam NoteBackgroundColor #FFFBE6
+hide empty description
+
+' ===== ESTADOS =====
+state ELABORACAO : Orçamento criado, itens sendo adicionados
+state SAUDAVEL : Execução dentro do planejado e abaixo do limite de alerta
+state ATENCAO : Atingiu o percentualLimiteAlerta
+state CRITICA : Orçamento em estouro crítico (vários itens em desvio)
+state CANCELADO <<final>> : Orçamento cancelado
+
+' ===== TRANSIÇÕES =====
+[*] --> ELABORACAO : cadastrar [Usuário autorizado]
+
+ELABORACAO --> SAUDAVEL : adicionarItem(...) \n[Iniciar acompanhamento]
+
+SAUDAVEL --> SAUDAVEL : item.registrarCusto(...) / gerarIndicadoresSaude() \n[saude == SAUDAVEL]
+SAUDAVEL --> ATENCAO : item.registrarCusto(...) / gerarIndicadoresSaude() \n[saude == ATENCAO]
+
+ATENCAO --> SAUDAVEL : registrarDecisao(...) \nReduçao de desvio [saude == SAUDAVEL]
+ATENCAO --> ATENCAO : item.registrarCusto(...) \n[saude == ATENCAO]
+ATENCAO --> CRITICA : item.registrarCusto(...) / gerarIndicadoresSaude() \n[saude == CRITICA]
+
+CRITICA --> ATENCAO : registrarDecisao(...) \nContenção de custos [saude == ATENCAO]
+CRITICA --> CRITICA : item.registrarCusto(...) \n[saude == CRITICA]
+
+ELABORACAO --> CANCELADO : cancelar()
+SAUDAVEL --> CANCELADO : cancelar()
+ATENCAO --> CANCELADO : cancelar()
+CRITICA --> CANCELADO : cancelar()
+
+CANCELADO --> [*]
+
+@enduml
