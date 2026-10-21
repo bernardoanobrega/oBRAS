@@ -1,0 +1,32 @@
+@startuml saldoestoque-states
+title Diagrama de Estados da Classe SaldoEstoque
+
+skinparam state {
+    BackgroundColor #FFFFFF
+    BorderColor #444444
+}
+skinparam ArrowFontSize 12
+skinparam NoteBackgroundColor #FFFBE6
+hide empty description
+
+' ===== ESTADOS =====
+state ESGOTADO : quantidadeAtual == 0
+state ALERTA_MINIMO : 0 < quantidadeAtual <= quantidadeMinima
+state REGULAR : quantidadeAtual > quantidadeMinima
+
+' ===== TRANSIÇÕES =====
+[*] --> ESGOTADO : cadastrar Material\n/ quantidadeAtual := 0
+
+ESGOTADO --> REGULAR : adicionarSaldo(qtd)\n[quantidadeAtual + qtd > quantidadeMinima]
+ESGOTADO --> ALERTA_MINIMO : adicionarSaldo(qtd)\n[quantidadeAtual + qtd <= quantidadeMinima]
+
+REGULAR --> REGULAR : adicionarSaldo(qtd)
+REGULAR --> REGULAR : subtrairSaldo(qtd)\n[quantidadeAtual - qtd > quantidadeMinima]
+REGULAR --> ALERTA_MINIMO : subtrairSaldo(qtd)\n[0 < quantidadeAtual - qtd <= quantidadeMinima]\n/ verificarAlertaMinimo()
+REGULAR --> ESGOTADO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd == 0]\n/ verificarAlertaMinimo()
+
+ALERTA_MINIMO --> REGULAR : adicionarSaldo(qtd)\n[quantidadeAtual + qtd > quantidadeMinima]
+ALERTA_MINIMO --> ALERTA_MINIMO : adicionarSaldo(qtd)\n[quantidadeAtual + qtd <= quantidadeMinima]
+ALERTA_MINIMO --> ALERTA_MINIMO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd > 0]
+ALERTA_MINIMO --> ESGOTADO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd == 0]
+@enduml

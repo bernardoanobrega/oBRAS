@@ -1,0 +1,32 @@
+@startuml estoque-conferencia-alerta-activity
+title Diagrama de Atividades - Movimentação de Saída e Verificação de Estoque Mínimo
+
+skinparam DefaultTextAlignment center
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #444444
+
+start
+:Estoquista solicita saída de material para consumo;
+:Buscar Material e recuperar SaldoEstoque correspondente;
+
+if (quantidadeAtual >= quantidadeSolicitada?) then (sim)
+  :Criar registro de MovimentacaoEstoque (SAIDA_CONSUMO);
+  :Subtrair quantidade do SaldoEstoque:\nsubtrairSaldo(quantidadeSolicitada);
+  :Verificar limite de segurança:\nverificarAlertaMinimo();
+  
+  if (Atingiu ou ficou abaixo da quantidadeMinima?) then (sim)
+    :Emitir alerta de estoque baixo para o material;
+    :Sugerir abertura de PedidoCompra (SOLICITACAO);
+  else (não)
+    :Saldo permanece em nível regular;
+  endif
+  
+  :Salvar MovimentacaoEstoque e atualizar SaldoEstoque;
+  :Exibir confirmação de saída ao Estoquista;
+else (não)
+  :Bloquear movimentação de saída;
+  :Exibir mensagem de erro: "Quantidade insuficiente em estoque";
+endif
+
+stop
+@enduml

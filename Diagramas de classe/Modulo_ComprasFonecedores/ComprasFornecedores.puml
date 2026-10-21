@@ -1,0 +1,96 @@
+@startuml compras-fornecedores-class-diagram
+title OBRAS - Diagrama de Classes (Módulo Compras e Fornecedores)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Obra <<externa>>
+class Usuario <<externa>>
+class Material <<externa>>
+
+' ===== FRONTEIRA E CONTROLE (BCE) =====
+class TelaPedidoCompra <<Boundary>> {
+  +confirmarPedidoCriado(pedido : PedidoCompra) : void
+  +exibirMensagemErro(mensagem : String) : void
+}
+
+class ControlePedido <<Control>> {
+  +criarPedido(fornecedorId : Long, dadosPedido : PedidoCompra) : PedidoCompra
+}
+
+' ===== NÚCLEO (ENTIDADES) =====
+class Fornecedor <<Entity>> {
+  -id : Long
+  -nome : String
+  -razaoSocial : String
+  -cnpj : String
+  -email : String
+  -telefone : String
+  -ativo : Boolean
+  --
+  +cadastrar() : void
+  +atualizarDados() : void
+  +buscarPorId(id : Long) : Fornecedor
+}
+
+class PedidoCompra <<Entity>> {
+  -id : Long
+  -dataSolicitacao : LocalDate
+  -dataPrevista : LocalDate
+  -valorTotal : BigDecimal
+  -status : StatusPedido
+  -prioridade : StatusPrioridade
+  --
+  +criarPedido(fornecedor : Fornecedor, dadosPedido : PedidoCompra) : PedidoCompra
+  +adicionarItem(item : ItemPedido) : void
+  +removerItem(item : ItemPedido) : void
+  +alterarStatus(novoStatus : StatusPedido) : void
+  +calcularValorTotal() : BigDecimal
+  +salvarPedido() : void
+  +buscarPorId(id : Long) : PedidoCompra
+}
+
+class ItemPedido <<Entity>> {
+  -id : Long
+  -quantidade : Double
+  -valorUnitario : BigDecimal
+  --
+  +criarItem(material : Material, quantidade : Double, valorUnitario : BigDecimal) : ItemPedido
+  +calcularValorSubTotal() : BigDecimal
+  +getMaterial() : Material
+  +getQuantidade() : Double
+}
+
+' ===== ENUMERAÇÕES =====
+enum StatusPedido {
+  SOLICITACAO
+  EM_COTACAO
+  COMPRADO
+  EM_TRANSITO
+  ENTREGUE
+  CANCELADO
+}
+
+enum StatusPrioridade {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
+' ===== RELAÇÕES =====
+TelaPedidoCompra ..> ControlePedido : aciona
+ControlePedido ..> PedidoCompra : gerencia
+ControlePedido ..> Fornecedor : consulta
+ControlePedido ..> Material : consulta
+
+PedidoCompra "0..*" --> "1" Fornecedor : fornecido por
+PedidoCompra "0..*" --> "1" Obra : destinado a
+PedidoCompra "0..*" --> "1" Usuario : solicitado por
+PedidoCompra "1" *-- "1..*" ItemPedido : composto por
+ItemPedido "0..*" --> "1" Material : refere-se a
+
+@enduml

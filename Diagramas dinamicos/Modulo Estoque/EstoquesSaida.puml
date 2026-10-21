@@ -1,5 +1,6 @@
-@startuml
+@startuml estoques-saida-sequence
 !theme plain
+title Diagrama de Sequência - Saída de Material do Estoque
 skinparam maxMessageSize 150
 autonumber
 
@@ -10,36 +11,51 @@ entity "Material" as material <<Entity>>
 entity "SaldoEstoque" as saldo <<Entity>>
 entity "MovimentacaoEstoque" as movimentacao <<Entity>>
 
-user -> view : Solicita a saída de materiais do estoque\n (material, quantidade, tipo = SAIDA_CONSUMO)
+user -> view : Solicita a saída de materiais do estoque\n(materialId, quantidade, tipo = SAIDA_CONSUMO)
+activate view
+
 view -> ctrl : registrarSaidaEstoque(materialId, quantidade)
+activate ctrl
 
 ctrl -> material : buscarPorId(materialId)
-return dadosMaterial
+activate material
+material --> ctrl : dadosMaterial
+deactivate material
 
 ctrl -> saldo : buscarPorMaterial(dadosMaterial)
-return saldoAtual
+activate saldo
+saldo --> ctrl : saldoAtual
+deactivate saldo
 
 ctrl -> saldo : getQuantidadeAtual()
-return quantidadeAtual
+activate saldo
+saldo --> ctrl : quantidadeAtual
+deactivate saldo
 
-alt QuantidadeAtual >= quantidade solicidada
-    ctrl -> movimentacao : criarMovimentacao(dadosMaterial, quantidade, TipoMovimentacao.SAIDA_CONSUMO)
-    return movimentacaoCriada
+alt [quantidadeAtual >= quantidade]
+    ctrl --> movimentacao ** : <<create>> criarMovimentacao(dadosMaterial, quantidade, SAIDA_CONSUMO)
+    activate movimentacao
+    ctrl -> movimentacao : registrarMovimentacao()
+    movimentacao --> ctrl : movimentacaoSalva
+    deactivate movimentacao
 
-    ctrl -> movimentacao : salvarMovimentacao()
-    return movimentacaoSalva
+    ctrl -> saldo : subtrairSaldo(quantidade)
+    activate saldo
+    saldo --> ctrl : quantidadeAtualizada
+    deactivate saldo
 
-    crtl -> saldo : subtrairSaldo(quantidade)
-    return quandidadeAtualizada
+    ctrl -> saldo : verificarAlertaMinimo()
+    activate saldo
+    saldo --> ctrl : emAlerta (Boolean)
+    deactivate saldo
 
-    ctrl -> saldo : salvarSaldo()
-    return saldoSalvo
-
-    ctrl -> view : confirmarSaidaEstoqueRegistrada()
-    view --> user : Exibir confirmação da saída de estoque registrada
-else QuantidadeAtual < quantidade solicitada
+    ctrl -> view : confirmarSaidaEstoqueRegistrada(emAlerta)
+    view --> user : Exibir confirmação da saída registrada
+else [quantidadeAtual < quantidade]
     ctrl -> view : exibirMensagemErro("Quantidade insuficiente em estoque")
-    view --> user : Exibir mensagem de erro 
+    view --> user : Exibir mensagem de erro
 end
 
+deactivate ctrl
+deactivate view
 @enduml

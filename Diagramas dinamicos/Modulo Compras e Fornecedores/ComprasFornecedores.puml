@@ -1,5 +1,6 @@
-@startuml
+@startuml compras-fornecedores-sequence
 !theme plain
+title Diagrama de Sequência - Criação de Pedido de Compra
 skinparam maxMessageSize 150
 autonumber
 
@@ -11,32 +12,46 @@ entity "PedidoCompra" as pedido <<Entity>>
 entity "ItemPedido" as item <<Entity>>
 entity "Material" as material <<Entity>>
 
-user -> view : Preencher dados do pedido
-view -> ctrl : criarPedido(pedido)
-ctrl -> fornecedor : buscarPorId(FornecedorId)
-return dadosFornecedor
+user -> view : Preencher dados do pedido e itens
+activate view
 
-ctrl -> pedido : criarPedido(dadosFornecedor, dadosPedido)
+view -> ctrl : criarPedido(fornecedorId, dadosPedido)
+activate ctrl
+
+ctrl -> fornecedor : buscarPorId(fornecedorId)
+activate fornecedor
+fornecedor --> ctrl : dadosFornecedor
+deactivate fornecedor
+
+ctrl --> pedido ** : <<create>> criarPedido(dadosFornecedor, dadosPedido)
+activate pedido
+
 loop Para cada item na lista da interface
-    ctrl -> material : buscarPorId(MaterialId)
-    return dadosMaterial
+    ctrl -> material : buscarPorId(materialId)
+    activate material
+    material --> ctrl : dadosMaterial
+    deactivate material
 
-    ctrl -> item : criarItem(dadosMaterial, quantidade, valorUnitario)
-    return itemCriado
-
+    ctrl --> item ** : <<create>> criarItem(dadosMaterial, quantidade, valorUnitario)
+    activate item
     ctrl -> item : calcularValorSubTotal()
-    return valorSubTotal
+    item --> ctrl : valorSubTotal
+    deactivate item
 
     ctrl -> pedido : adicionarItem(item)
-    return ConfirmacaoAdicaoItem
+    pedido --> ctrl : confirmacaoAdicaoItem
 end
 
 ctrl -> pedido : calcularValorTotal()
-return valorTotal
+pedido --> ctrl : valorTotal
 
 ctrl -> pedido : salvarPedido()
-return pedidoSalvo
-ctrl -> view: confirmarPedidoCriado(PedidoCompra)
+pedido --> ctrl : pedidoSalvo
+deactivate pedido
+
+ctrl -> view : confirmarPedidoCriado(pedido)
 view --> user : Exibir confirmação do pedido criado
 
+deactivate ctrl
+deactivate view
 @enduml

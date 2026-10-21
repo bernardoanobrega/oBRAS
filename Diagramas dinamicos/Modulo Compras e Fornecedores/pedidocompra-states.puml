@@ -1,0 +1,37 @@
+@startuml pedidocompra-states
+title Diagrama de Estados da Classe PedidoCompra
+
+skinparam state {
+    BackgroundColor #FFFFFF
+    BorderColor #444444
+    BackgroundColor<<final>> #EEEEEE
+}
+skinparam ArrowFontSize 12
+skinparam NoteBackgroundColor #FFFBE6
+hide empty description
+
+' ===== ESTADOS =====
+state SOLICITACAO : Pedido aberto pelo estoquista, itens sendo adicionados
+state EM_COTACAO : Aguardando definição de fornecedor e preços
+state COMPRADO : Pedido aprovado e confirmado junto ao fornecedor
+state EM_TRANSITO : Material despachado pelo fornecedor
+state ENTREGUE <<final>> : Material recebido na obra e lançado no estoque
+state CANCELADO <<final>> : Pedido de compra cancelado
+
+' ===== TRANSIÇÕES =====
+[*] --> SOLICITACAO : criarPedido(...) [usuário autorizado]
+
+SOLICITACAO --> SOLICITACAO : adicionarItem(item) / removerItem(item)\n/ calcularValorTotal()
+SOLICITACAO --> EM_COTACAO : alterarStatus(EM_COTACAO)\n[itens.size > 0]
+
+EM_COTACAO --> COMPRADO : alterarStatus(COMPRADO)\n[fornecedor ativo e valorTotal > 0]
+COMPRADO --> EM_TRANSITO : alterarStatus(EM_TRANSITO)\n[envio confirmado]
+EM_TRANSITO --> ENTREGUE : alterarStatus(ENTREGUE)\n/ registrarEntradaEstoque(pedidoId)
+
+SOLICITACAO --> CANCELADO : alterarStatus(CANCELADO)
+EM_COTACAO --> CANCELADO : alterarStatus(CANCELADO)
+COMPRADO --> CANCELADO : alterarStatus(CANCELADO)
+
+ENTREGUE --> [*]
+CANCELADO --> [*]
+@enduml
