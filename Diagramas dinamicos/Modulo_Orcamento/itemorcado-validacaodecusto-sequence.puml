@@ -1,0 +1,48 @@
+@startuml itemorcado-validacaodecusto-sequence
+title Diagrama de Sequência - Lançamento e Validação de Custo Real
+
+skinparam sequence {
+  ParticipantBackgroundColor #FFFFFF
+  ParticipantBorderColor #444444
+  LifeLineBorderColor #444444
+  ArrowColor #444444
+}
+skinparam NoteBackgroundColor #FFFBE6
+skinparam ArrowFontSize 12
+hide footbox
+
+actor "Usuário autorizado" as Usuario
+participant ":ItemOrcado" as Item
+participant ":CustoRealizado" as Custo
+participant ":Orcamento" as Orcamento
+
+Usuario -> Item : registrarCusto(...)
+activate Item
+
+Item --> Custo : create(...)
+activate Custo
+
+Custo -> Custo : validar()
+activate Custo
+Custo --> Item : boolean (válido/inválido)
+deactivate Custo
+
+alt Custo válido
+    Item -> Item : calcularTotalRealizado()
+    Item -> Item : estaEmEstouro()
+
+    Item -> Orcamento : atualizar totais e recalcular desvios \n[calcularTotalRealizado() / gerarIndicadoreSaude()]
+    activate Orcamento
+    Orcamento --> Item : indicadores atualizados
+    deactivate Orcamento
+
+    Item --> Usuário: confirmação de sucesso
+else Custo inválido
+    Item -> Custo : excluir
+    Item --> Usuario : Exceção: dados do custo inválidos
+end
+
+deactivate Custo
+deactivate Item
+
+@enduml
