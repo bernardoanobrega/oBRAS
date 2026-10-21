@@ -1,0 +1,44 @@
+@startuml cronograma-atrasos-activity
+title Diagrama de Atividades - Identificação de Atrasos e Desvios de Prazo
+
+skinparam DefaultTextAlignment center
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #444444
+
+start
+
+:Solicitar Análise de Prazos;
+
+:Recuperar Cronograma e suas Fases;
+
+:Inicializar lista de Fases Atrasadas\ne zerar contadores de desvio;
+
+repeat
+  :Selecionar próxima Fase do Cronograma;
+  
+  if (Fase está CONCLUIDA ou\n(NAO_INICIADA e dataInicio > dataReferencia)?) then (sim)
+    :Fase no Prazo;
+  else (não)
+    :Verificar atraso:\nestaAtrasada(dataReferencia)?;
+    
+    if (Está atrasada?) then (sim)
+      :Calcular dias de desvio:\ncalcularDesvioDias(dataReferencia);
+      :Adicionar fase à lista de\nidentificarFasesAtrasadas();
+    else (não)
+      :Fase em andamento regular;
+    endif
+  endif
+
+repeat while (Existem mais fases a verificar?) is (sim)
+
+-> não;
+
+:Calcular desvio geral do projeto:\ncalcularDesvioPrazoDias(dataReferencia);
+
+:Calcular percentual geral concluído:\ncalcularPercentualGeral();
+
+:Consolidar Relatório de Desvios e Atrasos;
+
+stop
+
+@enduml
