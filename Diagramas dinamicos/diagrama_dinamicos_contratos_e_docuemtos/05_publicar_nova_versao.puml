@@ -1,0 +1,58 @@
+@startuml 05_publicar_nova_versao
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Publicar nova versão documental\nRFP-D01 - proposta que sustenta a consulta do UC20
+
+actor "Administrador / Gestor da Obra" as user
+boundary "TelaRevisoesDocumento" as view <<view>>
+control "ControleDocumento" as ctrl <<Controller>>
+entity "documento : Documento" as documento <<Entity>>
+
+note over user, ctrl : Pré-condição: documento existente selecionado e permissão explícita de publicação na obra.
+user -> view ++ : Selecionar novo arquivo de revisão
+view -> ctrl ++ : publicarVersao(documento, arquivoEnviado, usuario)
+ctrl -> ctrl ++ : validarArquivo(arquivoEnviado)
+note right of ctrl : RNF-10: PDF, PNG ou JPG; máximo de 10 MB.
+return arquivoValido
+break não arquivoValido
+  ctrl --> view : informarFalha("Formato ou tamanho não permitido")
+  view --> user : Exibir motivo; manter a versão atual anterior
+end
+ctrl -> ctrl ++ : prepararArquivo(arquivoEnviado)
+return arquivoArmazenado
+break falha no armazenamento
+  ctrl --> view : informarFalha("Falha no envio da revisão")
+  view --> user : Exibir falha; manter a versão atual anterior
+end
+critical numeração única e confirmação da versão por documento
+  ctrl -> documento ++ : adicionarVersao(arquivoArmazenado, usuario, agora)
+  create entity "novaVersao : VersaoDocumento" as versao <<Entity>>
+  documento -->> versao : VersaoDocumento(documento, max(numero) + 1, arquivoArmazenado, usuario, agora)
+  note right of documento : Preserva todas as versões anteriores.
+  opt prestador vinculado ao contrato
+    documento -> documento ++ : registrarHistorico(INCLUSAO_VERSAO, novaVersao, usuario, agora)
+    create entity "evento : HistoricoDocumentalPrestador" as evento <<Entity>>
+    documento -->> evento : HistoricoDocumentalPrestador(INCLUSAO_VERSAO, documento, novaVersao, prestador, usuario, agora)
+    return evento
+  end
+  return novaVersao
+  ctrl -> documento ++ : salvarDocumento()
+  return salvo
+end
+alt salvo
+  ctrl --> view : confirmarVersaoPublicada(novaVersao)
+  view --> user : Exibir confirmação e número da nova versão atual
+else não salvo
+  note right of ctrl : Preserva estado persistido anterior; descarta objeto alterado da requisição.
+  ctrl -> ctrl ++ : descartarArquivoPreparado(arquivoArmazenado)
+  return arquivoDescartado
+  ctrl --> view : informarFalha("Revisão não registrada")
+  view --> user : Exibir falha; manter a versão atual anterior
+end
+deactivate ctrl
+deactivate view
+@enduml

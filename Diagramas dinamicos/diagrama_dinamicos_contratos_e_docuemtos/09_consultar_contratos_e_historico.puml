@@ -1,0 +1,40 @@
+@startuml 09_consultar_contratos_e_historico
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Consultar contratos e histórico do prestador\nRF-08.3 a RF-08.8 - recorte documental
+
+actor "Administrador / Gestor da Obra" as user
+boundary "TelaHistoricoPrestador" as view <<view>>
+control "ControlePrestador" as ctrl <<Controller>>
+entity "prestador : PrestadorServico" as prestador <<Entity>>
+
+note over user, ctrl
+  Pré-condição: prestador existente selecionado; usuário autenticado
+  e com permissão para a consulta do histórico documental.
+end note
+user -> view ++ : Abrir contratos e histórico do prestador
+view -> ctrl ++ : consultarContratosEHistorico(prestador, usuario)
+ctrl -> prestador ++ : consultarContratos()
+return contratos
+ctrl -> prestador ++ : consultarHistorico()
+return eventos
+ctrl -> ctrl ++ : filtrarPorPermissoesDasObras(contratos, eventos, usuario)
+return contratosEEventosPermitidos
+ctrl --> view : apresentarContratosEHistorico(contratosEEventosPermitidos)
+alt não há contratos nem eventos autorizados
+  view --> user : Informar ausência de registros disponíveis para consulta
+else há registros autorizados
+  view --> user : Exibir contratos e eventos com ação, documento, versão, data e autor
+end
+note over view, ctrl
+  A consulta preserva registros de prestadores INATIVOS.
+  Inclui VINCULO_CONTRATO e INCLUSAO_VERSAO.
+  As demais operações do RF-08 dependem de alinhamento com outros módulos.
+end note
+deactivate ctrl
+deactivate view
+@enduml

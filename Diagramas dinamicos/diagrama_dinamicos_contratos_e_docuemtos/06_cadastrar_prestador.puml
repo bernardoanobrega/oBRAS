@@ -1,0 +1,44 @@
+@startuml 06_cadastrar_prestador
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Cadastrar prestador de serviço\nRF-07.6, RF-07.7 e RF-07.9 - detalhamento do RF-07
+
+actor "Administrador / Gestor da Obra" as user
+boundary "TelaPrestadorServico" as view <<view>>
+control "ControlePrestador" as ctrl <<Controller>>
+entity "PrestadorServico" as cadastro <<Entity>>
+
+note over user, ctrl : Pré-condição: usuário autenticado com permissão explícita de cadastro de prestadores.
+user -> view ++ : Informar nome ou razão social, CPF/CNPJ e contato
+view -> ctrl ++ : cadastrarPrestador(nome, cpfCnpj, contato, usuario)
+break campos obrigatórios inválidos
+  ctrl --> view : informarFalha("Preencha os dados obrigatórios")
+  view --> user : Exibir motivo da rejeição
+end
+ctrl -> cadastro ++ : cpfCnpjExiste(cpfCnpj, null)
+return duplicado
+alt duplicado
+  ctrl --> view : informarFalha("CPF/CNPJ já cadastrado")
+  view --> user : Exibir motivo; não criar outro prestador
+else não duplicado
+  create entity "prestador : PrestadorServico" as prestador <<Entity>>
+  ctrl -->> prestador : PrestadorServico(nome, cpfCnpj, contato)
+  note right of prestador : Situação inicial ATIVO.
+  ctrl -> prestador ++ : salvarPrestador()
+  return salvo
+  alt salvo
+    ctrl --> view : confirmarPrestadorCriado(prestador)
+    view --> user : Exibir confirmação do cadastro
+  else não salvo
+    ctrl --> view : informarFalha("Prestador não registrado")
+    view --> user : Exibir falha
+  end
+end
+note right of ctrl : Unicidade de CPF/CNPJ também é garantida na persistência.
+deactivate ctrl
+deactivate view
+@enduml

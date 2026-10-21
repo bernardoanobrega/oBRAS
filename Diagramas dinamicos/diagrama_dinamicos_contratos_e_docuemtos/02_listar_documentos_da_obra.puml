@@ -1,0 +1,47 @@
+@startuml 02_listar_documentos_da_obra
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Consultar painel documental da obra\nUC19 - RF-23, RF-24 e RF-30
+
+actor "Mestre de Obras" as user
+boundary "TelaDocumentos" as view <<view>>
+control "ControleDocumento" as ctrl <<Controller>>
+entity "Documento" as documento <<Entity>>
+
+note over user, ctrl
+  Pré-condição: usuário autenticado e obra existente selecionada.
+  O Mestre consulta projetos e especificações autorizados.
+end note
+user -> view ++ : Selecionar obra, categoria opcional e título opcional
+view -> ctrl ++ : listarDocumentos(obra, categoria, titulo, usuario)
+ctrl -> ctrl ++ : validarPermissaoConsulta(usuario, obra)
+return autorizado
+break não autorizado
+  ctrl --> view : informarFalha("Acesso não autorizado")
+  view --> user : Exibir motivo; não exibir documentos
+end
+ctrl -> documento ++ : listarPorObra(obra, categoria, titulo)
+return documentos
+ctrl -> ctrl ++ : filtrarDocumentosAutorizados(documentos, usuario)
+return documentosPermitidos
+ctrl --> view : apresentarDocumentos(documentosPermitidos)
+alt documentosPermitidos vazio
+  view --> user : Informar que nenhum documento corresponde aos filtros
+else documentosPermitidos não vazio
+  loop para cada categoria presente na lista
+    view -> view ++ : montarGrupo(categoria, documentosPermitidos)
+    return grupo
+    view --> user : Exibir grupo, títulos e opção de abrir documento
+  end
+end
+note over view, ctrl
+  A seleção de um documento inicia a consulta da revisão atual (sequência 03).
+  Administrador/Gestor usam o mesmo painel conforme suas permissões explícitas.
+end note
+deactivate ctrl
+deactivate view
+@enduml

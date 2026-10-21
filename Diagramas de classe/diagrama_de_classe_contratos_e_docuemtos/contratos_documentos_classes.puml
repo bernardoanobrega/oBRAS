@@ -1,0 +1,168 @@
+@startuml contratos_documentos_classes
+!theme plain
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+skinparam shadowing false
+skinparam nodesep 65
+skinparam ranksep 85
+hide empty members
+hide circle
+title oBRAS - Diagrama de Classes\nMódulo Contratos e Documentos
+
+' ===== REFERÊNCIAS A OUTROS MÓDULOS =====
+class Obra <<externa>> {
+  -id : int [1..1]
+}
+class Usuario <<externa>> {
+  -id : int [1..1]
+}
+
+' ===== ENTIDADES E OBJETO DE VALOR =====
+class Documento <<Entity>> {
+  -id : int [1..1]
+  -titulo : String [1..1]
+  -categoria : CategoriaDocumento [1..1]
+  -dataCadastro : Date [1..1] {readOnly}
+  -obra : Obra [1..1] {readOnly}
+  -prestador : PrestadorServico [0..1]
+  -versoes : VersaoDocumento [1..*] {ordered}
+  --
+  +Documento(titulo : String, categoria : CategoriaDocumento, obra : Obra,\n    arquivo : ArquivoDocumento, autor : Usuario, instante : Date) <<create>>
+  {static} +buscarPorId(id : int) : Documento [0..1]
+  {static} +listarPorObra(obra : Obra, categoria : CategoriaDocumento [0..1], titulo : String [0..1]) : Documento [0..*]
+  +vincularPrestador(prestador : PrestadorServico, autor : Usuario, instante : Date) : void
+  +adicionarVersao(arquivo : ArquivoDocumento, autor : Usuario, instante : Date) : VersaoDocumento
+  +obterVersaoAtual() : VersaoDocumento
+  +listarVersoes() : VersaoDocumento [1..*]
+  +buscarVersao(numero : int) : VersaoDocumento [0..1]
+  +registrarHistorico(acao : TipoEventoDocumental, versao : VersaoDocumento, autor : Usuario, instante : Date) : HistoricoDocumentalPrestador
+  +salvarDocumento() : boolean
+}
+
+class VersaoDocumento <<Entity>> {
+  -id : int [1..1]
+  -numero : int [1..1] {readOnly}
+  -dataEnvio : Date [1..1] {readOnly}
+  -documento : Documento [1..1] {readOnly}
+  -autorEnvio : Usuario [1..1] {readOnly}
+  -arquivo : ArquivoDocumento [1..1] {readOnly}
+  --
+  +VersaoDocumento(documento : Documento, numero : int, arquivo : ArquivoDocumento, autor : Usuario, instante : Date) <<create>>
+  +obterArquivo() : ArquivoDocumento
+}
+
+class ArquivoDocumento <<ValueObject>> {
+  -nomeOriginal : String [1..1] {readOnly}
+  -formato : FormatoArquivo [1..1] {readOnly}
+  -tamanhoBytes : long [1..1] {readOnly}
+  -localizador : String [1..1] {readOnly}
+}
+
+class PrestadorServico <<Entity>> {
+  -id : int [1..1]
+  -nomeRazaoSocial : String [1..1]
+  -cpfCnpj : String [1..1]
+  -contato : String [1..1]
+  -situacao : SituacaoPrestador [1..1]
+  --
+  +PrestadorServico(nome : String, cpfCnpj : String, contato : String) <<create>>
+  {static} +buscarPorId(id : int) : PrestadorServico [0..1]
+  {static} +cpfCnpjExiste(cpfCnpj : String, desconsiderarId : int [0..1]) : boolean
+  +estaAtivo() : boolean
+  +alterarDados(nome : String, cpfCnpj : String, contato : String) : void
+  +desativar() : void
+  +consultarContratos() : Documento [0..*]
+  +consultarHistorico() : HistoricoDocumentalPrestador [0..*]
+  +salvarPrestador() : boolean
+}
+
+class HistoricoDocumentalPrestador <<Entity>> {
+  -id : int [1..1]
+  -acao : TipoEventoDocumental [1..1] {readOnly}
+  -dataHora : Date [1..1] {readOnly}
+  -documento : Documento [1..1] {readOnly}
+  -versao : VersaoDocumento [1..1] {readOnly}
+  -prestador : PrestadorServico [1..1] {readOnly}
+  -autor : Usuario [1..1] {readOnly}
+  --
+  +HistoricoDocumentalPrestador(acao : TipoEventoDocumental, documento : Documento, versao : VersaoDocumento,\n    prestador : PrestadorServico, autor : Usuario, instante : Date) <<create>>
+}
+
+' ===== ENUMERAÇÕES =====
+enum CategoriaDocumento <<enumeration>> {
+  CONTRATO
+  LICENCA
+  ALVARA
+  ESPECIFICACAO_TECNICA
+  PROJETO_EXECUTIVO
+}
+enum FormatoArquivo <<enumeration>> {
+  PDF
+  PNG
+  JPG
+}
+enum SituacaoPrestador <<enumeration>> {
+  ATIVO
+  INATIVO
+}
+enum TipoEventoDocumental <<enumeration>> {
+  VINCULO_CONTRATO
+  INCLUSAO_VERSAO
+}
+
+' ===== ASSOCIAÇÕES: AMBAS AS MULTIPLICIDADES EXPLÍCITAS =====
+Documento "0..*" -up-> "1..1" Obra : pertence a
+Documento "1..1" *-down- "1..*" VersaoDocumento : possui {ordered}
+VersaoDocumento "1..1" *-left- "1..1" ArquivoDocumento : armazena
+Documento "0..*" -right-> "0..1" PrestadorServico : relaciona prestador
+VersaoDocumento "0..*" -down-> "1..1" Usuario : enviada por
+HistoricoDocumentalPrestador "0..*" -up-> "1..1" Documento : registra operação em
+HistoricoDocumentalPrestador "0..*" -left-> "1..1" VersaoDocumento : identifica versão
+HistoricoDocumentalPrestador "0..*" -up-> "1..1" PrestadorServico : relaciona prestador
+HistoricoDocumentalPrestador "0..*" -down-> "1..1" Usuario : registrado por
+
+' ===== RESTRIÇÕES NÃO EXPRESSÁVEIS APENAS POR MULTIPLICIDADE =====
+note left of Documento
+  {titulo não vazio}
+  {prestador presente implica categoria = CONTRATO}
+  {novo vínculo exige prestador ATIVO}
+  Contrato é uma categoria de Documento (P-D11).
+end note
+note left of VersaoDocumento
+  {numero único por documento, iniciado em 1}
+  {nova versão recebe max(numero) + 1}
+  {atual = maior número confirmado}
+  {dataCadastro = dataEnvio da primeira versão}
+  Versões e seus arquivos não são sobrescritos.
+end note
+note bottom of ArquivoDocumento
+  {formato em PDF, PNG, JPG}
+  {tamanhoBytes <= limite de 10 MB do RNF-10}
+  Cada arquivo pertence a uma única versão.
+end note
+note right of PrestadorServico
+  {cpfCnpj único entre prestadores}
+  {estado inicial = ATIVO}
+  Desativar preserva contratos e histórico.
+  Não há operação de exclusão neste modelo.
+end note
+note bottom of HistoricoDocumentalPrestador
+  {documento.categoria = CONTRATO}
+  {prestador = prestador do contrato no instante do evento}
+  {versao.documento = documento}
+  VINCULO_CONTRATO refere-se à versão atual no vínculo.
+  INCLUSAO_VERSAO refere-se à versão acrescentada.
+  Histórico imutável; não há operação de exclusão.
+end note
+legend bottom
+  1..1 = exatamente um; 0..1 = opcional; 0..* = zero ou mais; 1..* = um ou mais.
+  Losango preenchido = composição; seta contínua = associação navegável.
+  Os papéis navegáveis estão declarados também como atributos tipados nas classes.
+  Obra e Usuario são referências externas; seus detalhes pertencem aos respectivos módulos.
+  RF-07/08, RF-21/22/23/24/30; UC17 a UC20; RNF-03 e RNF-10.
+  Multiplicidades e detalhamentos de versões/prestadores seguem as propostas do Markdown.
+endlegend
+@enduml
