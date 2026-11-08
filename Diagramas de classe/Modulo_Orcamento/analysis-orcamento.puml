@@ -1,0 +1,21 @@
+@startuml oBRAS_Orcamento_Interacoes_BCE
+title Interações BCE – Módulo Orçamento
+
+actor "Engenheiro Orçamentário" as Eng
+boundary PainelOrcamentoTela
+boundary CustoRealizadoTela
+control GerenciarOrcamentoControl
+control LancarCustoRealizadoControl
+entity PlanilhaOrcamentaria
+entity ItemOrcado
+entity CustoRealizado
+
+Eng --> PainelOrcamentoTela : visualizar painel orçamentário
+PainelOrcamentoTela --> GerenciarOrcamentoControl : solicitar planilha e indicadores (RF-33)
+GerenciarOrcamentoControl --> PlanilhaOrcamentaria : consultar e gerar indicadores de saúde
+Eng --> CustoRealizadoTela : informar custo realizado
+CustoRealizadoTela --> LancarCustoRealizadoControl : encaminhar lançamento
+LancarCustoRealizadoControl --> CustoRealizado : instanciar e validar
+LancarCustoRealizadoControl --> ItemOrcado : registrar custo e verificar estouro (RF-14)
+
+@enduml
