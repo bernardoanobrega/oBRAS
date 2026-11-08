@@ -1,0 +1,43 @@
+@startuml compras-processo-activity
+title Diagrama de Atividades - Solicitação, Cotação e Aprovação de Pedido de Compra
+
+skinparam DefaultTextAlignment center
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #444444
+
+start
+
+:Estoquista identifica necessidade de reposição de materiais;
+:Acessar TelaPedidoCompra e selecionar Fornecedor;
+:Buscar e validar cadastro do Fornecedor:\nbuscarPorId(fornecedorId);
+
+if (Fornecedor está ativo?) then (sim)
+  :Iniciar PedidoCompra com status SOLICITACAO;
+  
+  repeat
+    :Selecionar Material no catálogo:\nbuscarPorId(materialId);
+    :Informar quantidade e valorUnitario;
+    :Criar ItemPedido e calcular subtotal:\ncalcularValorSubTotal();
+    :Adicionar item ao pedido:\nadicionarItem(item);
+  repeat while (Deseja adicionar mais itens ao pedido?) is (sim) -> não
+  
+  :Calcular valor total do pedido:\ncalcularValorTotal();
+  :Avançar status para cotação:\nalterarStatus(EM_COTACAO);
+  
+  if (Cotação aprovada pelo gestor?) then (sim)
+    :Confirmar compra junto ao fornecedor:\nalterarStatus(COMPRADO);
+    :Salvar PedidoCompra:\nsalvarPedido();
+    :Aguardar despacho do fornecedor:\nalterarStatus(EM_TRANSITO);
+    :Exibir confirmação do pedido criado ao Estoquista;
+  else (não)
+    :Cancelar solicitação de compra:\nalterarStatus(CANCELADO);
+    :Registrar cancelamento do pedido;
+  endif
+
+else (não)
+  :Bloquear criação do pedido;
+  :Exibir mensagem de erro: "Fornecedor inativo ou inválido";
+endif
+
+stop
+@enduml

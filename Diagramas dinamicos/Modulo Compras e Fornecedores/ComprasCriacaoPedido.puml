@@ -1,0 +1,99 @@
+@startuml compras-criacao-pedido-sequence
+!theme plain
+title Diagrama de Sequência - Criação de Pedido de Compra
+skinparam maxMessageSize 150
+autonumber
+
+actor "Estoquista" as user
+boundary "TelaPedidoCompra" as view <<view>>
+control "ControlePedido" as ctrl <<Controller>>
+entity "Obra" as obra <<Entity>>
+entity "Usuario" as usuario <<Entity>>
+entity "PedidoCompra" as pedido <<Entity>>
+entity "HistoricoStatusPedido" as historico <<Entity>>
+entity "ItemPedido" as item <<Entity>>
+entity "Material" as material <<Entity>>
+entity "ItemOrcado" as itemOrcado <<Entity>>
+
+user -> view : Informar obra, prioridade e data prevista
+activate view
+
+view -> ctrl : criarPedido(obraId, solicitanteId, prioridade, dataPrevista)
+activate ctrl
+
+ctrl -> obra : buscarPorId(obraId)
+activate obra
+obra --> ctrl : dadosObra
+deactivate obra
+
+ctrl -> usuario : buscarPorId(solicitanteId)
+activate usuario
+usuario --> ctrl : solicitante
+deactivate usuario
+
+ctrl --> pedido ** : <<create>> PedidoCompra(dadosObra, solicitante, prioridade,\ndataPrevista, instante)
+activate pedido
+pedido --> historico ** : <<create>> HistoricoStatusPedido(pedido, SOLICITADO,\nsolicitante, instante)
+
+ctrl -> pedido : salvarPedido()
+pedido --> ctrl : pedidoSalvo
+
+ctrl -> view : confirmarPedidoCriado(pedido)
+deactivate ctrl
+view --> user : Exibir pedido criado com status SOLICITADO
+
+loop Para cada item informado pelo Estoquista
+    user -> view : Informar material, quantidade, valor unitário\ne item do orçamento (opcional)
+
+    view -> ctrl : adicionarItemPedido(pedidoId, materialId, quantidade,\nvalorUnitario, itemOrcadoId)
+    activate ctrl
+
+    ctrl -> pedido : buscarPorId(pedidoId)
+    pedido --> ctrl : pedidoCompra
+
+    ctrl -> material : buscarPorId(materialId)
+    activate material
+    material --> ctrl : dadosMaterial
+    deactivate material
+
+    opt itemOrcadoId informado
+        ctrl -> itemOrcado : buscarPorId(itemOrcadoId)
+        activate itemOrcado
+        itemOrcado --> ctrl : dadosItemOrcado
+        deactivate itemOrcado
+    end
+
+    ctrl -> pedido : adicionarItem(dadosMaterial, quantidade, valorUnitario,\ndadosItemOrcado)
+    pedido --> item ** : <<create>> ItemPedido(dadosMaterial, quantidade,\nvalorUnitario, dadosItemOrcado)
+    activate item
+    pedido --> ctrl : itemPedido
+
+    ctrl -> item : excedeOrcamento()
+    item --> ctrl : emEstouro (boolean)
+    deactivate item
+
+    opt [emEstouro]
+        ctrl -> view : exibirAlertaOrcamento(itensEmEstouro)
+        view --> user : Exibir alerta: item excede o valor orçado
+    end
+
+    ctrl -> pedido : calcularValorTotal()
+    pedido --> ctrl : valorTotal
+
+    ctrl -> pedido : salvarPedido()
+    pedido --> ctrl : pedidoSalvo
+
+    ctrl --> view : pedidoAtualizado
+    deactivate ctrl
+    view --> user : Exibir item adicionado e valor total do pedido
+end
+
+note over ctrl
+  O pedido nasce em SOLICITADO e pode ser salvo ainda sem itens.
+  Ao menos um item é exigido para enviar à cotação
+  (alterarStatus(EM_COTACAO)).
+end note
+
+deactivate pedido
+deactivate view
+@enduml

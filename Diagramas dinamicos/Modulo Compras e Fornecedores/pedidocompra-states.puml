@@ -11,27 +11,41 @@ skinparam NoteBackgroundColor #FFFBE6
 hide empty description
 
 ' ===== ESTADOS =====
-state SOLICITACAO : Pedido aberto pelo estoquista, itens sendo adicionados
-state EM_COTACAO : Aguardando definição de fornecedor e preços
-state COMPRADO : Pedido aprovado e confirmado junto ao fornecedor
+state SOLICITADO : Pedido aberto pelo estoquista, itens sendo adicionados
+state EM_COTACAO : Cotações de fornecedores sendo registradas e avaliadas
+state COMPRADO : Fornecedor definido e compra confirmada; custo realizado lançado
 state EM_TRANSITO : Material despachado pelo fornecedor
-state ENTREGUE <<final>> : Material recebido na obra e lançado no estoque
+state ENTREGUE <<final>> : Material recebido e lançado no estoque
 state CANCELADO <<final>> : Pedido de compra cancelado
 
 ' ===== TRANSIÇÕES =====
-[*] --> SOLICITACAO : criarPedido(...) [usuário autorizado]
+[*] --> SOLICITADO : PedidoCompra(obra, solicitante, prioridade, dataPrevista, instante)\n/ cria HistoricoStatusPedido(SOLICITADO)
 
-SOLICITACAO --> SOLICITACAO : adicionarItem(item) / removerItem(item)\n/ calcularValorTotal()
-SOLICITACAO --> EM_COTACAO : alterarStatus(EM_COTACAO)\n[itens.size > 0]
+SOLICITADO --> SOLICITADO : adicionarItem(...) / removerItem(idItem)\n/ calcularValorTotal()
+SOLICITADO --> EM_COTACAO : alterarStatus(EM_COTACAO, autor, instante)\n[listarItens() não vazio]
 
-EM_COTACAO --> COMPRADO : alterarStatus(COMPRADO)\n[fornecedor ativo e valorTotal > 0]
-COMPRADO --> EM_TRANSITO : alterarStatus(EM_TRANSITO)\n[envio confirmado]
-EM_TRANSITO --> ENTREGUE : alterarStatus(ENTREGUE)\n/ registrarEntradaEstoque(pedidoId)
+EM_COTACAO --> EM_COTACAO : registrarCotacao(fornecedor, valorTotalProposto, prazoEntregaDias, instante)\n[fornecedor ativo]
+EM_COTACAO --> EM_COTACAO : selecionarCotacao(cotacao, autor, instante)\n/ define fornecedor do pedido
+EM_COTACAO --> COMPRADO : alterarStatus(COMPRADO, autor, instante)\n[fornecedor definido e ativo, valorTotal > 0]\n/ lancarCustosRealizados(autor)
 
-SOLICITACAO --> CANCELADO : alterarStatus(CANCELADO)
-EM_COTACAO --> CANCELADO : alterarStatus(CANCELADO)
-COMPRADO --> CANCELADO : alterarStatus(CANCELADO)
+COMPRADO --> EM_TRANSITO : alterarStatus(EM_TRANSITO, autor, instante)\n[envio confirmado]
+EM_TRANSITO --> ENTREGUE : alterarStatus(ENTREGUE, autor, instante)\n[acionada por registrarEntradaEstoque(pedidoId, canteiroId, autorId)]
+
+SOLICITADO --> CANCELADO : cancelar(autor, instante)
+EM_COTACAO --> CANCELADO : cancelar(autor, instante)
 
 ENTREGUE --> [*]
 CANCELADO --> [*]
+
+note right of SOLICITADO
+  Toda mudança de estado registra um
+  HistoricoStatusPedido (status, data/hora, autor).
+end note
+
+note bottom of EM_COTACAO
+  ajustarValorUnitario(valor) é permitido
+  em SOLICITADO e EM_COTACAO, sem mudar o estado.
+  Cancelamento só até EM_COTACAO: depois de COMPRADO
+  o custo realizado já foi lançado no orçamento.
+end note
 @enduml
