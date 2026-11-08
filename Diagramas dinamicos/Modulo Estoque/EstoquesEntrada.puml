@@ -9,57 +9,93 @@ boundary "TelaMovimentacaoEstoque" as view <<view>>
 control "ControleMovimentacaoEstoque" as ctrl <<Controller>>
 entity "PedidoCompra" as pedido <<Entity>>
 entity "ItemPedido" as item <<Entity>>
-entity "Material" as material <<Entity>>
+entity "Canteiro" as canteiro <<Entity>>
+entity "Usuario" as usuario <<Entity>>
 entity "SaldoEstoque" as saldo <<Entity>>
 entity "MovimentacaoEstoque" as movimentacao <<Entity>>
 
-user -> view : Confirma a recepção da encomenda (pedidoId)
+user -> view : Confirma a recepção do pedido\n(pedidoId, canteiroId de destino)
 activate view
 
-view -> ctrl : registrarEntradaEstoque(pedidoId)
+view -> ctrl : registrarEntradaEstoque(pedidoId, canteiroId, autorId)
 activate ctrl
 
 ctrl -> pedido : buscarPorId(pedidoId)
 activate pedido
-pedido --> ctrl : dadosPedido
+pedido --> ctrl : pedidoCompra
 deactivate pedido
 
-loop Para cada item do pedido
-    ctrl -> item : getMaterial()
-    activate item
-    item --> ctrl : material
-    deactivate item
+ctrl -> canteiro : buscarPorId(canteiroId)
+activate canteiro
+canteiro --> ctrl : canteiroDestino
+deactivate canteiro
 
-    ctrl -> item : getQuantidade()
-    activate item
-    item --> ctrl : quantidadeItem
-    deactivate item
+ctrl -> usuario : buscarPorId(autorId)
+activate usuario
+usuario --> ctrl : autor
+deactivate usuario
 
-    ctrl --> movimentacao ** : <<create>> criarMovimentacao(material, quantidadeItem, ENTRADA_COMPRA)
-    activate movimentacao
-    ctrl -> movimentacao : salvarMovimentacao()
-    movimentacao --> ctrl : movimentacaoSalva
-    deactivate movimentacao
+alt [status do pedido == EM_TRANSITO]
+    ctrl -> pedido : listarItens()
+    activate pedido
+    pedido --> ctrl : itens
+    deactivate pedido
 
-    ctrl -> saldo : buscarPorMaterial(material)
-    activate saldo
-    saldo --> ctrl : saldoAtual
+    loop Para cada ItemPedido
+        ctrl -> item : getMaterial()
+        activate item
+        item --> ctrl : material
+        deactivate item
 
-    ctrl -> saldo : adicionarSaldo(quantidadeItem)
-    saldo --> ctrl : saldoAtualizado
+        ctrl -> item : getQuantidade()
+        activate item
+        item --> ctrl : quantidadeItem
+        deactivate item
 
-    ctrl -> saldo : salvarSaldo()
-    saldo --> ctrl : saldoSalvo
-    deactivate saldo
+        ctrl -> saldo : buscarPorMaterialECanteiro(material, canteiroDestino)
+        activate saldo
+        saldo --> ctrl : saldoAtual [0..1]
+        deactivate saldo
+
+        opt saldo inexistente neste canteiro
+            ctrl -> saldo : <<create>> SaldoEstoque(material, canteiroDestino, 0)
+            activate saldo
+            saldo --> ctrl : saldoAtual
+            deactivate saldo
+        end
+
+        ctrl --> movimentacao ** : <<create>> MovimentacaoEstoque(ENTRADA_COMPRA, material, quantidadeItem,\nnull, canteiroDestino, pedidoCompra, autor, instante)
+        activate movimentacao
+        ctrl -> movimentacao : salvarMovimentacao()
+        movimentacao --> ctrl : movimentacaoSalva
+        deactivate movimentacao
+
+        ctrl -> saldo : adicionarSaldo(quantidadeItem)
+        activate saldo
+        saldo --> ctrl : saldoAtualizado
+
+        ctrl -> saldo : salvarSaldo()
+        saldo --> ctrl : saldoSalvo
+        deactivate saldo
+    end
+
+    ctrl -> pedido : alterarStatus(ENTREGUE, autor, instante)
+    activate pedido
+    pedido --> ctrl : historicoStatusPedido
+    deactivate pedido
+
+    ctrl -> view : confirmarEntradaEstoqueRegistrada()
+    view --> user : Exibir confirmação da entrada de estoque registrada
+else [status do pedido != EM_TRANSITO]
+    ctrl -> view : exibirMensagemErro("Pedido não está em trânsito")
+    view --> user : Exibir mensagem de erro
 end
 
-ctrl -> pedido : alterarStatus(StatusPedido.ENTREGUE)
-activate pedido
-pedido --> ctrl : statusAtualizado
-deactivate pedido
-
-ctrl -> view : confirmarEntradaEstoqueRegistrada()
-view --> user : Exibir confirmação da entrada de estoque registrada
+note over ctrl
+  Itens, movimentações, saldos e a mudança de status
+  do pedido são confirmados em uma única transação.
+  A entrada vale para o pedido inteiro, uma única vez.
+end note
 
 deactivate ctrl
 deactivate view
