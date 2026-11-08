@@ -1,0 +1,36 @@
+@startuml robustness-cronograma-convencao
+title Diagrama de Robustez - Módulo Cronograma (Convenção BCE)
+
+skinparam monochrome true
+skinparam defaultTextAlignment center
+skinparam shadowing false
+
+actor "Mestre de Obras / Gestor" as usuario
+
+' ===== BOUNDARIES (Telas / Formulários) =====
+boundary "CronogramaTela" as cronogramaUI
+boundary "RegistroAvancoTela" as avancoUI
+
+' ===== CONTROLS (Controladores / Lógica de Negócio) =====
+control "GerenciarCronogramaControl" as cronogramaCtrl
+control "RegistrarAvancoControl" as avancoCtrl
+
+' ===== ENTITIES (Objetos de Domínio) =====
+entity "Cronograma" as cronogramaEnt
+entity "Fase" as faseEnt
+entity "AvancoFisico" as avancoEnt
+entity "Obra" as obraEnt
+
+' ===== FLUXOS DE ROBUSTEZ =====
+usuario --> cronogramaUI : planejar fases / visualizar cronograma e indicadores
+cronogramaUI --> cronogramaCtrl : adicionar / remover fases e validar sequência
+cronogramaCtrl --> cronogramaEnt : atualizar fases, status e calcular indicadores
+cronogramaEnt --> faseEnt : compor / consultar fases (atrasos e desvio de prazo)
+cronogramaEnt --> obraEnt : informar andamento da obra
+
+usuario --> avancoUI : submeter avanço físico da fase
+avancoUI --> avancoCtrl : processar avanço e validar percentual acumulado
+avancoCtrl --> faseEnt : registrar avanço / concluir fase
+faseEnt --> avancoEnt : instanciar / persistir
+
+@enduml
