@@ -1,0 +1,235 @@
+@startuml obras-diagrama-classes-geral
+title OBRAS - Diagrama de Classes de Análise (Visão Geral dos Módulos)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 13
+skinparam shadowing false
+skinparam nodesep 30
+skinparam ranksep 80
+skinparam defaultFontSize 12
+skinparam ArrowColor #444444
+skinparam ClassBorderColor #666666
+skinparam packageFontSize 15
+skinparam packageFontStyle bold
+skinparam packageStyle rectangle
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+hide circle
+hide stereotype
+
+' =====================================================
+' MÓDULO: USUÁRIOS
+' =====================================================
+package "Usuários" #EDEDED {
+  class Usuario
+
+  class Credencial
+
+  class Cargo
+
+  class Permissao
+
+  class PermissaoUsuario
+}
+
+' =====================================================
+' MÓDULO: DETALHES DE OBRA
+' =====================================================
+package "Detalhes de Obra" #FFF8E7 {
+  class Obra
+
+  class AlocacaoObra
+
+  class Canteiro
+
+  abstract class Auditavel
+
+  class RegistroAuditoria
+
+  class RegistroDiario
+
+  class Ocorrencia
+
+  class Paralisacao
+
+  class RegistroFotografico
+}
+
+' =====================================================
+' MÓDULO: ORÇAMENTO
+' =====================================================
+package "Orçamento" #E8F4E8 {
+  class Orcamento
+
+  class ItemOrcado
+
+  class CustoRealizado
+
+  class DecisaoFinanceira
+
+  class IndicadorSaudeFinanceira
+}
+
+' =====================================================
+' MÓDULO: CRONOGRAMA
+' =====================================================
+package "Módulo Cronograma" #E8EEF9 {
+  class Cronograma
+
+  class Fase
+
+  class AvancoFisico
+}
+
+' =====================================================
+' MÓDULO: COMPRAS E FORNECEDORES
+' =====================================================
+package "Compras e Fornecedores" #FDECEC {
+  class Fornecedor
+
+  class PedidoCompra
+
+  class ItemPedido
+}
+
+' =====================================================
+' MÓDULO: CONTROLE DE ESTOQUE
+' =====================================================
+package "Controle de Estoque" #F3EAF9 {
+  class Material
+
+  class SaldoEstoque
+
+  class MovimentacaoEstoque
+}
+
+' =====================================================
+' MÓDULO: MÁQUINAS E EQUIPAMENTOS
+' =====================================================
+package "Máquinas e Equipamentos" #E6F7F7 {
+  class Equipamento
+
+  class AlocacaoEquipamento
+
+  class Manutencao
+}
+
+' =====================================================
+' MÓDULO: CONTRATOS E DOCUMENTOS
+' =====================================================
+package "Contratos e Documentos" #FFF0DD {
+  class Documento
+
+  class VersaoDocumento
+
+  class ArquivoDocumento
+
+  class PrestadorServico
+
+  class HistoricoDocumentalPrestador
+}
+
+' =====================================================
+' RELAÇÕES INTERNAS: USUÁRIOS
+' =====================================================
+Usuario *-- Credencial : autentica-se com
+Usuario *-- PermissaoUsuario : permissões individuais
+PermissaoUsuario --> Permissao : refere-se a
+Cargo --> Permissao : concede
+
+' =====================================================
+' RELAÇÕES INTERNAS: DETALHES DE OBRA
+' =====================================================
+Obra *-- Canteiro : possui
+Obra *-- AlocacaoObra : membro de
+Obra *-- RegistroDiario : possui
+AlocacaoObra --> Ocorrencia : registra
+RegistroDiario --> Ocorrencia : contém
+RegistroDiario --> AlocacaoObra : equipe presente
+Ocorrencia --> RegistroFotografico : contém
+Ocorrencia <|-- Paralisacao
+Auditavel <|-- Ocorrencia
+Auditavel <|-- RegistroDiario
+Auditavel <|-- RegistroFotografico
+Auditavel --> RegistroAuditoria : histórico
+
+' =====================================================
+' RELAÇÕES INTERNAS: ORÇAMENTO
+' =====================================================
+Orcamento *-- ItemOrcado : composto por
+ItemOrcado *-- CustoRealizado : recebe
+Orcamento *-- DecisaoFinanceira : registra
+Orcamento ..> IndicadorSaudeFinanceira : gera
+
+' =====================================================
+' RELAÇÕES INTERNAS: CRONOGRAMA
+' =====================================================
+Cronograma *-- Fase : composto por
+Fase *-- AvancoFisico : acumula
+
+' =====================================================
+' RELAÇÕES INTERNAS: COMPRAS E FORNECEDORES
+' =====================================================
+PedidoCompra --> Fornecedor : fornecido por
+PedidoCompra *-- ItemPedido : composto por
+
+' =====================================================
+' RELAÇÕES INTERNAS: ESTOQUE
+' =====================================================
+MovimentacaoEstoque --> PedidoCompra : originada de
+
+' =====================================================
+' RELAÇÕES INTERNAS: MÁQUINAS E EQUIPAMENTOS
+' =====================================================
+Equipamento *-- AlocacaoEquipamento : possui
+Equipamento *-- Manutencao : possui
+AlocacaoEquipamento --> Manutencao : gera (se danificado)
+
+' =====================================================
+' RELAÇÕES INTERNAS: CONTRATOS E DOCUMENTOS
+' =====================================================
+Documento *-- VersaoDocumento : possui
+VersaoDocumento *-- ArquivoDocumento : armazena
+Documento --> PrestadorServico : relaciona prestador
+HistoricoDocumentalPrestador --> Documento : registra operação em
+HistoricoDocumentalPrestador --> VersaoDocumento : identifica versão
+HistoricoDocumentalPrestador --> PrestadorServico : relaciona prestador
+
+' =====================================================
+' RELAÇÕES ENTRE MÓDULOS
+' =====================================================
+' Obra <-> Orçamento / Cronograma
+Orcamento --> Obra : informa
+Cronograma --> Obra : informa
+
+' Obra <-> Compras / Estoque / Documentos
+PedidoCompra --> Obra : destinado a
+SaldoEstoque --> Obra : pertence a
+Documento --> Obra : pertence a
+
+' Compras <-> Estoque
+ItemPedido --> Material : refere-se a
+SaldoEstoque --> Material : contabiliza
+MovimentacaoEstoque --> Material : movimenta
+
+' Obra <-> Máquinas e Equipamentos (via Canteiro)
+AlocacaoEquipamento --> Canteiro : destinada a
+
+' Usuários <-> Detalhes de Obra
+Obra -[#B0B0B0,dashed]-> Usuario
+Usuario -[#B0B0B0,dashed]-> AlocacaoObra
+Cargo -[#B0B0B0,dashed]-> AlocacaoObra
+RegistroAuditoria -[#B0B0B0,dashed]-> Usuario
+
+' Usuários <-> demais módulos
+PedidoCompra -[#B0B0B0,dashed]-> Usuario
+Usuario -[#B0B0B0,dashed]-> AvancoFisico
+Usuario -[#B0B0B0,dashed]-> CustoRealizado
+Usuario -[#B0B0B0,dashed]-> DecisaoFinanceira
+Usuario -[#B0B0B0,dashed]-> Equipamento
+Usuario -[#B0B0B0,dashed]-> AlocacaoEquipamento
+VersaoDocumento -[#B0B0B0,dashed]-> Usuario
+HistoricoDocumentalPrestador -[#B0B0B0,dashed]-> Usuario
+
+@enduml
