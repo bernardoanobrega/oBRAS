@@ -20,24 +20,24 @@ class TelaMovimentacaoEstoque <<Boundary>> {
 }
 
 class ControleMovimentacaoEstoque <<Control>> {
-  +registrarEntradaEstoque(pedidoId : Long) : void
-  +registrarSaidaEstoque(materialId : Long, quantidade : Double) : void
+  +registrarEntradaEstoque(pedidoId : int) : void
+  +registrarSaidaEstoque(materialId : int, quantidade : Double) : void
 }
 
 ' ===== NÚCLEO (ENTIDADES) =====
 class Material <<Entity>> {
-  -id : Long
+  -id : int
   -nome : String
   -descricao : String
   -unidadeMedida : String
   --
-  +getId() : Long
+  +getId() : int
   +getNome() : String
-  +buscarPorId(id : Long) : Material
+  +buscarPorId(id : int) : Material
 }
 
 class SaldoEstoque <<Entity>> {
-  -id : Long
+  -id : int
   -quantidadeAtual : Double
   -quantidadeMinima : Double
   --
@@ -50,10 +50,10 @@ class SaldoEstoque <<Entity>> {
 }
 
 class MovimentacaoEstoque <<Entity>> {
-  -id : Long
+  -id : int
   -tipo : TipoMovimentacao
   -quantidade : Double
-  -dataMovimentacao : LocalDateTime
+  -dataMovimentacao : Date
   --
   +criarMovimentacao(material : Material, quantidade : Double, tipo : TipoMovimentacao) : MovimentacaoEstoque
   +registrarMovimentacao() : void
@@ -81,10 +81,5 @@ MovimentacaoEstoque "0..*" --> "0..1" PedidoCompra : originada de
 PedidoCompra "1" *-- "1..*" ItemPedido : composto por
 ItemPedido "0..*" --> "1" Material : refere-se a
 
-note right of MovimentacaoEstoque
-  Se o tipo for ENTRADA_COMPRA,
-  esta classe referencia o
-  PedidoCompra para rastreabilidade.
-end note
 
 @enduml

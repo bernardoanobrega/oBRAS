@@ -18,13 +18,13 @@ class Orcamento <<Entity>> {
   -dataUltimaAtualizacao : Date
   -percentualLimiteAlerta : double
   --
-  +adicionarItem(codigo : String, descricao : String, unidade : String, quantidade : double, custoUnitarioOrcado : BigDecimal) : ItemOrcado
+  +adicionarItem(codigo : String, descricao : String, unidade : String, quantidade : double, custoUnitarioOrcado : double) : ItemOrcado
   +removerItem(idItem : int) : void
   +buscarItem(idItem : int) : ItemOrcado
-  +registrarDecisao(descricao : String, justificativa : String, valorImpacto : BigDecimal, autor : Usuario) : DecisaoFinanceira
-  +calcularTotalOrcado() : BigDecimal
-  +calcularTotalRealizado() : BigDecimal
-  +calcularDesvioFinanceiro() : BigDecimal
+  +registrarDecisao(descricao : String, justificativa : String, valorImpacto : double, autor : Usuario) : DecisaoFinanceira
+  +calcularTotalOrcado() : double
+  +calcularTotalRealizado() : double
+  +calcularDesvioFinanceiro() : double
   +calcularPercentualDesvio() : double
   +listarItensEmDesvio() : ItemOrcado[]
   +gerarIndicadoresSaude() : IndicadorSaudeFinanceira
@@ -38,12 +38,12 @@ class ItemOrcado <<Entity>> {
   -descricao : String
   -unidade : String
   -quantidade : double
-  -custoUnitarioOrcado : BigDecimal
+  -custoUnitarioOrcado : double
   --
-  +registrarCusto(descricao : String, valor : BigDecimal, origem : OrigemCusto, idOrigem : int, autor : Usuario) : CustoRealizado
-  +calcularValorOrcado() : BigDecimal
-  +calcularTotalRealizado() : BigDecimal
-  +calcularDesvioFinanceiro() : BigDecimal
+  +registrarCusto(descricao : String, valor : double, origem : OrigemCusto, idOrigem : int, autor : Usuario) : CustoRealizado
+  +calcularValorOrcado() : double
+  +calcularTotalRealizado() : double
+  +calcularDesvioFinanceiro() : double
   +calcularPercentualExecutado() : double
   +estaEmEstouro() : boolean
 }
@@ -53,7 +53,7 @@ class CustoRealizado <<Entity>> {
   -idItem : int
   -dataLancamento : Date
   -descricao : String
-  -valor : BigDecimal
+  -valor : double
   -origem : OrigemCusto
   -idOrigem : int
   --
@@ -66,13 +66,13 @@ class DecisaoFinanceira <<Entity>> {
   -dataDecisao : Date
   -descricao : String
   -justificativa : String
-  -valorImpacto : BigDecimal
+  -valorImpacto : double
 }
 
 class IndicadorSaudeFinanceira <<ValueObject>> {
-  -totalOrcado : BigDecimal
-  -totalRealizado : BigDecimal
-  -desvioAbsoluto : BigDecimal
+  -totalOrcado : double
+  -totalRealizado : double
+  -desvioAbsoluto : double
   -desvioPercentual : double
   -percentualExecutado : double
   -saude : SaudeFinanceira

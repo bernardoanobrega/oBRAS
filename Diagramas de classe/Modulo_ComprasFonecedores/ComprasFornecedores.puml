@@ -19,12 +19,12 @@ class TelaPedidoCompra <<Boundary>> {
 }
 
 class ControlePedido <<Control>> {
-  +criarPedido(fornecedorId : Long, dadosPedido : PedidoCompra) : PedidoCompra
+  +criarPedido(fornecedorId : int, dadosPedido : PedidoCompra) : PedidoCompra
 }
 
 ' ===== NÚCLEO (ENTIDADES) =====
 class Fornecedor <<Entity>> {
-  -id : Long
+  -id : int
   -nome : String
   -razaoSocial : String
   -cnpj : String
@@ -34,14 +34,14 @@ class Fornecedor <<Entity>> {
   --
   +cadastrar() : void
   +atualizarDados() : void
-  +buscarPorId(id : Long) : Fornecedor
+  +buscarPorId(id : int) : Fornecedor
 }
 
 class PedidoCompra <<Entity>> {
-  -id : Long
-  -dataSolicitacao : LocalDate
-  -dataPrevista : LocalDate
-  -valorTotal : BigDecimal
+  -id : int
+  -dataSolicitacao : Date
+  -dataPrevista : Date
+  -valorTotal : double
   -status : StatusPedido
   -prioridade : StatusPrioridade
   --
@@ -49,20 +49,20 @@ class PedidoCompra <<Entity>> {
   +adicionarItem(item : ItemPedido) : void
   +removerItem(item : ItemPedido) : void
   +alterarStatus(novoStatus : StatusPedido) : void
-  +calcularValorTotal() : BigDecimal
+  +calcularValorTotal() : double
   +salvarPedido() : void
-  +buscarPorId(id : Long) : PedidoCompra
+  +buscarPorId(id : int) : PedidoCompra
 }
 
 class ItemPedido <<Entity>> {
-  -id : Long
-  -quantidade : Double
-  -valorUnitario : BigDecimal
+  -id : int
+  -quantidade : double
+  -valorUnitario : double
   --
-  +criarItem(material : Material, quantidade : Double, valorUnitario : BigDecimal) : ItemPedido
-  +calcularValorSubTotal() : BigDecimal
+  +criarItem(material : Material, quantidade : double, valorUnitario : double) : ItemPedido
+  +calcularValorSubTotal() : double
   +getMaterial() : Material
-  +getQuantidade() : Double
+  +getQuantidade() : double
 }
 
 ' ===== ENUMERAÇÕES =====
