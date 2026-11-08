@@ -1,0 +1,54 @@
+@startuml robustness-usuarios-convencao
+title Diagrama de Robustez - Módulo Usuários (Convenção BCE)
+
+skinparam monochrome true
+skinparam defaultTextAlignment center
+skinparam shadowing false
+
+actor "Usuário" as usuario
+actor "Administrador\n(usuário com permissão USUARIOS)" as admin
+
+' ===== BOUNDARIES (Telas / Formulários) =====
+boundary "TelaLogin" as loginUI
+boundary "TelaGerenciarUsuarios" as usuariosUI
+boundary "TelaGerenciarCargos" as cargosUI
+
+' ===== CONTROLS (Controladores / Lógica de Negócio) =====
+control "ControleAutenticacao" as authCtrl
+control "ControleUsuario" as usuarioCtrl
+control "ControleCargo" as cargoCtrl
+control "ControleAutorizacao" as authzCtrl
+
+' ===== ENTITIES (Objetos de Domínio) =====
+entity "Usuario" as usuarioEnt
+entity "Credencial" as credencialEnt
+entity "Cargo" as cargoEnt
+entity "Permissao" as permissaoEnt
+entity "PermissaoUsuario" as permUsuarioEnt
+entity "AlocacaoObra" as alocacaoEnt
+
+' ===== FLUXOS DE ROBUSTEZ =====
+usuario --> loginUI : informar login e senha
+loginUI --> authCtrl : solicitar autenticação
+authCtrl --> usuarioEnt : consultar usuário e situação
+authCtrl --> credencialEnt : validar senha
+authCtrl --> authzCtrl : obter permissões para redirecionar
+
+admin --> usuariosUI : cadastrar / editar / desativar usuários\ndefinir permissões individuais
+usuariosUI --> usuarioCtrl : processar gestão de usuário
+usuarioCtrl --> usuarioEnt : criar / atualizar / desativar
+usuarioCtrl --> credencialEnt : criar credencial
+usuarioCtrl --> permUsuarioEnt : definir permissões individuais
+permUsuarioEnt --> permissaoEnt : referir-se a
+
+admin --> cargosUI : criar / editar / remover cargos
+cargosUI --> cargoCtrl : processar gestão de cargo
+cargoCtrl --> cargoEnt : criar / atualizar / remover
+cargoEnt --> permissaoEnt : conceder permissões
+
+authzCtrl --> usuarioEnt : consultar usuário
+authzCtrl --> permUsuarioEnt : consultar permissões individuais
+authzCtrl --> alocacaoEnt : consultar alocação do usuário na obra
+alocacaoEnt --> cargoEnt : consultar cargos da alocação
+
+@enduml

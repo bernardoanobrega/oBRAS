@@ -1,0 +1,99 @@
+@startuml usuarios-class-diagram
+title OBRAS - Diagrama de Classes (Módulo Usuários)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Obra <<externa>>
+class AlocacaoObra <<externa>>
+
+' ===== NÚCLEO =====
+class Usuario <<Entity>> {
+  -id : Long
+  -nome : String
+  -situacao : SituacaoUsuario
+  -dataCadastro : LocalDateTime
+  --
+  +cadastrar() : void
+  +atualizarDados(nome : String) : void
+  +desativar() : void
+  +estaAtivo() : Boolean
+  +definirPermissao(permissao : Permissao, concedida : Boolean) : PermissaoUsuario
+  +listarPermissoesEfetivas(obra : Obra) : Permissao[]
+  +buscarPorId(id : Long) : Usuario
+  +buscarPorLogin(login : String) : Usuario
+}
+
+class Credencial <<ValueObject>> {
+  -login : String
+  -senhaHash : String
+}
+
+class Cargo <<Entity>> {
+  -id : Long
+  -nome : String
+  -descricao : String
+  --
+  +adicionarPermissao(permissao : Permissao) : void
+  +removerPermissao(permissao : Permissao) : void
+  +possuiPermissao(modulo : ModuloSistema, acao : AcaoPermissao) : Boolean
+  +buscarPorId(id : Long) : Cargo
+}
+
+class Permissao <<Entity>> {
+  -id : Long
+  -modulo : ModuloSistema
+  -acao : AcaoPermissao
+  --
+  +buscarPorId(id : Long) : Permissao
+  +listarTodas() : Permissao[]
+}
+
+class PermissaoUsuario <<Entity>> {
+  -id : Long
+  -concedida : Boolean
+  --
+  +revogar() : void
+}
+
+' ===== ENUMERAÇÕES =====
+enum SituacaoUsuario {
+  ATIVO
+  INATIVO
+}
+
+enum ModuloSistema {
+  USUARIOS
+  DASHBOARD
+  DETALHES_OBRA
+  CRONOGRAMA
+  ORCAMENTO
+  COMPRAS_FORNECEDORES
+  ESTOQUE
+  MAQUINAS_EQUIPAMENTOS
+  CONTRATOS_DOCUMENTOS
+}
+
+enum AcaoPermissao {
+  VISUALIZAR
+  CRIAR
+  EDITAR
+  EXCLUIR
+  APROVAR
+}
+
+' ===== RELAÇÕES =====
+Usuario "1" *-- "1" Credencial : autentica-se com
+Cargo "0..*" --> "0..*" Permissao : concede
+Usuario "1" *-- "0..*" PermissaoUsuario : exceções individuais
+PermissaoUsuario "0..*" --> "1" Permissao : refere-se a
+
+Usuario "1" --> "0..*" AlocacaoObra : alocado em
+AlocacaoObra "0..*" --> "1" Cargo : define papéis
+Obra "1" *-- "0..*" AlocacaoObra : membro de
+
+@enduml
