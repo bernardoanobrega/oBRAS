@@ -1,83 +1,36 @@
-@startuml cronograma-class-diagram
-title OBRAS - Diagrama de Classes (Módulo Cronograma)
+@startuml robustness-cronograma-convencao
+title Diagrama de Robustez - Módulo Cronograma (Convenção BCE)
 
-skinparam classAttributeIconSize 0
-skinparam ClassFontSize 14
-skinparam classBackgroundColor<<externa>> #EEEEEE
-skinparam classBorderColor<<externa>> #888888
-hide empty members
+skinparam monochrome true
+skinparam defaultTextAlignment center
+skinparam shadowing false
 
-' ===== CLASSES EXTERNAS =====
-class Obra <<externa>>
-class Usuario <<externa>>
+actor "Mestre de Obras / Gestor" as usuario
 
-' ===== NÚCLEO =====
-class Cronograma <<Entity>> {
-  -id : int
-  -dataUltimaAtualizacao : Date
-  -status : StatusCronograma
-  --
-  +adicionarFase(nome : String, ordem : int, inicioPrevisto : Date, fimPrevisto : Date) : Fase
-  +removerFase(idFase : int) : void
-  +buscarFase(idFase : int) : Fase
-  +validarSequenciaFases() : boolean
-  +calcularPercentualGeral() : double
-  +calcularDesvioPrazoDias(dataReferencia : Date) : int
-  +identificarFasesAtrasadas(dataReferencia : Date) : Fase[]
-  +cancelar()
-}
+' ===== BOUNDARIES (Telas / Formulários) =====
+boundary "CronogramaTela" as cronogramaUI
+boundary "RegistroAvancoTela" as avancoUI
 
-class Fase <<Entity>> {
-  -id : int
-  -idCronograma : int
-  -nome : String
-  -descricao : String
-  -ordem : int
-  -inicioPrevisto : Date
-  -fimPrevisto : Date
-  -inicioReal : Date
-  -fimReal : Date
-  -status : StatusFase
-  --
-  +validarPeriodo() : boolean
-  +registrarAvanco(percentualAcumulado : double, observacao : String, autor : Usuario) : AvancoFisico
-  +calcularPercentualConcluido() : double
-  +concluir(dataReal : Date) : void
-  +estaAtrasada(dataReferencia : Date) : boolean
-  +calcularDesvioDias(dataReferencia : Date) : int
-  +cancelar()
-}
+' ===== CONTROLS (Controladores / Lógica de Negócio) =====
+control "GerenciarCronogramaControl" as cronogramaCtrl
+control "RegistrarAvancoControl" as avancoCtrl
 
-class AvancoFisico <<Entity>> {
-  -id : int
-  -idFase : int
-  -dataRegistro : Date
-  -percentualAcumulado : double
-  -observacao : String
-  --
-  +validar(percentualAnterior : double) : boolean
-}
+' ===== ENTITIES (Objetos de Domínio) =====
+entity "Cronograma" as cronogramaEnt
+entity "Fase" as faseEnt
+entity "AvancoFisico" as avancoEnt
+entity "Obra" as obraEnt
 
-' ===== ENUMERAÇÕES =====
-enum StatusCronograma {
-  VAZIO
-  PLANEJADO
-  EM_ANDAMENTO
-  CONCLUIDO
-  CANCELADO
-}
+' ===== FLUXOS DE ROBUSTEZ =====
+usuario --> cronogramaUI : planejar fases / visualizar cronograma e indicadores
+cronogramaUI --> cronogramaCtrl : adicionar / remover fases e validar sequência
+cronogramaCtrl --> cronogramaEnt : atualizar fases, status e calcular indicadores
+cronogramaEnt --> faseEnt : compor / consultar fases (atrasos e desvio de prazo)
+cronogramaEnt --> obraEnt : informar andamento da obra
 
-enum StatusFase {
-  NAO_INICIADA
-  EM_ANDAMENTO
-  CONCLUIDA
-  CANCELADA
-}
-
-' ===== RELAÇÕES =====
-Cronograma "0..1" --> "1" Obra : informa
-Cronograma "1" *-- "0..*" Fase : composto por
-Fase "1" *-- "0..*" AvancoFisico : acumula
-Usuario "1" --> "0..*" AvancoFisico : registra
+usuario --> avancoUI : submeter avanço físico da fase
+avancoUI --> avancoCtrl : processar avanço e validar percentual acumulado
+avancoCtrl --> faseEnt : registrar avanço / concluir fase
+faseEnt --> avancoEnt : instanciar / persistir
 
 @enduml
