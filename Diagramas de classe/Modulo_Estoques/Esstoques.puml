@@ -1,0 +1,115 @@
+@startuml estoques-class-diagram
+title OBRAS - Diagrama de Classes (Módulo Controle de Estoque)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 70
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Obra <<externa>> {
+  -id : int
+}
+class Canteiro <<externa>> {
+  -id : int
+  -idObra : int
+}
+class Usuario <<externa>> {
+  -id : int
+}
+class PedidoCompra <<externa>> {
+  -id : int
+  -status : StatusPedido
+  +listarItens() : ItemPedido[]
+  +alterarStatus(novoStatus : StatusPedido, autor : Usuario, instante : Date) : HistoricoStatusPedido
+}
+
+' ===== FRONTEIRA E CONTROLE (BCE) =====
+class TelaMovimentacaoEstoque <<Boundary>> {
+  +confirmarEntradaEstoqueRegistrada() : void
+  +confirmarSaidaEstoqueRegistrada(emAlerta : boolean) : void
+  +confirmarTransferenciaRegistrada(emAlertaOrigem : boolean) : void
+  +confirmarSolicitacaoReposicaoCriada(pedido : PedidoCompra) : void
+  +exibirSaldos(saldos : SaldoEstoque[]) : void
+  +exibirMensagemErro(mensagem : String) : void
+}
+
+class ControleMovimentacaoEstoque <<Control>> {
+  +registrarEntradaEstoque(pedidoId : int, canteiroId : int, autorId : int) : void
+  +registrarSaidaEstoque(materialId : int, canteiroId : int, quantidade : double,\n    autorId : int) : void
+  +registrarTransferenciaEstoque(materialId : int, canteiroOrigemId : int,\n    canteiroDestinoId : int, quantidade : double, autorId : int) : void
+  +consultarSaldoCanteiro(canteiroId : int) : SaldoEstoque[]
+  +consultarSaldoObra(obraId : int) : SaldoEstoque[]
+  +solicitarReposicao(materialId : int, canteiroId : int, quantidade : double,\n    solicitanteId : int) : PedidoCompra
+}
+
+' ===== NÚCLEO (ENTIDADES) =====
+class Material <<Entity>> {
+  -id : int
+  -nome : String
+  -descricao : String
+  -unidadeMedida : String
+  --
+  +Material(nome : String, descricao : String, unidadeMedida : String) <<create>>
+  {static} +buscarPorId(id : int) : Material [0..1]
+  +salvarMaterial() : boolean
+}
+
+class SaldoEstoque <<Entity>> {
+  -id : int
+  -quantidadeAtual : double
+  -quantidadeMinima : double
+  --
+  +SaldoEstoque(material : Material, canteiro : Canteiro, quantidadeMinima : double) <<create>>
+  {static} +buscarPorMaterialECanteiro(material : Material, canteiro : Canteiro) : SaldoEstoque [0..1]
+  {static} +listarPorCanteiro(canteiro : Canteiro) : SaldoEstoque[]
+  {static} +listarPorObra(obra : Obra) : SaldoEstoque[]
+  {static} +calcularSaldoObra(material : Material, obra : Obra) : double
+  +adicionarSaldo(quantidade : double) : void
+  +subtrairSaldo(quantidade : double) : void
+  +definirQuantidadeMinima(quantidadeMinima : double) : void
+  +verificarAlertaMinimo() : boolean
+  +calcularMediaConsumoSemanal(dataReferencia : Date, semanas : int) : double
+  +salvarSaldo() : boolean
+}
+
+class MovimentacaoEstoque <<Entity>> {
+  -id : int
+  -tipo : TipoMovimentacao
+  -quantidade : double
+  -dataMovimentacao : Date
+  --
+  +MovimentacaoEstoque(tipo : TipoMovimentacao, material : Material, quantidade : double,\n    canteiroOrigem : Canteiro [0..1], canteiroDestino : Canteiro [0..1],\n    pedido : PedidoCompra [0..1], autor : Usuario, instante : Date) <<create>>
+  {static} +listarPorCanteiro(canteiro : Canteiro, tipo : TipoMovimentacao [0..1],\n    inicio : Date [0..1], fim : Date [0..1]) : MovimentacaoEstoque[]
+  +salvarMovimentacao() : boolean
+}
+
+' ===== ENUMERAÇÕES =====
+enum TipoMovimentacao {
+  ENTRADA_COMPRA
+  SAIDA_CONSUMO
+  TRANSFERENCIA
+}
+
+' ===== RELAÇÕES =====
+TelaMovimentacaoEstoque ..> ControleMovimentacaoEstoque : aciona
+ControleMovimentacaoEstoque ..> SaldoEstoque : gerencia
+ControleMovimentacaoEstoque ..> MovimentacaoEstoque : registra
+ControleMovimentacaoEstoque ..> Material : consulta
+ControleMovimentacaoEstoque ..> Canteiro : consulta
+ControleMovimentacaoEstoque ..> PedidoCompra : consulta/atualiza/cria
+
+Obra "1" *-- "1..*" Canteiro : possui
+SaldoEstoque "0..*" --> "1" Material : contabiliza
+SaldoEstoque "0..*" --> "1" Canteiro : localizado em
+MovimentacaoEstoque "0..*" --> "1" Material : movimenta
+MovimentacaoEstoque "0..*" --> "0..1" Canteiro : sai de (origem)
+MovimentacaoEstoque "0..*" --> "0..1" Canteiro : entra em (destino)
+MovimentacaoEstoque "0..*" --> "0..1" PedidoCompra : originada de
+MovimentacaoEstoque "0..*" --> "1" Usuario : registrada por
+
+@enduml

@@ -1,0 +1,177 @@
+@startuml compras-fornecedores-class-diagram
+title OBRAS - Diagrama de Classes (Módulo Compras e Fornecedores)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 70
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Obra <<externa>> {
+  -id : int
+}
+class Usuario <<externa>> {
+  -id : int
+}
+class Material <<externa>> {
+  -id : int
+}
+class ItemOrcado <<externa>> {
+  -id : int
+  +calcularValorOrcado() : double
+  +calcularTotalRealizado() : double
+  +registrarCusto(descricao : String, valor : double, origem : OrigemCusto,\n    idOrigem : int, autor : Usuario) : CustoRealizado
+}
+
+' ===== FRONTEIRA E CONTROLE (BCE) - PEDIDOS =====
+class TelaPedidoCompra <<Boundary>> {
+  +confirmarPedidoCriado(pedido : PedidoCompra) : void
+  +confirmarStatusAlterado(pedido : PedidoCompra) : void
+  +exibirAlertaOrcamento(itens : ItemPedido[]) : void
+  +exibirHistoricoCompras(pedidos : PedidoCompra[]) : void
+  +exibirMensagemErro(mensagem : String) : void
+}
+
+class ControlePedido <<Control>> {
+  +criarPedido(obraId : int, solicitanteId : int, prioridade : PrioridadePedido,\n    dataPrevista : Date) : PedidoCompra
+  +adicionarItemPedido(pedidoId : int, materialId : int, quantidade : double,\n    valorUnitario : double, itemOrcadoId : int [0..1]) : ItemPedido
+  +registrarCotacao(pedidoId : int, fornecedorId : int, valorTotalProposto : double,\n    prazoEntregaDias : int) : Cotacao
+  +selecionarCotacao(pedidoId : int, cotacaoId : int, autorId : int) : void
+  +alterarStatusPedido(pedidoId : int, novoStatus : StatusPedido, autorId : int) : void
+  +cancelarPedido(pedidoId : int, autorId : int) : void
+  +consultarHistoricoCompras(obraId : int, status : StatusPedido [0..1]) : PedidoCompra[]
+}
+
+' ===== FRONTEIRA E CONTROLE (BCE) - FORNECEDORES =====
+class TelaFornecedor <<Boundary>> {
+  +confirmarFornecedorSalvo(fornecedor : Fornecedor) : void
+  +exibirMensagemErro(mensagem : String) : void
+}
+
+class ControleFornecedor <<Control>> {
+  +cadastrarFornecedor(nomeRazaoSocial : String, cpfCnpj : String, email : String,\n    telefone : String) : Fornecedor
+  +atualizarFornecedor(fornecedorId : int, nomeRazaoSocial : String, cpfCnpj : String,\n    email : String, telefone : String) : void
+  +desativarFornecedor(fornecedorId : int) : void
+}
+
+' ===== NÚCLEO (ENTIDADES) =====
+class Fornecedor <<Entity>> {
+  -id : int
+  -nomeRazaoSocial : String
+  -cpfCnpj : String
+  -email : String
+  -telefone : String
+  -situacao : SituacaoFornecedor
+  --
+  +Fornecedor(nomeRazaoSocial : String, cpfCnpj : String, email : String,\n    telefone : String) <<create>>
+  {static} +buscarPorId(id : int) : Fornecedor [0..1]
+  {static} +cpfCnpjExiste(cpfCnpj : String, desconsiderarId : int [0..1]) : boolean
+  +estaAtivo() : boolean
+  +alterarDados(nomeRazaoSocial : String, cpfCnpj : String, email : String,\n    telefone : String) : void
+  +desativar() : void
+  +listarHistoricoCompras() : PedidoCompra[]
+  +salvarFornecedor() : boolean
+}
+
+class PedidoCompra <<Entity>> {
+  -id : int
+  -dataSolicitacao : Date
+  -dataPrevista : Date
+  -valorTotal : double
+  -status : StatusPedido
+  -prioridade : PrioridadePedido
+  --
+  +PedidoCompra(obra : Obra, solicitante : Usuario, prioridade : PrioridadePedido,\n    dataPrevista : Date, instante : Date) <<create>>
+  {static} +buscarPorId(id : int) : PedidoCompra [0..1]
+  {static} +listarPorObra(obra : Obra, status : StatusPedido [0..1]) : PedidoCompra[]
+  +adicionarItem(material : Material, quantidade : double, valorUnitario : double,\n    itemOrcado : ItemOrcado [0..1]) : ItemPedido
+  +removerItem(idItem : int) : void
+  +listarItens() : ItemPedido[]
+  +registrarCotacao(fornecedor : Fornecedor, valorTotalProposto : double,\n    prazoEntregaDias : int, instante : Date) : Cotacao
+  +selecionarCotacao(cotacao : Cotacao, autor : Usuario, instante : Date) : void
+  +alterarStatus(novoStatus : StatusPedido, autor : Usuario, instante : Date) : HistoricoStatusPedido
+  +cancelar(autor : Usuario, instante : Date) : HistoricoStatusPedido
+  +calcularValorTotal() : double
+  +possuiItemEmEstouro() : boolean
+  +estaAtrasado(dataReferencia : Date) : boolean
+  +listarHistorico() : HistoricoStatusPedido[]
+  -lancarCustosRealizados(autor : Usuario) : void
+  +salvarPedido() : boolean
+}
+
+class ItemPedido <<Entity>> {
+  -id : int
+  -quantidade : double
+  -valorUnitario : double
+  --
+  +ItemPedido(material : Material, quantidade : double, valorUnitario : double,\n    itemOrcado : ItemOrcado [0..1]) <<create>>
+  +ajustarValorUnitario(valorUnitario : double) : void
+  +calcularValorSubTotal() : double
+  +excedeOrcamento() : boolean
+}
+
+class Cotacao <<Entity>> {
+  -id : int
+  -dataCotacao : Date
+  -valorTotalProposto : double
+  -prazoEntregaDias : int
+  -selecionada : boolean
+  --
+  +Cotacao(fornecedor : Fornecedor, valorTotalProposto : double,\n    prazoEntregaDias : int, instante : Date) <<create>>
+  +marcarComoSelecionada() : void
+}
+
+class HistoricoStatusPedido <<Entity>> {
+  -id : int
+  -status : StatusPedido
+  -dataHora : Date
+  --
+  +HistoricoStatusPedido(pedido : PedidoCompra, status : StatusPedido,\n    autor : Usuario, instante : Date) <<create>>
+}
+
+' ===== ENUMERAÇÕES =====
+enum StatusPedido {
+  SOLICITADO
+  EM_COTACAO
+  COMPRADO
+  EM_TRANSITO
+  ENTREGUE
+  CANCELADO
+}
+
+enum PrioridadePedido {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
+enum SituacaoFornecedor {
+  ATIVO
+  INATIVO
+}
+
+' ===== RELAÇÕES =====
+TelaPedidoCompra ..> ControlePedido : aciona
+TelaFornecedor ..> ControleFornecedor : aciona
+ControlePedido ..> PedidoCompra : gerencia
+ControlePedido ..> Fornecedor : consulta
+ControlePedido ..> Material : consulta
+ControleFornecedor ..> Fornecedor : gerencia
+PedidoCompra ..> ItemOrcado : lança custo realizado
+
+PedidoCompra "0..*" --> "0..1" Fornecedor : fornecido por
+PedidoCompra "0..*" --> "1" Obra : destinado a
+PedidoCompra "0..*" --> "1" Usuario : solicitado por
+PedidoCompra "1" *-- "1..*" ItemPedido : composto por
+PedidoCompra "1" *-- "0..*" Cotacao : recebe
+PedidoCompra "1" *-- "1..*" HistoricoStatusPedido : registra
+Cotacao "0..*" --> "1" Fornecedor : proposta de
+ItemPedido "0..*" --> "1" Material : refere-se a
+ItemPedido "0..*" --> "0..1" ItemOrcado : consome orçamento de
+HistoricoStatusPedido "0..*" --> "1" Usuario : registrado por
+
+@enduml
