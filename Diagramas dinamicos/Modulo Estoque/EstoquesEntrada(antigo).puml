@@ -1,0 +1,66 @@
+@startuml estoques-entrada-sequence
+!theme plain
+title Diagrama de Sequência - Entrada de Material no Estoque por Compra
+skinparam maxMessageSize 150
+autonumber
+
+actor "Estoquista" as user
+boundary "TelaMovimentacaoEstoque" as view <<view>>
+control "ControleMovimentacaoEstoque" as ctrl <<Controller>>
+entity "PedidoCompra" as pedido <<Entity>>
+entity "ItemPedido" as item <<Entity>>
+entity "Material" as material <<Entity>>
+entity "SaldoEstoque" as saldo <<Entity>>
+entity "MovimentacaoEstoque" as movimentacao <<Entity>>
+
+user -> view : Confirma a recepção da encomenda (pedidoId)
+activate view
+
+view -> ctrl : registrarEntradaEstoque(pedidoId)
+activate ctrl
+
+ctrl -> pedido : buscarPorId(pedidoId)
+activate pedido
+pedido --> ctrl : dadosPedido
+deactivate pedido
+
+loop Para cada item do pedido
+    ctrl -> item : getMaterial()
+    activate item
+    item --> ctrl : material
+    deactivate item
+
+    ctrl -> item : getQuantidade()
+    activate item
+    item --> ctrl : quantidadeItem
+    deactivate item
+
+    ctrl --> movimentacao ** : <<create>> criarMovimentacao(material, quantidadeItem, ENTRADA_COMPRA)
+    activate movimentacao
+    ctrl -> movimentacao : salvarMovimentacao()
+    movimentacao --> ctrl : movimentacaoSalva
+    deactivate movimentacao
+
+    ctrl -> saldo : buscarPorMaterial(material)
+    activate saldo
+    saldo --> ctrl : saldoAtual
+
+    ctrl -> saldo : adicionarSaldo(quantidadeItem)
+    saldo --> ctrl : saldoAtualizado
+
+    ctrl -> saldo : salvarSaldo()
+    saldo --> ctrl : saldoSalvo
+    deactivate saldo
+end
+
+ctrl -> pedido : alterarStatus(StatusPedido.ENTREGUE)
+activate pedido
+pedido --> ctrl : statusAtualizado
+deactivate pedido
+
+ctrl -> view : confirmarEntradaEstoqueRegistrada()
+view --> user : Exibir confirmação da entrada de estoque registrada
+
+deactivate ctrl
+deactivate view
+@enduml

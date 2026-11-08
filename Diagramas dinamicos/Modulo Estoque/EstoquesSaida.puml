@@ -8,13 +8,15 @@ actor "Estoquista" as user
 boundary "TelaMovimentacaoEstoque" as view <<view>>
 control "ControleMovimentacaoEstoque" as ctrl <<Controller>>
 entity "Material" as material <<Entity>>
+entity "Canteiro" as canteiro <<Entity>>
+entity "Usuario" as usuario <<Entity>>
 entity "SaldoEstoque" as saldo <<Entity>>
 entity "MovimentacaoEstoque" as movimentacao <<Entity>>
 
-user -> view : Solicita a saída de materiais do estoque\n(materialId, quantidade, tipo = SAIDA_CONSUMO)
+user -> view : Solicita a saída de material para consumo\n(materialId, canteiroId, quantidade)
 activate view
 
-view -> ctrl : registrarSaidaEstoque(materialId, quantidade)
+view -> ctrl : registrarSaidaEstoque(materialId, canteiroId, quantidade, autorId)
 activate ctrl
 
 ctrl -> material : buscarPorId(materialId)
@@ -22,36 +24,46 @@ activate material
 material --> ctrl : dadosMaterial
 deactivate material
 
-ctrl -> saldo : buscarPorMaterial(dadosMaterial)
+ctrl -> canteiro : buscarPorId(canteiroId)
+activate canteiro
+canteiro --> ctrl : canteiroOrigem
+deactivate canteiro
+
+ctrl -> usuario : buscarPorId(autorId)
+activate usuario
+usuario --> ctrl : autor
+deactivate usuario
+
+ctrl -> saldo : buscarPorMaterialECanteiro(dadosMaterial, canteiroOrigem)
 activate saldo
-saldo --> ctrl : saldoAtual
+saldo --> ctrl : saldoAtual [0..1]
 deactivate saldo
 
-ctrl -> saldo : getQuantidadeAtual()
-activate saldo
-saldo --> ctrl : quantidadeAtual
-deactivate saldo
-
-alt [quantidadeAtual >= quantidade]
-    ctrl --> movimentacao ** : <<create>> criarMovimentacao(dadosMaterial, quantidade, SAIDA_CONSUMO)
+alt [saldo existe e quantidadeAtual >= quantidade]
+    ctrl --> movimentacao ** : <<create>> MovimentacaoEstoque(SAIDA_CONSUMO, dadosMaterial, quantidade,\ncanteiroOrigem, null, null, autor, instante)
     activate movimentacao
-    ctrl -> movimentacao : registrarMovimentacao()
+    ctrl -> movimentacao : salvarMovimentacao()
     movimentacao --> ctrl : movimentacaoSalva
     deactivate movimentacao
 
     ctrl -> saldo : subtrairSaldo(quantidade)
     activate saldo
     saldo --> ctrl : quantidadeAtualizada
-    deactivate saldo
+
+    ctrl -> saldo : salvarSaldo()
+    saldo --> ctrl : saldoSalvo
 
     ctrl -> saldo : verificarAlertaMinimo()
-    activate saldo
-    saldo --> ctrl : emAlerta (Boolean)
+    saldo --> ctrl : emAlerta (boolean)
     deactivate saldo
 
     ctrl -> view : confirmarSaidaEstoqueRegistrada(emAlerta)
     view --> user : Exibir confirmação da saída registrada
-else [quantidadeAtual < quantidade]
+
+    opt [emAlerta]
+        view --> user : Exibir alerta de estoque baixo e opção\n"gerar solicitação" de reposição
+    end
+else [saldo inexistente ou quantidadeAtual < quantidade]
     ctrl -> view : exibirMensagemErro("Quantidade insuficiente em estoque")
     view --> user : Exibir mensagem de erro
 end
