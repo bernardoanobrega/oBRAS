@@ -11,22 +11,43 @@ hide empty description
 
 ' ===== ESTADOS =====
 state ESGOTADO : quantidadeAtual == 0
+state ESGOTADO : verificarAlertaMinimo() == true
 state ALERTA_MINIMO : 0 < quantidadeAtual <= quantidadeMinima
+state ALERTA_MINIMO : verificarAlertaMinimo() == true
 state REGULAR : quantidadeAtual > quantidadeMinima
+state REGULAR : verificarAlertaMinimo() == false
 
 ' ===== TRANSIÇÕES =====
-[*] --> ESGOTADO : cadastrar Material\n/ quantidadeAtual := 0
+[*] --> ESGOTADO : SaldoEstoque(material, canteiro, quantidadeMinima)\n/ quantidadeAtual := 0
 
-ESGOTADO --> REGULAR : adicionarSaldo(qtd)\n[quantidadeAtual + qtd > quantidadeMinima]
-ESGOTADO --> ALERTA_MINIMO : adicionarSaldo(qtd)\n[quantidadeAtual + qtd <= quantidadeMinima]
+ESGOTADO --> REGULAR : adicionarSaldo(qtd)\n[qtd > quantidadeMinima]
+ESGOTADO --> ALERTA_MINIMO : adicionarSaldo(qtd)\n[0 < qtd <= quantidadeMinima]
 
 REGULAR --> REGULAR : adicionarSaldo(qtd)
 REGULAR --> REGULAR : subtrairSaldo(qtd)\n[quantidadeAtual - qtd > quantidadeMinima]
-REGULAR --> ALERTA_MINIMO : subtrairSaldo(qtd)\n[0 < quantidadeAtual - qtd <= quantidadeMinima]\n/ verificarAlertaMinimo()
-REGULAR --> ESGOTADO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd == 0]\n/ verificarAlertaMinimo()
+REGULAR --> ALERTA_MINIMO : subtrairSaldo(qtd)\n[0 < quantidadeAtual - qtd <= quantidadeMinima]\n/ verificarAlertaMinimo() == true
+REGULAR --> ESGOTADO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd == 0]\n/ verificarAlertaMinimo() == true
 
 ALERTA_MINIMO --> REGULAR : adicionarSaldo(qtd)\n[quantidadeAtual + qtd > quantidadeMinima]
 ALERTA_MINIMO --> ALERTA_MINIMO : adicionarSaldo(qtd)\n[quantidadeAtual + qtd <= quantidadeMinima]
-ALERTA_MINIMO --> ALERTA_MINIMO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd > 0]
-ALERTA_MINIMO --> ESGOTADO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd == 0]
+ALERTA_MINIMO --> ALERTA_MINIMO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd > 0]\n/ verificarAlertaMinimo() == true
+ALERTA_MINIMO --> ESGOTADO : subtrairSaldo(qtd)\n[quantidadeAtual - qtd == 0]\n/ verificarAlertaMinimo() == true
+
+REGULAR --> ALERTA_MINIMO : definirQuantidadeMinima(m)\n[0 < quantidadeAtual <= m]
+REGULAR --> ESGOTADO : definirQuantidadeMinima(m)\n[quantidadeAtual == 0]
+ALERTA_MINIMO --> REGULAR : definirQuantidadeMinima(m)\n[quantidadeAtual > m]
+
+note right of ESGOTADO
+  Um SaldoEstoque existe por (material, canteiro).
+  adicionarSaldo exige qtd > 0.
+  subtrairSaldo exige 0 < qtd <= quantidadeAtual;
+  fora disso a operação é rejeitada e o estado não muda.
+  Saída e transferência usam subtrairSaldo na origem;
+  entrada e transferência usam adicionarSaldo no destino.
+end note
+
+note bottom of ALERTA_MINIMO
+  definirQuantidadeMinima(m) não muda o estado
+  quando a condição do estado atual continua válida.
+end note
 @enduml

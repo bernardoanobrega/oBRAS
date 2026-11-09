@@ -6,22 +6,22 @@ skinparam ActivityBackgroundColor #FFFFFF
 skinparam ActivityBorderColor #444444
 
 start
-:Estoquista solicita saída de material para consumo;
-:Buscar Material e recuperar SaldoEstoque correspondente;
+:Estoquista informa material, canteiro e quantidade da saída para consumo;
+:Buscar Material, Canteiro e o SaldoEstoque\ndo material naquele canteiro;
 
-if (quantidadeAtual >= quantidadeSolicitada?) then (sim)
-  :Criar registro de MovimentacaoEstoque (SAIDA_CONSUMO);
-  :Subtrair quantidade do SaldoEstoque:\nsubtrairSaldo(quantidadeSolicitada);
+if (Saldo existe e quantidadeAtual >= quantidade solicitada?) then (sim)
+  :Criar MovimentacaoEstoque (SAIDA_CONSUMO)\ncom canteiro de origem e autor;
+  :Subtrair quantidade do SaldoEstoque:\nsubtrairSaldo(quantidade);
+  :Salvar MovimentacaoEstoque e SaldoEstoque;
   :Verificar limite de segurança:\nverificarAlertaMinimo();
-  
-  if (Atingiu ou ficou abaixo da quantidadeMinima?) then (sim)
-    :Emitir alerta de estoque baixo para o material;
-    :Sugerir abertura de PedidoCompra (SOLICITACAO);
+
+  if (quantidadeAtual <= quantidadeMinima?) then (sim)
+    :Exibir alerta de estoque baixo para o material;
+    :Oferecer geração de solicitação de reposição\n(PedidoCompra com status SOLICITADO);
   else (não)
     :Saldo permanece em nível regular;
   endif
-  
-  :Salvar MovimentacaoEstoque e atualizar SaldoEstoque;
+
   :Exibir confirmação de saída ao Estoquista;
 else (não)
   :Bloquear movimentação de saída;
