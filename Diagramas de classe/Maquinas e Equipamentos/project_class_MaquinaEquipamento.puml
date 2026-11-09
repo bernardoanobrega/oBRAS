@@ -1,0 +1,105 @@
+@startuml class-diagram
+title OBRAS - Diagrama de Classes de Projeto (Módulo de Máquinas e Equipamentos)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+skinparam NoteBackgroundColor #FFFBE6
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Usuario <<externa>>
+
+abstract class Auditavel <<externa>>
+
+class Obra <<externa>> {
+  -id : int
+  -status : StatusObra
+}
+
+class CanteiroDeObras <<externa>> {
+  -id : int
+  -idObra : int
+}
+
+' ===== NÚCLEO =====
+class Equipamento <<Entity>> {
+  -id : int
+  -codigoPatrimonio : String
+  -descricao : String
+  -tipo : TipoEquipamento
+  -status : StatusEquipamento
+  --
+  +editar(descricao : String, tipo : TipoEquipamento) : void
+  +desativar() : void
+  +reativar() : void
+  +alocar(canteiro : CanteiroDeObras, prevDevolucao : Date, responsavel : Usuario, observacao : String) : AlocacaoEquipamento
+  +devolver(observacao : String) : void
+  +transferir(destino : CanteiroDeObras, prevDevolucao : Date, responsavel : Usuario, observacao : String) : AlocacaoEquipamento
+  +alocacaoAtiva() : AlocacaoEquipamento
+  +localizacaoAtual() : CanteiroDeObras
+  +estaAtrasado() : boolean
+}
+
+class AlocacaoEquipamento <<Entity>> {
+  -id : int
+  -idEquipamento : int
+  -idCanteiro : int
+  -idResponsavel : int
+  -dataInicio : Date
+  -dataPrevistaDevolucao : Date
+  -dataFim : Date
+  -observacao : String
+  -observacaoDevolucao : String
+  --
+  +prorrogar(novaDataPrevista : Date) : void
+  +encerrar(dataFim : Date, observacao : String) : void
+  +estaAtiva() : boolean
+  +estaAtrasada() : boolean
+}
+
+' ===== ENUMERAÇÕES =====
+enum TipoEquipamento {
+  MAQUINA
+  FERRAMENTA
+  OUTRO
+}
+
+enum StatusEquipamento {
+  DISPONIVEL
+  ALOCADO
+  INATIVO
+}
+
+enum StatusObra <<externa>> {
+  PLANEJADA
+  EM_ANDAMENTO
+  PARALISADA
+  CANCELADA
+  CONCLUIDA
+}
+
+' ===== RELAÇÕES =====
+Obra "1" *-- "1..*" CanteiroDeObras : possui
+Equipamento "1" *-- "0..*" AlocacaoEquipamento : historico
+CanteiroDeObras "1" --> "0..*" AlocacaoEquipamento : recebe
+Usuario "1" --> "0..*" AlocacaoEquipamento : responsavel por
+Auditavel <|-- Equipamento
+Auditavel <|-- AlocacaoEquipamento
+
+' ===== NOTAS =====
+note right of Equipamento
+  Invariante: status = ALOCADO se e somente se
+  existe uma AlocacaoEquipamento ativa (dataFim vazia).
+  No máximo uma alocação ativa por equipamento.
+end note
+
+note bottom of AlocacaoEquipamento
+  Autoria e edições (inclusive prorrogar e encerrar) ficam no
+  RegistroAuditoria herdado de Auditavel. O atributo excluido
+  não é usado: equipamento e alocação nunca são excluídos;
+  a desativação do equipamento usa status INATIVO.
+end note
+
+@enduml
