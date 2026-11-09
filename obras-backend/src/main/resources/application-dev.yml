@@ -1,0 +1,11 @@
+app:
+  jwt:
+    secret: dev-only-secret-troque-em-producao-0123456789
+  bootstrap:
+    admin:
+      enabled: true
+      login: admin
+      password: Admin@12345
+logging:
+  level:
+    br.com.obras: DEBUG

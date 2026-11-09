@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: obras
+      POSTGRES_USER: obras
+      POSTGRES_PASSWORD: obras
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  backend:
+    build: .
+    profiles: ["full"]          # docker compose --profile full up
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:postgresql://db:5432/obras
+    depends_on: [db]
+    ports: ["8080:8080"]
+
+volumes:
+  pgdata:
