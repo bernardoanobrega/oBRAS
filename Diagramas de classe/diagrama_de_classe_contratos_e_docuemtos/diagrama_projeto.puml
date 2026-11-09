@@ -1,0 +1,69 @@
+@startuml robustness-contratos-documentos-convencao
+title Diagrama de Robustez - Módulo Contratos e Documentos (Convenção BCE)
+
+skinparam monochrome true
+skinparam defaultTextAlignment center
+skinparam shadowing false
+
+actor "Usuário do módulo" as usuario
+
+' ===== BOUNDARIES (Telas / Formulários) =====
+boundary "DocumentosTela" as documentosUI
+boundary "VersoesDocumentoTela" as versoesUI
+boundary "PrestadoresTela" as prestadoresUI
+boundary "HistoricoPrestadorTela" as historicoUI
+
+' ===== CONTROLS (Controladores / Lógica de Negócio) =====
+control "GerenciarDocumentosControl" as documentosCtrl
+control "GerenciarVersoesControl" as versoesCtrl
+control "GerenciarPrestadoresControl" as prestadoresCtrl
+control "ConsultarHistoricoControl" as historicoCtrl
+
+' ===== ENTITIES (Objetos de Domínio) =====
+entity "Documento" as documentoEnt
+entity "VersaoDocumento" as versaoEnt
+entity "ArquivoDocumento" as arquivoEnt
+entity "PrestadorServico" as prestadorEnt
+entity "HistoricoDocumentalPrestador" as historicoEnt
+entity "Obra" as obraEnt
+entity "Usuario" as usuarioEnt
+
+' ===== CADASTRO E CONSULTA DE DOCUMENTOS =====
+usuario --> documentosUI : cadastrar / consultar documentos da obra
+documentosUI --> documentosCtrl : enviar dados e arquivo / informar filtros
+documentosCtrl --> obraEnt : consultar obra de referência
+documentosCtrl --> usuarioEnt : obter autor da operação
+documentosCtrl --> arquivoEnt : validar formato e limite de 10 MB / criar arquivo
+documentosCtrl --> documentoEnt : cadastrar / buscar / listar por obra
+documentosCtrl --> versaoEnt : criar primeira versão do documento
+
+' ===== VÍNCULO DE CONTRATO COM PRESTADOR =====
+usuario --> documentosUI : vincular contrato a prestador
+documentosUI --> documentosCtrl : solicitar vínculo
+documentosCtrl --> prestadorEnt : consultar prestador / verificar situação ativa
+documentosCtrl --> documentoEnt : validar categoria CONTRATO / vincular prestador
+documentosCtrl --> historicoEnt : registrar VINCULO_CONTRATO com versão atual
+
+' ===== VERSIONAMENTO DE DOCUMENTOS =====
+usuario --> versoesUI : enviar nova versão / consultar versões e arquivos
+versoesUI --> versoesCtrl : submeter arquivo / solicitar versão
+versoesCtrl --> usuarioEnt : obter autor do envio
+versoesCtrl --> arquivoEnt : validar formato e limite de 10 MB / criar arquivo
+versoesCtrl --> documentoEnt : adicionar versão / listar versões / obter versão atual
+versoesCtrl --> versaoEnt : criar versão com próximo número / consultar arquivo
+versoesCtrl --> historicoEnt : registrar INCLUSAO_VERSAO quando houver prestador vinculado
+
+' ===== GESTÃO DE PRESTADORES =====
+usuario --> prestadoresUI : cadastrar / alterar / desativar prestador
+prestadoresUI --> prestadoresCtrl : enviar dados / solicitar desativação
+prestadoresCtrl --> prestadorEnt : validar CPF/CNPJ único / cadastrar / alterar / desativar
+
+' ===== CONSULTA DE CONTRATOS E HISTÓRICO =====
+usuario --> historicoUI : consultar contratos e histórico do prestador
+historicoUI --> historicoCtrl : informar prestador
+historicoCtrl --> prestadorEnt : buscar prestador
+historicoCtrl --> documentoEnt : consultar contratos vinculados
+historicoCtrl --> historicoEnt : consultar eventos do prestador
+historicoCtrl --> versaoEnt : consultar versão associada ao evento
+
+@enduml
