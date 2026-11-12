@@ -13,45 +13,45 @@ class Usuario <<externa>>
 
 ' ===== NÚCLEO =====
 class Cronograma <<Entity>> {
-  -id : int
-  -dataUltimaAtualizacao : Date
+  -id : Long
+  -dataUltimaAtualizacao : LocalDate
   -status : StatusCronograma
   --
-  +adicionarFase(nome : String, ordem : int, inicioPrevisto : Date, fimPrevisto : Date) : Fase
+  +adicionarFase(nome : String, ordem : int, inicioPrevisto : LocalDate, fimPrevisto : LocalDate) : Fase
   +removerFase(idFase : int) : void
   +buscarFase(idFase : int) : Fase
   +validarSequenciaFases() : boolean
   +calcularPercentualGeral() : double
-  +calcularDesvioPrazoDias(dataReferencia : Date) : int
-  +identificarFasesAtrasadas(dataReferencia : Date) : Fase[]
+  +calcularDesvioPrazoDias(dataReferencia : LocalDate) : int
+  +identificarFasesAtrasadas(dataReferencia : LocalDate) : Fase[]
   +cancelar()
 }
 
 class Fase <<Entity>> {
-  -id : int
-  -idCronograma : int
+  -id : Long
+  -idCronograma : Long
   -nome : String
   -descricao : String
   -ordem : int
-  -inicioPrevisto : Date
-  -fimPrevisto : Date
-  -inicioReal : Date
-  -fimReal : Date
+  -inicioPrevisto : LocalDate
+  -fimPrevisto : LocalDate
+  -inicioReal : LocalDate
+  -fimReal : LocalDate
   -status : StatusFase
   --
   +validarPeriodo() : boolean
   +registrarAvanco(percentualAcumulado : double, observacao : String, autor : Usuario) : AvancoFisico
   +calcularPercentualConcluido() : double
-  +concluir(dataReal : Date) : void
-  +estaAtrasada(dataReferencia : Date) : boolean
-  +calcularDesvioDias(dataReferencia : Date) : int
+  +concluir(dataReal : LocalDate) : void
+  +estaAtrasada(dataReferencia : LocalDate) : boolean
+  +calcularDesvioDias(dataReferencia : LocalDate) : int
   +cancelar()
 }
 
 class AvancoFisico <<Entity>> {
-  -id : int
-  -idFase : int
-  -dataRegistro : Date
+  -id : Long
+  -idFase : Long
+  -dataRegistro : LocalDate
   -percentualAcumulado : double
   -observacao : String
   --
