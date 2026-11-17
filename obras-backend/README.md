@@ -24,3 +24,13 @@ Migrations: `V1` usuários/permissões, `V2` obras/canteiros/alocações. Próxi
 - Módulo nunca usa repository de outro módulo; use o service público ou um *port* em `shared`.
 - Controllers: `@PreAuthorize("@perm.pode(#obraId, 'MODULO', 'ACAO')")`.
 - Nunca expor entidades JPA; use DTOs.
+
+## Compras e Estoque (implementados)
+Migrations: `V3` materiais, `V4` fornecedores/pedidos/itens/cotações/histórico, `V5` saldo e movimentação de estoque.
+- **Compras** (`/api/obras/{obraId}/pedidos-compra`, `/api/fornecedores`): máquina de estados do PedidoCompra no domínio
+  (`SOLICITADO → EM_COTACAO → COMPRADO → EM_TRANSITO → ENTREGUE`; `CANCELADO` só até `EM_COTACAO`).
+- **Estoque** (`/api/obras/{obraId}/estoque`, `/api/materiais`): saldo por (material, canteiro); entrada, saída e
+  transferência numa única transação, com lock pessimista no saldo.
+- Compras → Estoque: `EstoqueService.registrarEntradaEstoque` chama o service público de compras (mesma transação).
+- Dependências ainda inexistentes entram por *ports* em `shared.port`: `ObraConsultaPort` (adapter em `obra`),
+  `OrcamentoPort` (**provisório** em `compras.service.OrcamentoPortProvisorio` — remover quando o orçamento existir).
