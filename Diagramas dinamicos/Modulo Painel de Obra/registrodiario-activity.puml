@@ -12,47 +12,66 @@ skinparam NoteBackgroundColor #FFFBE6
 start
 
 :Mestre de Obras acessa o Painel da Obra;
-:Solicita a criação do Registro Diário;
 
-' ===== VERIFICAÇÃO DE DUPLICIDADE =====
-if (Já existe RegistroDiario não excluído para esta data?) then (Sim)
-  #FFD2D2:Exibir mensagem de erro: "Ja existe registro para o dia";
+if (Fluxo de ocorrência rápida com foto?) then (Sim)
+  if (Existe RegistroDiario não excluído do dia?) then (Não)
+    :Informar clima do dia (único);
+    :Criar RegistroDiario do dia com clima;
+  else (Sim)
+    :Usar RegistroDiario do dia;
+  endif
+  :Criar ocorrência rápida (categoria OUTRO, descrição obrigatória,\nautor autenticado, data/hora atual);
+  :Anexar foto à ocorrência;
+  :Salvar ocorrência/foto e gravar auditoria;
+  #D5E8D4:Confirmar ocorrência rápida registrada;
   stop
-else (Não)
-endif
+else (Não - criação de Registro Diário)
+  :Solicitar criação do Registro Diário;
 
-' ===== PREENCHIMENTO BÁSICO =====
-:Selecionar Condição Climática do dia;
-
-' ===== DEFINIÇÃO DA EQUIPE PRESENTE =====
-:Carregar lista de AlocacaoObra ativas da obra;
-:Marcar colaboradores alocados presentes;
-
-' ===== LOOP DE REGISTRO DE OCORRÊNCIAS =====
-while (Deseja registrar uma ocorrência?) is (Sim)
-  if (É Paralisação?) then (Sim)
-    :Informar Início da Paralisação;
-    :Informar Fim da Paralisação;
+  ' ===== VERIFICAÇÃO DE DUPLICIDADE =====
+  if (Já existe RegistroDiario não excluído para esta data?) then (Sim)
+    #FFD2D2:Exibir mensagem de erro: "Ja existe registro para o dia";
+    stop
   else (Não)
-  :Selecionar Categoria da Ocorrência;
-  :Informar Descrição da Ocorrência;
-  :Sistema Grava o Horário da Ocorrência;
   endif
 
-  ' ===== ANEXO DE FOTOS =====
-  while (Deseja anexar uma foto?) is (Sim)
-    :Fazer upload do arquivo;
-    :Informar Legenda da foto;
+  ' ===== PREENCHIMENTO BÁSICO =====
+  :Selecionar Condição Climática do dia (único, ADR-01);
+
+  ' ===== DEFINIÇÃO DA EQUIPE PRESENTE =====
+  :Carregar lista de AlocacaoObra ativas da obra;
+  :Marcar colaboradores alocados presentes;
+
+  ' ===== LOOP DE REGISTRO DE OCORRÊNCIAS =====
+  while (Deseja registrar uma ocorrência?) is (Sim)
+    if (É Paralisação?) then (Sim)
+      :Selecionar Categoria da Ocorrência (obrigatória);
+      :Informar Descrição da Paralisação;
+      :Informar Início da Paralisação;
+      :Informar Fim da Paralisação;
+      :Sistema grava data/hora da ocorrência;
+    else (Não)
+      :Selecionar Categoria da Ocorrência;
+      :Informar Descrição da Ocorrência;
+      :Sistema grava data/hora da ocorrência;
+    endif
+
+    ' ===== ANEXO DE FOTOS =====
+    while (Deseja anexar uma foto?) is (Sim)
+      :Fazer upload do arquivo;
+      :Informar Legenda da foto;
+    endwhile (Não)
+
+    :Adicionar Ocorrência ao Registro Diário;
   endwhile (Não)
 
-  :Adicionar Ocorrência ao Registro Diário;
-endwhile (Não)
+  ' ===== FINALIZAÇÃO E PERSISTÊNCIA =====
+  :Salvar Registro Diário;
+  :Gravar dados de Auditoria;
 
-' ===== FINALIZAÇÃO E PERSISTÊNCIA =====
-:Salvar Registro Diário;
-:Gravar dados de Auditoria;
+  #D5E8D4:Exibir confirmação de Registro Diário salvo;
 
-#D5E8D4:Exibir confirmação de Registro Diário salvo;
+  stop
+endif
 
-stop
 @enduml
