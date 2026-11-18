@@ -16,7 +16,7 @@ export default function ObraHeader({ obra, pode }) {
       <div>
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-xl font-semibold text-white">{obra.nome}</h2>
-          <Badge tom="green" dot>
+          <Badge tom={obra.statusTom ?? 'green'} dot>
             {obra.status}
           </Badge>
         </div>

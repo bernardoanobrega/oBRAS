@@ -41,6 +41,9 @@ public class Obra {
     @Column(length = 50)
     private String art;
 
-    @Column(name = "responsavel_id", nullable = false)
+    @Column(name = "responsavel_id")
     private Long responsavelId;
+
+    @Column(name = "auditavel_id", nullable = false)
+    private Long auditavelId;
 }

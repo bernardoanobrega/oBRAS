@@ -1,29 +1,35 @@
+import EmptyState from '../../../../shared/components/feedback/EmptyState.jsx';
+import FotoReal from './FotoReal.jsx';
 import { CARD } from './tokens.js';
 
-/** Mural com apenas fotos de ocorrências. Placeholders locais (gradiente), sem upload avulso e sem link morto. */
-export default function MuralFotos({ fotos }) {
+export default function MuralFotos({ obraId, fotos = [] }) {
+  const itens = Array.isArray(fotos) ? fotos : [];
+
   return (
     <section className={`${CARD} p-5`}>
-      <header>
-        <h3 className="text-sm font-semibold text-white">Mural de evidências fotográficas</h3>
-        <p className="text-xs text-zinc-500">{fotos.length} registros de ocorrências</p>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-white">Mural de evidências fotográficas</h3>
+          <p className="text-xs text-zinc-500">{itens.length} registros de ocorrências</p>
+        </div>
       </header>
 
-      <figure className="relative mt-4 overflow-hidden rounded-md">
-        <div className={`aspect-[1408/768] w-full bg-gradient-to-br ${fotos[0].gradiente}`} />
-        <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-xs text-white">
-          {fotos[0].legenda}
-        </figcaption>
-      </figure>
-
-      <div className="mt-4 grid grid-cols-2 gap-4">
-        {fotos.slice(1).map((f) => (
-          <figure key={f.id}>
-            <div className={`aspect-[4/3] w-full rounded bg-gradient-to-br ${f.gradiente}`} />
-            <figcaption className="mt-1.5 text-[11px] text-zinc-300">{f.legenda}</figcaption>
-          </figure>
-        ))}
-      </div>
+      {itens.length === 0 ? (
+        <div className="mt-4">
+          <EmptyState mensagem="Sem fotos registradas neste diário." />
+        </div>
+      ) : (
+        <>
+          <div className="mt-4">
+            <FotoReal obraId={obraId} foto={itens[0]} className="aspect-[1408/768]" />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            {itens.slice(1).map((foto) => (
+              <FotoReal key={foto.id ?? foto.nomeArquivo} obraId={obraId} foto={foto} />
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }

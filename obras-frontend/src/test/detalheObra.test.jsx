@@ -12,7 +12,26 @@ vi.mock('../shared/auth/useAuth.js', () => ({
   useAuth: () => ({ usuario: { nome: 'Teste' }, sair: () => {} }),
 }));
 
+vi.mock('../features/obras/api/useDetalheObra.js', async () => {
+  const { OBRA, EQUIPE } = await import('../features/obras/mocks/detalheObraMock.js');
+  return {
+    useDetalheObra: vi.fn(() => ({
+      obra: OBRA,
+      equipe: EQUIPE,
+      carregando: false,
+      erro: null,
+      recarregar: vi.fn(),
+    })),
+  };
+});
+
+vi.mock('../features/obras/api/useDiario.js', () => ({
+  useDiario: vi.fn(),
+}));
+
 import { usePermissao } from '../shared/auth/usePermissao.js';
+import { useDetalheObra } from '../features/obras/api/useDetalheObra.js';
+import { useDiario } from '../features/obras/api/useDiario.js';
 import AppShell from '../shared/components/layout/AppShell.jsx';
 import ObraLayout from '../features/obras/pages/ObraLayout.jsx';
 import DetalheObraPage from '../features/obras/pages/DetalheObraPage.jsx';
@@ -23,6 +42,27 @@ import EquipeResumo from '../features/obras/components/detalhe/EquipeResumo.jsx'
 import OcorrenciasRecentes from '../features/obras/components/detalhe/OcorrenciasRecentes.jsx';
 import MuralFotos from '../features/obras/components/detalhe/MuralFotos.jsx';
 import { OBRA, CLIMA_DIA, KPIS, EQUIPE, OCORRENCIAS, FOTOS } from '../features/obras/mocks/detalheObraMock.js';
+
+const DIARIO_REAL = {
+  id: 3,
+  obraId: 1,
+  data: '2026-11-18',
+  clima: 'ENSOLARADO',
+  descricao: 'Diário real da obra',
+  equipePresenteIds: [7],
+  ocorrencias: [
+    {
+      id: 4,
+      diarioId: 3,
+      categoria: 'LOGISTICA',
+      descricao: 'Ocorrência real da obra',
+      dataHora: '2026-11-18T10:30:00',
+      autorUsuarioId: 1,
+      paralisacao: null,
+      fotos: [{ id: 6, ocorrenciaId: 4, nomeArquivo: 'foto.png', legenda: 'Foto real da obra', dataEnvio: null }],
+    },
+  ],
+};
 
 function renderPagina() {
   return renderToStaticMarkup(
@@ -37,6 +77,22 @@ function renderPagina() {
 beforeEach(() => {
   vi.stubGlobal('navigator', { onLine: true });
   usePermissao.mockReturnValue({ pode: () => false, carregando: false });
+  useDetalheObra.mockReturnValue({
+    obra: OBRA,
+    equipe: EQUIPE,
+    carregando: false,
+    erro: null,
+    recarregar: vi.fn(),
+  });
+  useDiario.mockReturnValue({
+    resumos: [],
+    diario: null,
+    selecionadoId: null,
+    carregando: false,
+    erro: null,
+    recarregar: vi.fn(),
+    selecionarDiario: vi.fn(),
+  });
 });
 
 function renderShell() {
@@ -140,6 +196,86 @@ describe('DetalheObraPage', () => {
     const html = renderPagina();
     expect(html).toContain('SIMULADO');
   });
+
+  it('usa dados reais do diário no painel', () => {
+    useDiario.mockReturnValue({
+      resumos: [{ id: 3, data: '2026-11-18' }],
+      diario: DIARIO_REAL,
+      selecionadoId: 3,
+      carregando: false,
+      erro: null,
+      recarregar: vi.fn(),
+      selecionarDiario: vi.fn(),
+    });
+    const html = renderPagina();
+    expect(html).toContain('18/11/2026');
+    expect(html).toContain('Ensolarado');
+    expect(html).toContain('Ocorrência real da obra');
+    expect(html).toContain('Foto real da obra');
+  });
+
+  it('mantém obra e equipe quando diário falha', () => {
+    useDiario.mockReturnValue({
+      resumos: [],
+      diario: null,
+      selecionadoId: null,
+      carregando: false,
+      erro: { response: { status: 500 } },
+      recarregar: vi.fn(),
+      selecionarDiario: vi.fn(),
+    });
+    const html = renderPagina();
+    expect(html).toContain(OBRA.nome);
+    expect(html).toContain(EQUIPE[0].nome);
+    expect(html).toContain('Não foi possível carregar o diário desta obra.');
+    expect(html).toContain('Tentar novamente');
+  });
+
+  it('mostraCarregandoEnquantoApiResponde', () => {
+    useDetalheObra.mockReturnValue({ obra: null, equipe: [], carregando: true, erro: null, recarregar: vi.fn() });
+    const html = renderPagina();
+    expect(html).toContain('aria-label="Carregando"');
+    expect(html).not.toContain(OBRA.nome);
+  });
+
+  it('mostraErroDaApiComRepeticao', () => {
+    useDetalheObra.mockReturnValue({
+      obra: null,
+      equipe: [],
+      carregando: false,
+      erro: { response: { status: 500, data: { mensagem: 'Erro interno. Tente novamente.' } } },
+      recarregar: vi.fn(),
+    });
+    const html = renderPagina();
+    expect(html).toContain('Erro interno. Tente novamente.');
+    expect(html).toContain('Tentar novamente');
+  });
+
+  it('naoOfereceRepeticaoPara403', () => {
+    useDetalheObra.mockReturnValue({
+      obra: null,
+      equipe: [],
+      carregando: false,
+      erro: { response: { status: 403 } },
+      recarregar: vi.fn(),
+    });
+    const html = renderPagina();
+    expect(html).toContain('Você não tem permissão para visualizar esta obra.');
+    expect(html).not.toContain('Tentar novamente');
+  });
+
+  it('mostraMensagemDeObraInexistente', () => {
+    useDetalheObra.mockReturnValue({
+      obra: null,
+      equipe: [],
+      carregando: false,
+      erro: { response: { status: 404 } },
+      recarregar: vi.fn(),
+    });
+    const html = renderPagina();
+    expect(html).toContain('Obra não encontrada.');
+    expect(html).not.toContain('Tentar novamente');
+  });
 });
 
 describe('componentes extraídos', () => {
@@ -160,6 +296,7 @@ describe('componentes extraídos', () => {
     expect(html).toContain(CLIMA_DIA.data);
     expect(html).not.toContain('TURNO');
     expect(html).not.toContain('°C');
+    expect(html).not.toContain('SIMULADO');
   });
 
   it('KpiCard e KpiGrid exibem valores e badge SIMULADO', () => {
@@ -190,14 +327,16 @@ describe('componentes extraídos', () => {
     expect(html).toContain(OCORRENCIAS[0].texto);
     expect(html).not.toContain('Ver todos');
     expect(html).not.toContain('href="#"');
+    expect(html).not.toContain('SIMULADO');
   });
 
-  it('MuralFotos usa placeholders locais sem upload', () => {
-    const html = renderToStaticMarkup(<MuralFotos fotos={FOTOS} />);
+  it('MuralFotos usa fotos do diário sem upload', () => {
+    const html = renderToStaticMarkup(<MuralFotos obraId="1" fotos={FOTOS} />);
     expect(html).toContain(FOTOS[0].legenda);
     expect(html).not.toContain('/img/');
     expect(html).not.toContain('Anexar Registro Fotográfico');
     expect(html).not.toContain('type="file"');
+    expect(html).not.toContain('SIMULADO');
   });
 });
 
