@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Entity 
 public class Fase {
     // ===== ATTRIBUTES =====
 
@@ -84,6 +85,10 @@ public class Fase {
         return avanco;
     }
 
+    /**
+     * Método para calcular o percentual de conclusão da fase
+     * @return Retorna um valor entre 0 e 100 representando o percentual de conclusão
+     */
     public double calcularPercentualConcluido() {
         if(status == StatusFase.NAO_INICIADA || avancos.isEmpty()) {
             return 0.0;
@@ -94,6 +99,10 @@ public class Fase {
         return avancos.get(avancos.size() - 1).getPercentualAcumulado();
     }
 
+    /**
+     * Método para finalizar uma fase
+     * @param dataReal
+     */
     public void concluir(LocalDate dataReal) {
         if(status != StatusFase.EM_ANDAMENTO) {
             throw new IllegalStateException("Só é possível concluir uma fase que já está em andamento (status atual: " + status + ").");
@@ -113,6 +122,11 @@ public class Fase {
         cronograma.atualizarStatus();
     }
 
+    /**
+     * Método para determinar se uma fase está atrasada em relação ao fimPrevisto
+     * @param dataReferencia
+     * @return Retorna um valor booleano representando o atraso da fase
+     */
     public boolean estaAtrasada(LocalDate dataReferencia) {
         if(status == StatusFase.CONCLUIDA || status == StatusFase.CANCELADA) {
             return false;
@@ -123,6 +137,12 @@ public class Fase {
         return dataReferencia.isAfter(fimPrevisto);
     }
 
+    /**
+     * Método para calcular a quantidade de dias de desvio em relação ao prazo estimado
+     * @param dataReferencia
+     * @return Retorna a quantidade de dias 
+     * positivo = atrasada, negativo = adiantada, 0 = em dia
+     */
     public int calcularDesvioDias(LocalDate dataReferencia) {
         switch (status) {
             case CONCLUIDA:
@@ -136,6 +156,9 @@ public class Fase {
         }
     }
 
+    /**
+     * Método para cancelar uma fase
+     */
     public void cancelarFase() {
         if (status == StatusFase.CONCLUIDA) {
             throw new IllegalStateException("Fase concluída não pode ser cancelada.");

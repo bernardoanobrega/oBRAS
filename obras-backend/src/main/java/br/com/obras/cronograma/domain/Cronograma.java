@@ -2,6 +2,7 @@ package br.com.obras.cronograma.domain;
 
 import br.com.obras.cronograma.domain.enums.StatusCronograma;
 import br.com.obras.cronograma.domain.enums.StatusFase;
+import br.com.obras.obra.domain.Obra;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
