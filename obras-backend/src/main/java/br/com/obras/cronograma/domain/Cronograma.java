@@ -24,7 +24,7 @@ public class Cronograma {
 
     @OneToMany(mappedBy = "cronograma", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
-    private final List<Fase> fases = new ArrayList<>();
+    private List<Fase> fases = new ArrayList<>();
 
     @OneToOne
     private Obra obra;
@@ -63,7 +63,7 @@ public class Cronograma {
             throw new IllegalArgumentException("Já existe uma fase de ordem " + ordem);
         }
 
-        Fase fase = new Fase(this, nome, descricao, ordem, inicioPrevisto, fimPrevisto);
+        Fase fase = new Fase(this, nome, ordem, inicioPrevisto, fimPrevisto);
         if(!fase.validarPeriodo()) {
             throw new IllegalArgumentException("Período inválido: o início previsto deve ser anterior ou igual ao fim previsto");
         }
@@ -223,7 +223,7 @@ public class Cronograma {
     /**
      * Método a ser chamado nos métodos que alteram o cronograma. Chama atualizarStatus()
      */
-    public void registrarAtualizacao() {
+    private void registrarAtualizacao() {
         if(status != StatusCronograma.CANCELADO) {
             atualizarStatus();
         }
@@ -235,7 +235,7 @@ public class Cronograma {
     /**
      * Método para verificar se o cronograma pode ser alterado
      */
-    public void checarEditabilidade() {
+    private void checarEditabilidade() {
         if(status == StatusCronograma.CONCLUIDO || status == StatusCronograma.CANCELADO) {
             throw new IllegalStateException("Um cronograma " + status + " não pode ser alterado.");
         }
