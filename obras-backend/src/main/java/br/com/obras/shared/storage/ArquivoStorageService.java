@@ -33,7 +33,9 @@ public class ArquivoStorageService {
         if (arquivo.getSize() > TAMANHO_MAXIMO) throw new RegraNegocioException("Arquivo excede o limite de 10 MB");
 
         String nome = arquivo.getOriginalFilename() == null
-                ? "arquivo" : Path.of(arquivo.getOriginalFilename()).getFileName().toString();
+                ? "arquivo" : arquivo.getOriginalFilename().replaceAll("[\\\\/]", "_").replaceAll("[\\p{Cntrl}]", "_");
+        if (nome.isBlank()) nome = "arquivo";
+        if (nome.length() > 255) nome = nome.substring(nome.length() - 255);
         String formato = detectarFormato(arquivo);
 
         LocalDate hoje = LocalDate.now();
@@ -46,6 +48,7 @@ public class ArquivoStorageService {
                 Files.copy(in, destino);
             }
         } catch (IOException e) {
+            descartar(relativo);
             throw new RegraNegocioException("Falha no envio do arquivo");
         }
         return new ArquivoArmazenado(nome, formato, arquivo.getSize(), relativo);

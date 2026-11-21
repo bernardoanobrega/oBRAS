@@ -54,6 +54,7 @@ export const router = createBrowserRouter([
           { path: 'equipamentos', ...global('MAQUINAS_EQUIPAMENTOS', <EquipamentosPage />) },
           { path: 'prestadores', ...global('CONTRATOS_DOCUMENTOS', <PrestadoresPage />) },
           { path: 'obras', element: <ObrasPage /> },
+          { path: 'documentos', element: <DocumentosPage /> },
           {
             path: 'obras/:obraId',
             element: <ObraLayout />,

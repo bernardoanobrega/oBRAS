@@ -4,6 +4,7 @@ const TIPOS = ['application/pdf', 'image/png', 'image/jpeg'];
 
 export function validarArquivo(file) {
   if (!file) return 'Selecione um arquivo.';
+  if (file.size === 0) return 'O arquivo está vazio.';
   if (!TIPOS.includes(file.type)) return 'Formato não permitido. Use PDF, PNG ou JPG.';
   if (file.size > TAMANHO_MAXIMO) return 'Arquivo excede o limite de 10 MB.';
   return null;

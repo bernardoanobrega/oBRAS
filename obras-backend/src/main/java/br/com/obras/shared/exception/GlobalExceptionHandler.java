@@ -7,6 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -56,6 +60,12 @@ public class GlobalExceptionHandler {
                 .map(f -> new ApiError.CampoErro(f.getField(), f.getDefaultMessage())).toList();
         return ResponseEntity.badRequest()
                 .body(new ApiError(400, "Dados inválidos", campos, Instant.now()));
+    }
+
+    @ExceptionHandler({MissingServletRequestParameterException.class, MissingServletRequestPartException.class,
+            MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class})
+    ResponseEntity<ApiError> requisicaoInvalida(Exception e) {
+        return resp(HttpStatus.BAD_REQUEST, "Requisição inválida. Confira os campos e o arquivo enviados.");
     }
 
     @ExceptionHandler(Exception.class)

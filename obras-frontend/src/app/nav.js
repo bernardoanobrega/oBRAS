@@ -8,6 +8,7 @@ export const ITENS_MENU = [
   { to: '/fornecedores', label: 'Fornecedores', icon: Truck, modulo: 'COMPRAS_FORNECEDORES' },
   { to: '/materiais', label: 'Materiais', icon: Package, modulo: 'ESTOQUE' },
   { to: '/equipamentos', label: 'Equipamentos', icon: Wrench, modulo: 'MAQUINAS_EQUIPAMENTOS' },
+  { to: '/documentos', label: 'Documentos', icon: FileText, modulo: null },
   { to: '/prestadores', label: 'Prestadores', icon: FileText, modulo: 'CONTRATOS_DOCUMENTOS' },
   { to: '/usuarios', label: 'Usuários', icon: Users, modulo: 'USUARIOS' },
 ];

@@ -1,0 +1,565 @@
+.documentos-area {
+  color: #e8e9ec;
+  background: #0d0f10;
+  min-height: 70vh;
+  padding: 24px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.documentos-area *,
+.doc-modal * {
+  box-sizing: border-box;
+}
+.documentos-area button,
+.doc-modal button,
+.documentos-area select,
+.doc-modal select {
+  cursor: pointer;
+}
+.documentos-area button,
+.doc-modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #303235;
+  border-radius: 6px;
+  padding: 8px 11px;
+  font-size: 12px;
+  background: #161819;
+  color: #e8e9ec;
+}
+.documentos-area button:hover,
+.doc-modal button:hover {
+  background: #262a2e;
+}
+.documentos-area button:disabled,
+.doc-modal button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.documentos-area :focus-visible,
+.doc-modal :focus-visible {
+  outline: 2px solid #ffad18;
+  outline-offset: 3px;
+}
+.documentos-area .doc-primary,
+.doc-modal .doc-primary {
+  background: #ffab17;
+  color: #191307;
+  border-color: #ffab17;
+  font-weight: 600;
+}
+.documentos-area .doc-primary:hover,
+.doc-modal .doc-primary:hover {
+  background: #ffc04d;
+}
+.doc-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.doc-page-header h1 {
+  font-size: 24px;
+  font-weight: 650;
+  margin: 3px 0 0;
+  letter-spacing: -0.5px;
+}
+.doc-eyebrow {
+  color: #90969e;
+  font-size: 10px;
+  letter-spacing: 1.3px;
+}
+.doc-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.doc-toolbar > svg {
+  color: #ffab17;
+}
+.documentos-area a {
+  color: #ffc04d;
+}
+.doc-topbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.doc-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+  background: #151718;
+  border: 1px solid #2b2e31;
+  border-radius: 6px;
+  padding: 0 11px;
+  color: #989da5;
+}
+.doc-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 0;
+  background: transparent;
+  border: 0;
+  color: #eee;
+  outline: none;
+  font-size: 13px;
+}
+.documentos-area select,
+.doc-modal select,
+.doc-modal input:not([type="file"]),
+.doc-modal textarea {
+  border: 1px solid #34383d;
+  background: #15181b;
+  color: #e8e9ec;
+  padding: 9px 10px;
+  border-radius: 6px;
+  max-width: 100%;
+}
+.doc-grid {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.doc-directories,
+.doc-list {
+  border: 1px solid #292c2f;
+  border-radius: 8px;
+  background: #141617;
+  overflow: hidden;
+}
+.doc-directories header {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 13px;
+  border-bottom: 1px solid #292c2f;
+  font-size: 12px;
+}
+.doc-directories header span,
+.doc-folder span {
+  color: #90969e;
+  font-size: 10px;
+}
+.documentos-area .doc-folder {
+  width: calc(100% - 16px);
+  margin: 3px 8px;
+  display: flex;
+  justify-content: flex-start;
+  padding: 11px 8px;
+  font-size: 11px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+}
+.doc-folder svg {
+  flex-shrink: 0;
+  color: #d4971b;
+}
+.doc-folder span {
+  margin-left: auto;
+}
+.documentos-area .doc-subfolder {
+  padding-left: 24px;
+}
+.doc-subfolder svg {
+  color: #959ca5;
+}
+.documentos-area .doc-folder.selected {
+  background: #30281a;
+  color: #ffb322;
+}
+.doc-directories footer {
+  padding: 13px;
+  display: flex;
+  gap: 7px;
+  border-top: 1px solid #292c2f;
+  margin-top: 10px;
+  font-size: 10px;
+  color: #a5acae;
+}
+.doc-directories footer svg {
+  color: #50cc78;
+}
+.doc-list-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid #292c2f;
+}
+.doc-list-header h2 {
+  font-weight: 600;
+  font-size: 13px;
+}
+.doc-list-header p {
+  color: #9b9fa6;
+  margin-top: 4px;
+  font-size: 11px;
+}
+.doc-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.doc-check input {
+  accent-color: #ffab17;
+}
+.doc-stats {
+  padding: 10px 18px;
+  display: flex;
+  justify-content: space-around;
+  gap: 15px;
+  border-bottom: 1px solid #292c2f;
+  font-size: 11px;
+  color: #969ca4;
+}
+.doc-stats b {
+  color: #c6e4cf;
+}
+.doc-cards {
+  display: grid;
+  gap: 13px;
+  padding: 12px;
+}
+.doc-card {
+  border: 1px solid #2b2e31;
+  border-radius: 7px;
+  background: #101213;
+  overflow: hidden;
+}
+.doc-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 12px;
+}
+.doc-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 38px;
+  border: 1px solid #333436;
+  border-radius: 6px;
+  background: #1d2021;
+  color: #efaa1b;
+}
+.doc-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.doc-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.doc-title-row h3 {
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.doc-card-info p {
+  margin: 6px 0;
+  color: #d1d2d5;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.doc-card-info small,
+.doc-version small {
+  color: #989da5;
+  font-size: 10px;
+  display: block;
+}
+.doc-badge {
+  display: inline-block;
+  border: 1px solid #24563a;
+  color: #5fdb84;
+  background: #162d20;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.doc-badge.old {
+  background: #202326;
+  color: #abb1b8;
+  border-color: #34383e;
+}
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.doc-card-main > .doc-actions {
+  margin-left: auto;
+  align-self: center;
+}
+.doc-actions button {
+  font-size: 10px;
+}
+.doc-history {
+  border-top: 1px solid #232629;
+  padding: 0 10px 8px;
+}
+.doc-history summary {
+  cursor: pointer;
+  padding: 10px 2px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  color: #a5aab0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.doc-history summary span {
+  margin-left: auto;
+}
+.doc-version {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid #292c2f;
+  font-size: 10px;
+}
+.doc-version.current {
+  background: #142019;
+}
+.doc-version time {
+  color: #a3a6ac;
+  white-space: nowrap;
+}
+.doc-version p {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.doc-version button {
+  border: 0;
+  background: transparent;
+  padding: 3px;
+  font-size: 10px;
+}
+.doc-empty {
+  padding: 60px 24px;
+  text-align: center;
+  color: #969ca5;
+}
+.doc-empty svg {
+  margin: 0 auto 15px;
+  color: #dca43c;
+  width: 32px;
+  height: 32px;
+}
+.doc-empty h3 {
+  color: #e2e5e8;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+.doc-muted {
+  color: #a2a8b0;
+  font-size: 12px;
+  margin: 12px 0;
+}
+.doc-error {
+  color: #ffb7af;
+  background: #391d1b;
+  border: 1px solid #6d302a;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+.doc-error button {
+  margin-left: 10px;
+}
+.doc-success {
+  padding: 12px;
+  color: #71da92;
+}
+.doc-modal {
+  color: #e8e9ec;
+  background: #141719;
+  border: 1px solid #3a3e43;
+  border-radius: 12px;
+  width: min(540px, calc(100% - 28px));
+  max-height: 90vh;
+  padding: 24px;
+  font-size: 13px;
+}
+.doc-modal::backdrop {
+  background: #000b;
+  backdrop-filter: blur(3px);
+}
+.doc-modal > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+.doc-modal h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+.doc-modal h3 {
+  margin-top: 18px;
+  font-weight: 600;
+}
+.doc-modal-amplo {
+  width: min(1000px, calc(100% - 28px));
+}
+.doc-form {
+  display: grid;
+  gap: 15px;
+}
+.doc-form label {
+  display: grid;
+  gap: 7px;
+  color: #bec5ce;
+  font-size: 12px;
+}
+.doc-form footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 6px;
+}
+.doc-form .doc-upload {
+  border: 1px dashed #62502e;
+  padding: 20px;
+  border-radius: 8px;
+  background: #211c13;
+  color: #efbd65;
+}
+.doc-upload input {
+  max-width: 100%;
+  font-size: 12px;
+}
+.doc-preview {
+  width: 100%;
+  height: 65vh;
+  object-fit: contain;
+  border: 0;
+  background: #202327;
+  margin: 12px 0;
+}
+.doc-download-link,
+.doc-history-link {
+  display: block;
+  color: #ffbd48;
+  margin: 12px 0;
+}
+.doc-dialog-actions {
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+@media (max-width: 1250px) {
+  .doc-card-main {
+    flex-wrap: wrap;
+  }
+  .doc-card-main > .doc-actions {
+    width: 100%;
+    padding-left: 46px;
+  }
+  .doc-grid {
+    grid-template-columns: 225px minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+  .documentos-area {
+    padding: 15px;
+    border-radius: 8px;
+  }
+  .doc-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .doc-grid {
+    grid-template-columns: 1fr;
+  }
+  .doc-directories {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .doc-topbar {
+    flex-wrap: wrap;
+  }
+  .doc-topbar > .doc-search {
+    flex-basis: 100%;
+  }
+  .doc-version {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .doc-version p {
+    flex-basis: 100%;
+  }
+  .doc-list-header {
+    flex-wrap: wrap;
+  }
+  .doc-card-main > .doc-actions {
+    padding-left: 0;
+  }
+  .doc-toolbar {
+    width: 100%;
+  }
+  .doc-toolbar select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.documental-shell {
+  background: #0d0f10;
+  color: #e8e9ec;
+}
+.documental-shell aside.hidden {
+  background: #101827;
+  border-color: #222b3b;
+}
+.documental-shell aside.hidden > div {
+  color: #ffb422;
+}
+.documental-shell aside.hidden nav a {
+  color: #aeb7c4;
+}
+.documental-shell aside.hidden nav a:hover {
+  background: #1c2636;
+  color: #fff;
+}
+.documental-shell aside.hidden nav a[aria-current="page"] {
+  color: #fff;
+  background: #202c3d;
+}
+.documental-shell .doc-app-header {
+  background: #0d0f10;
+  border-color: #282b2e;
+}
+.documental-shell .doc-app-header span,
+.documental-shell .doc-app-header button {
+  color: #c7cbd0;
+}
+.documental-shell main > .documentos-area {
+  padding: 8px 0;
+}
+
+.documental-shell .doc-bottom-nav { background:#101827; border-color:#293243; }
+.documental-shell .doc-bottom-nav a { color:#aeb7c4; }
+.documental-shell .doc-bottom-nav a[aria-current=page] { color:#ffbd48; }
+@media (max-width:767px) {
+  .documentos-area button,.doc-modal button { min-height:44px; }
+}
