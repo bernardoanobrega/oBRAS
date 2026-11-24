@@ -2,6 +2,7 @@ package br.com.obras.diario.domain;
 
 import br.com.obras.auditoria.domain.Auditavel;
 import br.com.obras.obra.domain.AlocacaoObra;
+import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -55,6 +56,14 @@ public class Ocorrencia {
         CategoriaOcorrencia categoria,
         String descricao
     ) {
+        if (registroDiario == null) {
+            throw new RegraNegocioException("Ocorrência precisa estar vinculada a um diário");
+        }
+        if (alocacaoObra == null) {
+            throw new RegraNegocioException("Autor da ocorrência é obrigatório");
+        }
+        exigirCategoria(categoria);
+        exigirDescricao(descricao);
         Ocorrencia o = new Ocorrencia();
         o.auditavel = auditavel;
         o.registroDiario = registroDiario;
@@ -66,6 +75,8 @@ public class Ocorrencia {
     }
 
     public void editar(LocalDateTime dataHora, CategoriaOcorrencia categoria, String descricao) {
+        exigirCategoria(categoria);
+        exigirDescricao(descricao);
         this.dataHora = dataHora == null ? this.dataHora : dataHora;
         this.categoria = categoria;
         this.descricao = descricao;
@@ -73,5 +84,17 @@ public class Ocorrencia {
 
     public void definirParalisacao(Paralisacao paralisacao) {
         this.paralisacao = paralisacao;
+    }
+
+    private static void exigirCategoria(CategoriaOcorrencia categoria) {
+        if (categoria == null) {
+            throw new RegraNegocioException("Categoria da ocorrência é obrigatória");
+        }
+    }
+
+    private static void exigirDescricao(String descricao) {
+        if (descricao == null || descricao.isBlank()) {
+            throw new RegraNegocioException("Descrição da ocorrência é obrigatória");
+        }
     }
 }

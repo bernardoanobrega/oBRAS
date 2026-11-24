@@ -14,6 +14,7 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 |---|---|---|---|
 | [ADR-12](./ADR-12-rf70-modulo-usuarios.md) | RF-70 pertence ao módulo Usuários; acesso por obra é RNF-03 | Proposto (Cauã), aguarda Thierry | 2026-11-23 |
 | [ADR-13](./ADR-13-painel-agrega-modulos.md) | Painel da obra (RF-73) agrega dados de outros módulos via ports | Proposto (Cauã), aguarda Thierry | 2026-11-23 |
+| [ADR-14](./ADR-14-categoria-padrao-ocorrencia-rapida.md) | Ocorrência rápida: categoria opcional com padrão `OUTRO` | Proposto (Cauã), aguarda Thierry | 2026-11-24 |
 
 ## Confirmações (sem ADR novo)
 | Data | Item | Decisão |
@@ -24,6 +25,9 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | 2026-11-24 | L28 / clima e data obrigatórios | **Validar também no domínio**: `RegistroDiario.criar` rejeita data e clima nulos e `editar` rejeita clima nulo, com `RegraNegocioException` (422), além do `@NotNull` no DTO e do `NOT NULL` no banco. Motivo: a ocorrência rápida cria diário por um segundo caminho, cujo DTO tem clima opcional |
 | 2026-11-24 | L28 / exclusão lógica | **Manter no service**: `RegistroDiario.excluirLogico()` marca só o próprio `excluido`; o `Auditavel` é marcado por `AuditoriaService.excluir`, na mesma transação. O teste de domínio do lote passa a se chamar `exclusaoLogicaMarcaExcluidoSemApagarDados` |
 | 2026-11-24 | L28 / equipe presente sem duplicata | **Igualdade de `AlocacaoObra` por id** (módulo `obra`): `equals` compara o id e a classe real (proxy do Hibernate incluído), alocação sem id só é igual a si mesma, `hashCode` constante por classe. O `Set` de `equipePresente` passa a deduplicar por id em memória; no banco, a PK composta `pk_reg_diario_equipe` continua garantindo |
+| 2026-11-24 | L29 / paralisação "com categoria" | **Manter o desenho**: `Paralisacao` não tem categoria própria; compartilha o id da ocorrência (`@MapsId`) e herda a categoria dela |
+| 2026-11-24 | L29 / vínculos e campos obrigatórios | **Validar também no domínio**: `Ocorrencia.criar` rejeita diário, autor e categoria nulos e descrição vazia; `Paralisacao.criar` rejeita ocorrência nula; `RegistroFotografico.criar` rejeita ocorrência nula e arquivo vazio, com `RegraNegocioException` (422), além do DTO e do banco |
+| 2026-11-24 | L29 / edição de ocorrência | **Edição completa, não parcial**: o `PUT` reenvia categoria, descrição, dataHora e paralisação (o formulário abre preenchido com os valores atuais). `Ocorrencia.editar` rejeita categoria nula e descrição vazia e mantém o estado anterior; `dataHora` nula mantém a atual; paralisação ausente continua significando "remover". Motivo: na edição parcial, "não enviado" e "apagar" ficariam ambíguos, e a paralisação seria removida sem querer |
 
 ## Template
 ```

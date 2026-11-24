@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public record NovaOcorrenciaRapidaDto(
     @NotNull LocalDate data,
     Clima clima,
-    @NotNull CategoriaOcorrencia categoria,
+    CategoriaOcorrencia categoria,
     @NotBlank @Size(max = 2000) String descricao,
     @Size(max = 300) String legenda,
     LocalDateTime dataHora,

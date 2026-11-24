@@ -152,8 +152,11 @@ public class DiarioService {
             }
             diario = criarDiario(obraId, dto.data(), dto.clima(), dto.descricao(), Set.of());
         }
+        CategoriaOcorrencia categoria = dto.categoria() == null
+            ? CategoriaOcorrencia.OUTRO
+            : dto.categoria();
         return criarOcorrencia(
-            diario, dto.categoria(), dto.descricao(), dto.dataHora(), dto.paralisacao()
+            diario, categoria, dto.descricao(), dto.dataHora(), dto.paralisacao()
         );
     }
 

@@ -27,6 +27,9 @@ public class Paralisacao {
     private LocalDateTime fim;
 
     public static Paralisacao criar(Ocorrencia ocorrencia, LocalDateTime inicio, LocalDateTime fim) {
+        if (ocorrencia == null) {
+            throw new RegraNegocioException("Paralisação precisa estar vinculada a uma ocorrência");
+        }
         validarPeriodo(inicio, fim);
         Paralisacao p = new Paralisacao();
         p.ocorrencia = ocorrencia;

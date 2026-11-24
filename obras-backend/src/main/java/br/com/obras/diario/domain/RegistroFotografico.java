@@ -1,6 +1,7 @@
 package br.com.obras.diario.domain;
 
 import br.com.obras.auditoria.domain.Auditavel;
+import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,6 +40,12 @@ public class RegistroFotografico {
         String arquivo,
         String legenda
     ) {
+        if (ocorrencia == null) {
+            throw new RegraNegocioException("Foto precisa estar vinculada a uma ocorrência");
+        }
+        if (arquivo == null || arquivo.isBlank()) {
+            throw new RegraNegocioException("Arquivo da foto é obrigatório");
+        }
         RegistroFotografico f = new RegistroFotografico();
         f.auditavel = auditavel;
         f.ocorrencia = ocorrencia;

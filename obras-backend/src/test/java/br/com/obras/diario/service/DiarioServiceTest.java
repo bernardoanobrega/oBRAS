@@ -122,6 +122,38 @@ class DiarioServiceTest {
     }
 
     @Test
+    void ocorrenciaRapidaComCategoriaNulaUsaOutro() {
+        prepararOcorrenciaRapidaEmDiarioExistente();
+
+        var dto = new NovaOcorrenciaRapidaDto(
+            DATA, null, null, "Fachada leste", null, null, null
+        );
+
+        assertEquals(CategoriaOcorrencia.OUTRO.name(), service.ocorrenciaRapida(OBRA_ID, dto).categoria());
+    }
+
+    @Test
+    void ocorrenciaRapidaMantemCategoriaInformada() {
+        prepararOcorrenciaRapidaEmDiarioExistente();
+
+        var dto = new NovaOcorrenciaRapidaDto(
+            DATA, null, CategoriaOcorrencia.SEGURANCA, "Andaime sem guarda-corpo", null, null, null
+        );
+
+        assertEquals(CategoriaOcorrencia.SEGURANCA.name(), service.ocorrenciaRapida(OBRA_ID, dto).categoria());
+    }
+
+    private void prepararOcorrenciaRapidaEmDiarioExistente() {
+        Obra obra = obra();
+        when(obras.obterEntidade(OBRA_ID)).thenReturn(obra);
+        when(diarios.findAtivo(OBRA_ID, DATA)).thenReturn(Optional.of(diario(auditavel(100L), obra)));
+        AlocacaoObra autor = alocacao(7L);
+        when(obras.alocacaoAtiva(OBRA_ID, USUARIO_ID)).thenReturn(Optional.of(autor));
+        when(auditoria.criar(any(AcaoAuditoria.class), isNull())).thenAnswer(i -> auditavel(200L));
+        when(ocorrencias.saveAndFlush(any(Ocorrencia.class))).thenAnswer(i -> i.getArgument(0));
+    }
+
+    @Test
     void anexarFotoRejeitaPdfEDescarta() {
         Obra obra = obra();
         RegistroDiario diario = diario(auditavel(100L), obra);
