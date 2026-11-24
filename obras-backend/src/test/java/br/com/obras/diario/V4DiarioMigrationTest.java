@@ -124,6 +124,53 @@ class V4DiarioMigrationTest {
     }
 
     @Test
+    void permiteMesmaDataEmObrasDiferentes() throws SQLException {
+        setupComDependencias();
+        long outraObraId;
+        try (Connection conexao = connection()) {
+            outraObraId = insertObra(conexao, usuarioId);
+        }
+
+        assertTrue(inserirDiario(obraId, "2026-11-18", "ENSOLARADO") > 0);
+        assertTrue(inserirDiario(outraObraId, "2026-11-18", "NUBLADO") > 0);
+    }
+
+    @Test
+    void rejeitaCategoriaInvalida() throws SQLException {
+        setupComDependencias();
+        long diarioId = inserirDiario(obraId, "2026-11-18", "ENSOLARADO");
+
+        assertViolacao("""
+                INSERT INTO ocorrencia (id, registro_diario_id, alocacao_obra_id, data_hora, categoria, descricao)
+                VALUES (%d, %d, %d, TIMESTAMP '2026-11-18 10:00:00', 'GREVE', 'Categoria fora da lista')
+                """.formatted(insertAuditavel(), diarioId, alocacaoId), "ck_ocorrencia_categoria");
+    }
+
+    @Test
+    void permiteParalisacaoSemFim() throws SQLException {
+        setupComDependencias();
+        long ocorrenciaId = inserirOcorrencia(inserirDiario(obraId, "2026-11-18", "CHUVA_FORTE"), alocacaoId);
+
+        executar("""
+                INSERT INTO paralisacao (id, inicio_paralisacao, fim_paralisacao)
+                VALUES (%d, TIMESTAMP '2026-11-18 10:00:00', NULL)
+                """.formatted(ocorrenciaId));
+    }
+
+    @Test
+    void permiteFotoJpgOuPngNoSchema() throws SQLException {
+        setupComDependencias();
+        long ocorrenciaId = inserirOcorrencia(inserirDiario(obraId, "2026-11-18", "NUBLADO"), alocacaoId);
+
+        for (String arquivo : List.of("obra/fachada.jpg", "obra/laje.png")) {
+            executar("""
+                    INSERT INTO registro_fotografico (id, ocorrencia_id, arquivo)
+                    VALUES (%d, %d, '%s')
+                    """.formatted(insertAuditavel(), ocorrenciaId, arquivo));
+        }
+    }
+
+    @Test
     void equipePresenteNaoAceitaDuplicata() throws SQLException {
         setupComDependencias();
         long diarioId = inserirDiario(obraId, "2026-11-18", "ENSOLARADO");
@@ -161,7 +208,7 @@ class V4DiarioMigrationTest {
         }
         assertEquals(List.of("1", "2", "3", "3.1"), versoesAplicadas());
 
-        migrate(null);
+        migrate("4");
         assertEquals(List.of("1", "2", "3", "3.1", "4"), versoesAplicadas());
 
         try (Connection conexao = connection();

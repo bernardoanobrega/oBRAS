@@ -1,7 +1,7 @@
 # L29 — Domínio Ocorrencia, Paralisacao e RegistroFotografico
 
 **Fase:** 3 · **Commit:** `feat(diario): modelar ocorrencias e fotos`  
-**Status:** Em revisão  
+**Status:** Concluído  
 **Depende de:** L28 · **RF/UC:** RF-64 a RF-68; UC21 · **ADR:** ADR-02, ADR-08
 
 ## 1. Objetivo

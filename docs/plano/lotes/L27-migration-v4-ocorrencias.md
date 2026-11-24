@@ -15,7 +15,7 @@ Criar as tabelas de ocorrência, paralisação e registro fotográfico com vínc
 
 ## 3. Contrato DB
 
-- `ocorrencia(id BIGINT PK REFERENCES auditavel(id), registro_diario_id NOT NULL, categoria, descricao, data_hora, autor_id)`.
+- `ocorrencia(id BIGINT PK REFERENCES auditavel(id), registro_diario_id NOT NULL, categoria, descricao, data_hora, alocacao_obra_id)`; o autor é a alocação ativa do usuário na obra (não o `usuario_id`).
 - `categoria` inclui `OUTRO`; paralisação também exige categoria.
 - `paralisacao(id PK REFERENCES ocorrencia(id), inicio, fim)` com `fim IS NULL OR fim >= inicio`.
 - `registro_fotografico(id BIGINT PK REFERENCES auditavel(id), ocorrencia_id NOT NULL, arquivo, legenda, data_envio)`.

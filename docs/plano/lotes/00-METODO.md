@@ -143,7 +143,7 @@ Cada arquivo `Lxx-*.md` tem um cabeçalho e 10 seções numeradas:
 ## 6. Convenções
 
 - Commit: `feat(obra): ...`, `feat(diario): ...`, `test(obra): ...`, `docs(plano): ...`.
-- Migration: `V3__auditoria_obra.sql`, `V4__diario_ocorrencias_fotos.sql`. Não criar V5 neste conjunto.
+- Migration: `V3__auditoria_obra.sql`, `V4__diario_ocorrencias_fotos.sql`. Não criar V5 neste conjunto, salvo a exceção do ADR-15 (integridade entre obras no diário; proposto).
 - Pacote backend: `br.com.obras.<modulo>.{domain,repository,service,controller,dto,mapper}`.
 - Erros: `RegraNegocioException` → 422; `RecursoNaoEncontradoException` → 404; `AccessDeniedException` → 403.
 - Datas: `LocalDate` para dia; `LocalDateTime` para evento.
