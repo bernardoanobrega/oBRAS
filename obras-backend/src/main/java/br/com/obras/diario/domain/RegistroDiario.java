@@ -3,6 +3,7 @@ package br.com.obras.diario.domain;
 import br.com.obras.auditoria.domain.Auditavel;
 import br.com.obras.obra.domain.AlocacaoObra;
 import br.com.obras.obra.domain.Obra;
+import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -58,6 +59,10 @@ public class RegistroDiario {
         String descricao,
         Collection<AlocacaoObra> equipePresente
     ) {
+        if (data == null) {
+            throw new RegraNegocioException("Data do diário é obrigatória");
+        }
+        exigirClima(clima);
         RegistroDiario d = new RegistroDiario();
         d.auditavel = auditavel;
         d.obra = obra;
@@ -70,6 +75,7 @@ public class RegistroDiario {
     }
 
     public void editar(Clima clima, String descricao, Collection<AlocacaoObra> equipePresente) {
+        exigirClima(clima);
         this.clima = clima;
         this.descricao = descricao;
         this.equipePresente.clear();
@@ -78,5 +84,11 @@ public class RegistroDiario {
 
     public void excluirLogico() {
         this.excluido = true;
+    }
+
+    private static void exigirClima(Clima clima) {
+        if (clima == null) {
+            throw new RegraNegocioException("Clima do diário é obrigatório");
+        }
     }
 }

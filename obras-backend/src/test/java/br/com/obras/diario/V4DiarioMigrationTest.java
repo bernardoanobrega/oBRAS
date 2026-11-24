@@ -124,6 +124,19 @@ class V4DiarioMigrationTest {
     }
 
     @Test
+    void equipePresenteNaoAceitaDuplicata() throws SQLException {
+        setupComDependencias();
+        long diarioId = inserirDiario(obraId, "2026-11-18", "ENSOLARADO");
+        String insert = """
+                INSERT INTO registro_diario_equipe (registro_diario_id, alocacao_obra_id)
+                VALUES (%d, %d)
+                """.formatted(diarioId, alocacaoId);
+
+        executar(insert);
+        assertViolacao(insert, "pk_reg_diario_equipe");
+    }
+
+    @Test
     void paralisacaoRejeitaFimAntesDoInicio() throws SQLException {
         setupComDependencias();
         long diarioId = inserirDiario(obraId, "2026-11-18", "ENSOLARADO");

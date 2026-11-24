@@ -5,6 +5,7 @@ import br.com.obras.usuario.domain.Usuario;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -43,5 +44,30 @@ public class AlocacaoObra {
 
     public boolean estaAtiva() {
         return dataFim == null;
+    }
+
+    /**
+     * Igualdade por id: duas alocações são a mesma se têm o mesmo id do banco.
+     * Sem id (ainda não salva), só é igual a si mesma. Compara a classe real
+     * para que um proxy do Hibernate seja igual à entidade que ele representa.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || classeReal(this) != classeReal(o)) return false;
+        Long outroId = ((AlocacaoObra) o).getId();
+        return id != null && id.equals(outroId);
+    }
+
+    /** Constante por classe: não muda quando o banco atribui o id no INSERT. */
+    @Override
+    public int hashCode() {
+        return classeReal(this).hashCode();
+    }
+
+    private static Class<?> classeReal(Object o) {
+        return o instanceof HibernateProxy proxy
+            ? proxy.getHibernateLazyInitializer().getPersistentClass()
+            : o.getClass();
     }
 }
