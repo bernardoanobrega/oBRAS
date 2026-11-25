@@ -1,7 +1,7 @@
 # L26 — Migration V4: diário, equipe presente e RN-07
 
 **Fase:** 3 · **Commit:** `feat(diario): criar schema do diario`  
-**Status:** Em revisão  
+**Status:** Concluído  
 **Depende de:** L06, L07 · **RF/UC:** RF-64 a RF-68; UC21 · **ADR:** ADR-01, ADR-06
 
 ## 1. Objetivo
@@ -56,10 +56,10 @@ Forward-only. Rollback manual em ambiente descartável: dropar trigger, tabelas 
 
 ## 9. Critérios de aceite
 
-- [ ] V4 aplica em banco limpo.
-- [ ] Unique parcial correto.
-- [ ] Trigger sincroniza.
-- [ ] Clima restrito.
+- [x] V4 aplica em banco limpo.
+- [x] Unique parcial correto.
+- [x] Trigger sincroniza.
+- [x] Clima restrito.
 
 ## 10. Verificação e evidência
 

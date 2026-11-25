@@ -1,7 +1,7 @@
 # L27 — Migration V4: ocorrências, paralisações e fotos
 
 **Fase:** 3 · **Commit:** `feat(diario): criar schema de ocorrencias e fotos`  
-**Status:** Em revisão  
+**Status:** Concluído  
 **Depende de:** L26 · **RF/UC:** RF-64 a RF-68; UC21 · **ADR:** ADR-02, ADR-08
 
 ## 1. Objetivo
@@ -57,10 +57,10 @@ Forward-only. Rollback manual em ambiente descartável.
 
 ## 9. Critérios de aceite
 
-- [ ] Tabelas e FKs criadas.
-- [ ] Constraints negativas testadas.
-- [ ] Índices de consulta.
-- [ ] V4 aplica sobre banco com V3.
+- [x] Tabelas e FKs criadas.
+- [x] Constraints negativas testadas.
+- [x] Índices de consulta.
+- [x] V4 aplica sobre banco com V3.
 
 ## 10. Verificação e evidência
 

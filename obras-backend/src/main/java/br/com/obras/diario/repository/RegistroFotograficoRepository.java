@@ -26,4 +26,17 @@ public interface RegistroFotograficoRepository extends JpaRepository<RegistroFot
         order by f.dataEnvio desc
     """)
     List<RegistroFotografico> listarPorOcorrencia(@Param("ocorrenciaId") Long ocorrenciaId);
+
+    /** Fotos ativas de todas as ocorrências ativas do diário, numa consulta só (evita N+1). */
+    @Query("""
+        select f from RegistroFotografico f
+        join f.auditavel a
+        join f.ocorrencia o
+        join o.auditavel ao
+        where o.registroDiario.id = :diarioId
+          and a.excluido = false
+          and ao.excluido = false
+        order by f.dataEnvio desc
+    """)
+    List<RegistroFotografico> listarPorDiario(@Param("diarioId") Long diarioId);
 }

@@ -59,7 +59,7 @@ class ObraServiceTest {
         Obra negada = mock(Obra.class);
         when(negada.getId()).thenReturn(2L);
 
-        when(obras.findAllByOrderByNomeAsc()).thenReturn(List.of(permitida, negada));
+        when(obras.listarAtivas()).thenReturn(List.of(permitida, negada));
         when(autorizacao.possuiPermissao(USUARIO_ID, 1L, ModuloSistema.DETALHES_OBRA, AcaoPermissao.VISUALIZAR)).thenReturn(true);
         when(autorizacao.possuiPermissao(USUARIO_ID, 2L, ModuloSistema.DETALHES_OBRA, AcaoPermissao.VISUALIZAR)).thenReturn(false);
 
@@ -73,7 +73,7 @@ class ObraServiceTest {
     @Test
     void buscarRetornaDetalhe() {
         Obra obra = obraMock(1L);
-        when(obras.findById(1L)).thenReturn(Optional.of(obra));
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
 
         ObraDto dto = service.buscar(1L);
 
@@ -85,7 +85,7 @@ class ObraServiceTest {
 
     @Test
     void buscarInexistenteLanca404() {
-        when(obras.findById(99L)).thenReturn(Optional.empty());
+        when(obras.buscarAtiva(99L)).thenReturn(Optional.empty());
 
         assertThrows(RecursoNaoEncontradoException.class, () -> service.buscar(99L));
     }
@@ -93,7 +93,7 @@ class ObraServiceTest {
     @Test
     void equipeRetornaMembrosAtivos() {
         Obra obra = mock(Obra.class);
-        when(obras.findById(1L)).thenReturn(Optional.of(obra));
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
 
         Usuario usuario = mock(Usuario.class);
         when(usuario.getId()).thenReturn(5L);
@@ -119,7 +119,7 @@ class ObraServiceTest {
 
     @Test
     void equipeDeObraInexistenteLanca404() {
-        when(obras.findById(99L)).thenReturn(Optional.empty());
+        when(obras.buscarAtiva(99L)).thenReturn(Optional.empty());
 
         assertThrows(RecursoNaoEncontradoException.class, () -> service.equipe(99L));
         verifyNoInteractions(alocacoes);

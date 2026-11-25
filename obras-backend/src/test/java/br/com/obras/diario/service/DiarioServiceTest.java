@@ -7,8 +7,11 @@ import br.com.obras.diario.domain.CategoriaOcorrencia;
 import br.com.obras.diario.domain.Clima;
 import br.com.obras.diario.domain.Ocorrencia;
 import br.com.obras.diario.domain.RegistroDiario;
+import br.com.obras.diario.dto.NovaOcorrenciaDto;
 import br.com.obras.diario.dto.NovaOcorrenciaRapidaDto;
 import br.com.obras.diario.dto.NovoDiarioDto;
+import br.com.obras.diario.mapper.DiarioMapper;
+import br.com.obras.diario.repository.ContagemOcorrencias;
 import br.com.obras.diario.repository.OcorrenciaRepository;
 import br.com.obras.diario.repository.ParalisacaoRepository;
 import br.com.obras.diario.repository.RegistroDiarioRepository;
@@ -27,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,6 +60,7 @@ class DiarioServiceTest {
     @Mock private ObraService obras;
     @Mock private AuditoriaService auditoria;
     @Mock private ArquivoStorageService storage;
+    @Spy private DiarioMapper mapper = new DiarioMapper();
     @InjectMocks private DiarioService service;
 
     @BeforeEach
@@ -75,7 +80,7 @@ class DiarioServiceTest {
     void criarDiarioSalvaEquipePresente() {
         Obra obra = obra();
         when(obras.obterEntidade(OBRA_ID)).thenReturn(obra);
-        when(diarios.findAtivo(OBRA_ID, DATA)).thenReturn(Optional.empty());
+        when(diarios.buscarAtivoPorData(OBRA_ID, DATA)).thenReturn(Optional.empty());
         AlocacaoObra alocacao = alocacao(7L);
         when(obras.alocacoesAtivasPorIds(OBRA_ID, Set.of(7L))).thenReturn(List.of(alocacao));
         when(auditoria.criar(any(AcaoAuditoria.class), isNull())).thenAnswer(i -> auditavel(100L));
@@ -85,7 +90,8 @@ class DiarioServiceTest {
         var result = service.criar(OBRA_ID, dto);
 
         assertEquals(Clima.ENSOLARADO.name(), result.clima());
-        assertEquals(List.of(7L), result.equipePresenteIds());
+        assertEquals(7L, result.equipePresente().get(0).alocacaoId());
+        assertEquals("Maria", result.equipePresente().get(0).nome());
         verify(auditoria).criar(AcaoAuditoria.CRIACAO, null);
     }
 
@@ -93,7 +99,7 @@ class DiarioServiceTest {
     void criarDiarioDuplicadoLancaRegraNegocio() {
         Obra obra = obra();
         when(obras.obterEntidade(OBRA_ID)).thenReturn(obra);
-        when(diarios.findAtivo(OBRA_ID, DATA)).thenReturn(Optional.of(diario(auditavel(1L), obra)));
+        when(diarios.buscarAtivoPorData(OBRA_ID, DATA)).thenReturn(Optional.of(diario(auditavel(1L), obra)));
 
         var dto = new NovoDiarioDto(DATA, Clima.NUBLADO, "Duplicado", Set.of());
 
@@ -108,10 +114,10 @@ class DiarioServiceTest {
     void ocorrenciaRapidaSemDiarioExigeClima() {
         Obra obra = obra();
         when(obras.obterEntidade(OBRA_ID)).thenReturn(obra);
-        when(diarios.findAtivo(OBRA_ID, DATA)).thenReturn(Optional.empty());
+        when(diarios.buscarAtivoPorData(OBRA_ID, DATA)).thenReturn(Optional.empty());
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, CategoriaOcorrencia.OUTRO, "Fachada leste", "Fachada leste", null, null
+            DATA, null, CategoriaOcorrencia.OUTRO, "Fachada leste", "Fachada leste", DATA.atTime(9, 0), null
         );
 
         RegraNegocioException e = assertThrows(
@@ -126,7 +132,7 @@ class DiarioServiceTest {
         prepararOcorrenciaRapidaEmDiarioExistente();
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, null, "Fachada leste", null, null, null
+            DATA, null, null, "Fachada leste", null, DATA.atTime(9, 0), null
         );
 
         assertEquals(CategoriaOcorrencia.OUTRO.name(), service.ocorrenciaRapida(OBRA_ID, dto).categoria());
@@ -137,16 +143,40 @@ class DiarioServiceTest {
         prepararOcorrenciaRapidaEmDiarioExistente();
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, CategoriaOcorrencia.SEGURANCA, "Andaime sem guarda-corpo", null, null, null
+            DATA, null, CategoriaOcorrencia.SEGURANCA, "Andaime sem guarda-corpo", null, DATA.atTime(9, 0), null
         );
 
         assertEquals(CategoriaOcorrencia.SEGURANCA.name(), service.ocorrenciaRapida(OBRA_ID, dto).categoria());
     }
 
+    /** L32: o autor é a alocação do usuário do token; o payload nem tem campo de autor. */
+    @Test
+    void autorNaoVemDoPayload() {
+        Obra obra = obra();
+        when(diarios.buscar(OBRA_ID, 100L)).thenReturn(Optional.of(diario(auditavel(100L), obra)));
+        AlocacaoObra doToken = alocacao(7L);
+        when(obras.alocacaoAtiva(OBRA_ID, USUARIO_ID)).thenReturn(Optional.of(doToken));
+        when(auditoria.criar(any(AcaoAuditoria.class), isNull())).thenAnswer(i -> auditavel(200L));
+        when(ocorrencias.saveAndFlush(any(Ocorrencia.class))).thenAnswer(i -> i.getArgument(0));
+
+        var dto = new NovaOcorrenciaDto(CategoriaOcorrencia.OUTRO, "Registro", DATA.atTime(9, 0), null);
+        var result = service.adicionarOcorrencia(OBRA_ID, 100L, dto);
+
+        var salva = org.mockito.ArgumentCaptor.forClass(Ocorrencia.class);
+        verify(ocorrencias).saveAndFlush(salva.capture());
+        verify(obras).alocacaoAtiva(OBRA_ID, USUARIO_ID);
+        assertSame(doToken, salva.getValue().getAlocacaoObra(), "autor = alocação do usuário autenticado");
+        assertEquals(7L, result.autor().alocacaoId());
+        assertTrue(java.util.Arrays.stream(NovaOcorrenciaDto.class.getRecordComponents())
+                .noneMatch(c -> c.getName().toLowerCase().contains("autor")
+                        || c.getName().toLowerCase().contains("usuario")),
+            "o DTO de entrada não aceita autor nem usuário");
+    }
+
     private void prepararOcorrenciaRapidaEmDiarioExistente() {
         Obra obra = obra();
         when(obras.obterEntidade(OBRA_ID)).thenReturn(obra);
-        when(diarios.findAtivo(OBRA_ID, DATA)).thenReturn(Optional.of(diario(auditavel(100L), obra)));
+        when(diarios.buscarAtivoPorData(OBRA_ID, DATA)).thenReturn(Optional.of(diario(auditavel(100L), obra)));
         AlocacaoObra autor = alocacao(7L);
         when(obras.alocacaoAtiva(OBRA_ID, USUARIO_ID)).thenReturn(Optional.of(autor));
         when(auditoria.criar(any(AcaoAuditoria.class), isNull())).thenAnswer(i -> auditavel(200L));
@@ -158,7 +188,7 @@ class DiarioServiceTest {
         Obra obra = obra();
         RegistroDiario diario = diario(auditavel(100L), obra);
         Ocorrencia ocorrencia = Ocorrencia.criar(
-            auditavel(200L), diario, alocacao(7L), LocalDateTime.now(), CategoriaOcorrencia.OUTRO, "Fachada"
+            auditavel(200L), diario, alocacao(7L), DATA.atTime(9, 0), CategoriaOcorrencia.OUTRO, "Fachada"
         );
         ReflectionTestUtils.setField(ocorrencia, "id", 300L);
         when(ocorrencias.buscar(OBRA_ID, 300L)).thenReturn(Optional.of(ocorrencia));
@@ -194,6 +224,22 @@ class DiarioServiceTest {
         verify(diarios).saveAndFlush(diario);
     }
 
+    @Test
+    void listarContaOcorrenciasNumaConsultaSo() {
+        Obra obra = obra();
+        RegistroDiario comOcorrencias = diario(auditavel(100L), obra);
+        RegistroDiario semOcorrencias = diario(auditavel(101L), obra);
+        when(diarios.listarPorObra(OBRA_ID)).thenReturn(List.of(comOcorrencias, semOcorrencias));
+        when(ocorrencias.contarPorDiarios(List.of(100L, 101L)))
+            .thenReturn(List.of(new ContagemOcorrencias(100L, 3L)));
+
+        var resumo = service.listar(OBRA_ID);
+
+        assertEquals(3L, resumo.get(0).totalOcorrencias());
+        assertEquals(0L, resumo.get(1).totalOcorrencias(), "diário sem ocorrência não volta na contagem");
+        verify(ocorrencias, times(1)).contarPorDiarios(anyCollection());
+    }
+
     private Obra obra() {
         Obra obra = mock(Obra.class);
         lenient().when(obra.getId()).thenReturn(OBRA_ID);
@@ -209,6 +255,7 @@ class DiarioServiceTest {
     private AlocacaoObra alocacao(Long id) {
         Usuario usuario = mock(Usuario.class);
         lenient().when(usuario.getId()).thenReturn(USUARIO_ID);
+        lenient().when(usuario.getNome()).thenReturn("Maria");
         AlocacaoObra alocacao = mock(AlocacaoObra.class);
         lenient().when(alocacao.getId()).thenReturn(id);
         lenient().when(alocacao.getUsuario()).thenReturn(usuario);

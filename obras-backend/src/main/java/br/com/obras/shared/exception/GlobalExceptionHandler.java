@@ -1,10 +1,12 @@
 package br.com.obras.shared.exception;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,6 +15,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /** Formato único de erro para toda a API (RNF-09). */
 @RestControllerAdvice
@@ -54,6 +57,24 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiError> validacao(MethodArgumentNotValidException e) {
         List<ApiError.CampoErro> campos = e.getBindingResult().getFieldErrors().stream()
                 .map(f -> new ApiError.CampoErro(f.getField(), f.getDefaultMessage())).toList();
+        return ResponseEntity.badRequest()
+                .body(new ApiError(400, "Dados inválidos", campos, Instant.now()));
+    }
+
+    /**
+     * JSON que não pôde ser convertido no DTO (ex.: valor fora do enum, data mal
+     * formatada, JSON quebrado). Acontece antes da Bean Validation, então não cai
+     * no handler acima. É erro do cliente: 400, apontando o campo quando possível.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ResponseEntity<ApiError> corpoIlegivel(HttpMessageNotReadableException e) {
+        List<ApiError.CampoErro> campos = List.of();
+        if (e.getCause() instanceof JsonMappingException jme && !jme.getPath().isEmpty()) {
+            String campo = jme.getPath().stream()
+                    .map(r -> r.getFieldName() != null ? r.getFieldName() : "[" + r.getIndex() + "]")
+                    .collect(Collectors.joining("."));
+            campos = List.of(new ApiError.CampoErro(campo, "valor inválido"));
+        }
         return ResponseEntity.badRequest()
                 .body(new ApiError(400, "Dados inválidos", campos, Instant.now()));
     }

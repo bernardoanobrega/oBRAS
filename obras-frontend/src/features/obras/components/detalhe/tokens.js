@@ -1,4 +1,5 @@
-// Combinações de classes do Painel Detalhes de Obra. As cores vêm do tema (tailwind.config.js).
+// Combinações de classes do módulo Obras. As cores vêm do tema do Figma (tailwind.config.js).
+// Âmbar em TOM continua sendo cor de SIGNIFICADO (alerta).
 
 export const CARD = 'rounded-xl border border-borda bg-superficie';
 
@@ -11,6 +12,10 @@ export const TOM = {
 };
 
 export const ICON_BOX = 'grid place-items-center rounded-lg bg-brand-fundo text-brand';
+
+export const LINK = 'text-xs font-semibold text-brand hover:text-brand-claro';
+
+export const FOCO = 'focus:ring-2 focus:ring-brand-claro/60';
 
 export const BOTAO_PRIMARIO =
   'flex items-center gap-2 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-fundo hover:bg-brand-claro';

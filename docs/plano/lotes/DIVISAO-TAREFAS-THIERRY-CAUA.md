@@ -55,13 +55,13 @@
 | L23 | Cascata de encerramento ao concluir/cancelar | 2 | Thierry | L21, L22 | 6 | Pendente |
 | L24 | Testes de integração da Fase 2 | 2 | Thierry | L18–L23 | 8 | Pendente |
 | L25 | Frontend: tela de equipe da obra | 2 | Cauã | L22–L24 | 8 | Em andamento |
-| L26 | Migration V4: diário, equipe presente e RN-07 | 3 | Cauã | L06, L07 | 10 | Em revisão |
-| L27 | Migration V4: ocorrências, paralisações e fotos | 3 | Cauã | L26 | 11 | Em revisão |
+| L26 | Migration V4: diário, equipe presente e RN-07 | 3 | Cauã | L06, L07 | 10 | Concluído |
+| L27 | Migration V4: ocorrências, paralisações e fotos | 3 | Cauã | L26 | 11 | Concluído |
 | L28 | Domínio RegistroDiario | 3 | Cauã | L26 | 7 | Concluído |
 | L29 | Domínio Ocorrencia, Paralisacao e RegistroFotografico | 3 | Cauã | L28 | 10 | Concluído |
-| L30 | Repository, DTO e mapper do diário | 3 | Cauã | L28, L29 | 9 | Em revisão |
-| L31 | Serviço de diário e RN-07 | 3 | Cauã | L30 | 12 | Em revisão |
-| L32 | Serviço de ocorrências e paralisações | 3 | Cauã | L31 | 12 | Em revisão |
+| L30 | Repository, DTO e mapper do diário | 3 | Cauã | L28, L29 | 9 | Concluído |
+| L31 | Serviço de diário e RN-07 | 3 | Cauã | L30 | 12 | Concluído |
+| L32 | Serviço de ocorrências e paralisações | 3 | Cauã | L31 | 12 | Concluído |
 | L33 | Ocorrência rápida e diário automático | 3 | Cauã | L32 | 9 | Em revisão |
 | L34 | API de diário e ocorrências | 3 | Cauã | L31–L33 | 7 | Em revisão |
 | L35 | Upload e download de fotos | 3 | Cauã | L34 | 10 | Em revisão |

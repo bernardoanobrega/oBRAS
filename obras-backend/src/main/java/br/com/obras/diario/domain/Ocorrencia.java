@@ -64,11 +64,13 @@ public class Ocorrencia {
         }
         exigirCategoria(categoria);
         exigirDescricao(descricao);
+        LocalDateTime momento = dataHora == null ? LocalDateTime.now() : dataHora;
+        exigirMesmoDiaDoDiario(registroDiario, momento);
         Ocorrencia o = new Ocorrencia();
         o.auditavel = auditavel;
         o.registroDiario = registroDiario;
         o.alocacaoObra = alocacaoObra;
-        o.dataHora = dataHora == null ? LocalDateTime.now() : dataHora;
+        o.dataHora = momento;
         o.categoria = categoria;
         o.descricao = descricao;
         return o;
@@ -77,9 +79,22 @@ public class Ocorrencia {
     public void editar(LocalDateTime dataHora, CategoriaOcorrencia categoria, String descricao) {
         exigirCategoria(categoria);
         exigirDescricao(descricao);
-        this.dataHora = dataHora == null ? this.dataHora : dataHora;
+        LocalDateTime momento = dataHora == null ? this.dataHora : dataHora;
+        exigirMesmoDiaDoDiario(this.registroDiario, momento);
+        this.dataHora = momento;
         this.categoria = categoria;
         this.descricao = descricao;
+    }
+
+    /**
+     * ADR-18: a ocorrência pertence ao diário de um dia, então a data dela é a
+     * desse dia. Sem padrão especial: se a dataHora não vier, vale "agora", e no
+     * diário de um dia passado isso é recusado; quem registra atrasado informa o horário.
+     */
+    private static void exigirMesmoDiaDoDiario(RegistroDiario diario, LocalDateTime momento) {
+        if (!momento.toLocalDate().equals(diario.getData())) {
+            throw new RegraNegocioException("A ocorrência deve ser do mesmo dia do diário");
+        }
     }
 
     public void definirParalisacao(Paralisacao paralisacao) {

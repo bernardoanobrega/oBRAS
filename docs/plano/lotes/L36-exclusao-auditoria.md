@@ -21,6 +21,8 @@ Implementar exclusão lógica de diário, ocorrência e foto, com auditoria e co
 - Excluir foto marca apenas a foto.
 - Nenhuma linha é removida fisicamente.
 - Toda exclusão gera `RegistroAuditoria` com `EXCLUSAO`.
+**Andamento (25/11, no L32):** a cascata lógica de exclusão (diário → ocorrências e fotos; ocorrência → fotos), com auditoria `EXCLUSAO` para cada item, já está em `DiarioService.excluir` / `excluirOcorrencia`. Os testes `excluirDiarioMarcaOcorrenciasEFotos` e `excluirOcorrenciaMarcaFotos` estão em `OcorrenciaServiceIntegracaoTest`. Falta auditar os demais itens deste lote.
+
 
 ## 4. Testes primeiro (RED)
 

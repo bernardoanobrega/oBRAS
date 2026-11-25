@@ -37,7 +37,7 @@ public class ObraService {
     @Transactional(readOnly = true)
     public List<ObraDto> listar() {
         Long usuarioId = CurrentUser.id();
-        return obras.findAllByOrderByNomeAsc().stream()
+        return obras.listarAtivas().stream()
             .filter(o -> autorizacao.possuiPermissao(
                 usuarioId,
                 o.getId(),
@@ -80,7 +80,7 @@ public class ObraService {
     }
 
     private Obra obter(Long obraId) {
-        return obras.findById(obraId)
+        return obras.buscarAtiva(obraId)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Obra", obraId));
     }
 }

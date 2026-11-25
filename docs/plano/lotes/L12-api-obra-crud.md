@@ -68,3 +68,23 @@ Sem migration.
 ## 10. Verificação e evidência
 
 `mvn test` com MockMvc/Testcontainers. Evidência: testes de controller.
+
+## 11. Auditoria do código (Cauã, 2026-11-25)
+
+Leitura do código em `feat/obra-read-api` contra este contrato. **Nada foi implementado**; sugestões para o Thierry decidir.
+
+**Já existe**
+- `ObraController` com `GET /api/obras` (`isAuthenticated()`), `GET /{obraId}` e `GET /{obraId}/equipe` (`@perm.pode(#obraId,'DETALHES_OBRA','VISUALIZAR')`).
+- `@perm.podeGlobal(modulo, acao)` em `PermissaoEvaluator`, pronto para o POST (ADR-11).
+- `GlobalExceptionHandler` já cobre o contrato: 400 com `campos` (`MethodArgumentNotValidException` e enum inválido), 403, 404, 422 e 409 (integridade). **Não deve precisar de alteração** neste lote.
+- `SecurityConfig` devolve 401 sem token.
+
+**Falta**
+- `POST /api/obras` (201) e `PUT /api/obras/{obraId}`. Dependem do L11 (service) e do L10 (DTOs).
+- Os 8 testes da seção 4. **Não há nenhum teste de controller no projeto**; será a primeira infraestrutura de MockMvc.
+
+**Pontos de atenção (sugestões)**
+1. **`status` no PUT:** o Spring Boot ignora campos desconhecidos no JSON por padrão (`FAIL_ON_UNKNOWN_PROPERTIES=false`). Enviar `status` no PUT **não dá 400**: é ignorado em silêncio. Para cumprir o invariante "Status só por transição → 400", uma opção é um campo `status` com `@Null(message = "status só muda por transição")` no `AtualizarObraDto`.
+2. **Permissão do `GET /api/obras`:** a tabela diz `DETALHES_OBRA:VISUALIZAR`, mas como `podeGlobal` isso bloquearia quem só tem acesso **por obra**. O código atual (`isAuthenticated()` + filtro por obra no service) parece o comportamento certo; o filtro definitivo é do L14.
+3. **Testes sem Docker:** `@WebMvcTest(ObraController.class)` com o service simulado e a segurança carregada cobre 201/400/401/403/404 e o formato `ApiError` sem banco. Pode exigir simular `JwtService` e o `AutorizacaoPort`.
+4. **Impacto no L17 (Cauã):** o frontend de cadastro e edição está sendo construído contra **este contrato** (rotas, status HTTP, `responsavelId` opcional, `status` recusado no PUT). Qualquer mudança de rota, campo ou código HTTP precisa ser avisada ao Cauã.

@@ -4,6 +4,7 @@ import { useAuth } from '../../../shared/auth/useAuth.js';
 import { mensagemErro } from '../../../shared/api/http.js';
 import Button from '../../../shared/components/ui/Button.jsx';
 import Input from '../../../shared/components/ui/Input.jsx';
+import CampoSenha from '../../../shared/components/ui/CampoSenha.jsx';
 
 export default function LoginPage() {
   const { usuario, entrar } = useAuth();
@@ -36,7 +37,7 @@ export default function LoginPage() {
         <h1 className="text-center text-2xl font-bold text-brand-claro">oBRAS</h1>
         <p className="text-center text-sm text-texto-suave">Entre para acessar suas obras</p>
         <Input label="Login" name="login" autoComplete="username" value={login} onChange={(e) => setLogin(e.target.value)} required />
-        <Input label="Senha" name="senha" type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
+        <CampoSenha label="Senha" name="senha" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
         {erro && <p role="alert" className="rounded bg-perigo-fundo p-2 text-sm text-perigo">{erro}</p>}
         <Button type="submit" className="w-full" disabled={enviando}>
           {enviando ? 'Entrando...' : 'Entrar'}

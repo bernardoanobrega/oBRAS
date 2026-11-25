@@ -16,6 +16,7 @@ Criar `V5__integridade_obra_diario.sql` com:
 
 - **Trigger `BEFORE INSERT OR UPDATE`** em `registro_diario_equipe` e em `ocorrencia`, que compara o `obra_id` do diário com o da alocação e lança `check_violation` (`ck_alocacao_mesma_obra_diario`) se forem diferentes. Só compara se os dois registros existem; vínculo inexistente continua sendo barrado pela FK. A regra é "mesma obra", não "alocação ativa": uma alocação encerrada continua válida nos diários antigos.
 - **`ON DELETE CASCADE`** em `fk_ocorrencia_registro_diario` e `fk_reg_fotografico_ocorrencia`. Apagar uma obra fisicamente apaga diários, equipe presente, ocorrências, paralisações e fotos dela.
+- **FKs adiáveis** (`DEFERRABLE INITIALLY DEFERRED`) em `fk_reg_diario_equipe_alocacao` e `fk_ocorrencia_alocacao`. A obra também cascateia para `alocacao_obra` (V2); conferidas na hora, essas FKs travavam a exclusão da obra antes de a cascata do diário remover as linhas (o teste da cascata pegou isso). Adiáveis, são conferidas no fim da transação. Apagar sozinha uma alocação ainda referenciada continua bloqueado. Alternativa rejeitada: `ON DELETE CASCADE` na alocação, que apagaria as ocorrências escritas por ela.
 
 A V5 fica **sem commit** até juntar as próximas mudanças de banco necessárias.
 
@@ -25,7 +26,7 @@ A V5 fica **sem commit** até juntar as próximas mudanças de banco necessária
 - **Manter exclusão física bloqueada**: rejeitada; o comportamento parcial (apaga diário sem ocorrência, bloqueia com ocorrência) é inconsistente.
 
 ## Consequências (migrations / API / UI / lotes afetados)
-- **Migrations:** nova V5. O teste `migrationV4AplicaSobreV31ComDados` passa a migrar até a versão 4 explicitamente.
+- **Migrations:** nova V5. Os testes `migrationV4AplicaSobreV31ComDados` (V4) e `migrationV3AplicaSobreV2ComDados` (V3, lote L06 do Thierry) passam a migrar até a versão 4 explicitamente; o ajuste do V3 entra no mesmo commit da V5.
 - **API/Java:** nenhuma mudança. O service já valida antes; o trigger é a última barreira (se disparar, chega como `DataIntegrityViolationException`).
 - **UI:** nenhuma.
 - **Limites:** na exclusão física, os registros de `auditavel` e `registro_auditoria` ficam órfãos (o histórico sobrevive) e os arquivos das fotos continuam no storage. Mudar `obra_id` de um diário ou de uma alocação já existente não é verificado pelo trigger (o sistema não faz essa operação).

@@ -20,19 +20,23 @@ public interface AlocacaoObraRepository extends JpaRepository<AlocacaoObra, Long
     """)
     List<AlocacaoObra> findEquipeAtiva(@Param("obraId") Long obraId);
 
+    /** Já traz o usuário (join fetch): o diário usa o nome do autor sem consulta extra. */
     @Query("""
         select a from AlocacaoObra a
+        join fetch a.usuario u
         where a.obra.id = :obraId
           and a.dataFim is null
-          and a.usuario.id = :usuarioId
+          and u.id = :usuarioId
     """)
     Optional<AlocacaoObra> findAtivaPorUsuario(
         @Param("obraId") Long obraId,
         @Param("usuarioId") Long usuarioId
     );
 
+    /** Já traz os usuários (join fetch): a equipe presente do diário sai com nomes sem N+1. */
     @Query("""
         select a from AlocacaoObra a
+        join fetch a.usuario
         where a.obra.id = :obraId
           and a.dataFim is null
           and a.id in :ids

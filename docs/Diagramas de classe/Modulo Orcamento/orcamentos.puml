@@ -1,0 +1,108 @@
+@startuml orcamento-class-diagram
+title OBRAS - Diagrama de Classes (Módulo Orçamento)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Obra <<externa>>
+class Usuario <<externa>>
+
+' ===== NÚCLEO =====
+class Orcamento <<Entity>> {
+  -id : int
+  -dataElaboracao : Date
+  -dataUltimaAtualizacao : Date
+  -percentualLimiteAlerta : double
+  --
+  +adicionarItem(codigo : String, descricao : String, unidade : String, quantidade : double, custoUnitarioOrcado : BigDecimal) : ItemOrcado
+  +removerItem(idItem : int) : void
+  +buscarItem(idItem : int) : ItemOrcado
+  +registrarDecisao(descricao : String, justificativa : String, valorImpacto : BigDecimal, autor : Usuario) : DecisaoFinanceira
+  +calcularTotalOrcado() : BigDecimal
+  +calcularTotalRealizado() : BigDecimal
+  +calcularDesvioFinanceiro() : BigDecimal
+  +calcularPercentualDesvio() : double
+  +listarItensEmDesvio() : ItemOrcado[]
+  +gerarIndicadoresSaude() : IndicadorSaudeFinanceira
+  +cancelar()
+}
+
+class ItemOrcado <<Entity>> {
+  -id : int
+  -idOrcamento : int
+  -codigo : String
+  -descricao : String
+  -unidade : String
+  -quantidade : double
+  -custoUnitarioOrcado : BigDecimal
+  --
+  +registrarCusto(descricao : String, valor : BigDecimal, origem : OrigemCusto, idOrigem : int, autor : Usuario) : CustoRealizado
+  +calcularValorOrcado() : BigDecimal
+  +calcularTotalRealizado() : BigDecimal
+  +calcularDesvioFinanceiro() : BigDecimal
+  +calcularPercentualExecutado() : double
+  +estaEmEstouro() : boolean
+}
+
+class CustoRealizado <<Entity>> {
+  -id : int
+  -idItem : int
+  -dataLancamento : Date
+  -descricao : String
+  -valor : BigDecimal
+  -origem : OrigemCusto
+  -idOrigem : int
+  --
+  +validar() : boolean
+}
+
+class DecisaoFinanceira <<Entity>> {
+  -id : int
+  -idOrcamento : int
+  -dataDecisao : Date
+  -descricao : String
+  -justificativa : String
+  -valorImpacto : BigDecimal
+}
+
+class IndicadorSaudeFinanceira <<ValueObject>> {
+  -totalOrcado : BigDecimal
+  -totalRealizado : BigDecimal
+  -desvioAbsoluto : BigDecimal
+  -desvioPercentual : double
+  -percentualExecutado : double
+  -saude : SaudeFinanceira
+  --
+  +classificarSaude(limiteAlerta : double) : SaudeFinanceira
+  +possuiAlerta() : boolean
+}
+
+' ===== ENUMERAÇÕES =====
+enum SaudeFinanceira {
+  SAUDAVEL
+  ATENCAO
+  CRITICA
+}
+
+enum OrigemCusto {
+  MATERIAL
+  MAO_DE_OBRA
+  EQUIPAMENTO
+  SERVICO_TERCEIRIZADO
+  OUTRO
+}
+
+' ===== RELAÇÕES =====
+Orcamento "0..1" --> "1" Obra : informa
+Orcamento "1" *-- "0..*" ItemOrcado : composto por
+ItemOrcado "1" *-- "0..*" CustoRealizado : recebe
+Orcamento "1" *-- "0..*" DecisaoFinanceira : registra
+Orcamento ..> IndicadorSaudeFinanceira : gera
+Usuario "1" --> "0..*" CustoRealizado : lança
+Usuario "1" --> "0..*" DecisaoFinanceira : toma
+
+@enduml
