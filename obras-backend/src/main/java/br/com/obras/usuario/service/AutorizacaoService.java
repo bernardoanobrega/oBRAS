@@ -1,6 +1,10 @@
 package br.com.obras.usuario.service;
 
-import br.com.obras.shared.security.*;
+import br.com.obras.shared.security.AcaoPermissao;
+import br.com.obras.shared.security.AutorizacaoPort;
+import br.com.obras.shared.security.ContextoAlocacaoPort;
+import br.com.obras.shared.security.ModuloSistema;
+import br.com.obras.shared.security.PermissaoChave;
 import br.com.obras.usuario.domain.PermissaoUsuario;
 import br.com.obras.usuario.domain.Usuario;
 import br.com.obras.usuario.repository.CargoRepository;
@@ -32,27 +36,37 @@ public class AutorizacaoService implements AutorizacaoPort {
     @Override
     @Transactional(readOnly = true)
     public Set<PermissaoChave> permissoesEfetivas(Long usuarioId, Long obraId) {
-        Usuario u = usuarios.findById(usuarioId).orElse(null);
-        if (u == null || !u.estaAtivo()) return Set.of();
-
-        Set<PermissaoChave> efetivas = new HashSet<>();
-        if (obraId != null) {
-            List<Long> cargoIds = contexto.cargoIdsAtivos(usuarioId, obraId);
-            if (!cargoIds.isEmpty()) {
-                cargos.findComPermissoes(cargoIds).forEach(c ->
-                        c.getPermissoes().forEach(p -> efetivas.add(new PermissaoChave(p.getModulo(), p.getAcao()))));
-            }
-        }
-        for (PermissaoUsuario pu : u.getPermissoes()) {
-            var chave = new PermissaoChave(pu.getPermissao().getModulo(), pu.getPermissao().getAcao());
-            if (pu.isConcedida()) efetivas.add(chave); else efetivas.remove(chave);
-        }
-        return efetivas;
+        Usuario usuario = usuarios.findById(usuarioId).orElse(null);
+        if (usuario == null || !usuario.estaAtivo()) return Set.of();
+        List<Long> cargoIds = obraId == null ? List.of() : contexto.cargoIdsAtivos(usuarioId, obraId);
+        return calcular(usuario, cargoIds);
     }
 
     @Override
     @Transactional(readOnly = true)
     public boolean possuiPermissao(Long usuarioId, Long obraId, ModuloSistema modulo, AcaoPermissao acao) {
         return permissoesEfetivas(usuarioId, obraId).contains(new PermissaoChave(modulo, acao));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean possuiPermissaoEmQualquerObra(Long usuarioId, ModuloSistema modulo, AcaoPermissao acao) {
+        Usuario usuario = usuarios.findById(usuarioId).orElse(null);
+        if (usuario == null || !usuario.estaAtivo()) return false;
+        List<Long> cargoIds = contexto.cargoIdsAtivosEmQualquerObra(usuarioId);
+        return calcular(usuario, cargoIds).contains(new PermissaoChave(modulo, acao));
+    }
+
+    private Set<PermissaoChave> calcular(Usuario usuario, List<Long> cargoIds) {
+        Set<PermissaoChave> efetivas = new HashSet<>();
+        if (!cargoIds.isEmpty()) {
+            cargos.findComPermissoes(cargoIds).forEach(c ->
+                    c.getPermissoes().forEach(p -> efetivas.add(new PermissaoChave(p.getModulo(), p.getAcao()))));
+        }
+        for (PermissaoUsuario pu : usuario.getPermissoes()) {
+            var chave = new PermissaoChave(pu.getPermissao().getModulo(), pu.getPermissao().getAcao());
+            if (pu.isConcedida()) efetivas.add(chave); else efetivas.remove(chave);
+        }
+        return efetivas;
     }
 }

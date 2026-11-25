@@ -17,8 +17,9 @@ Para criar o 1º admin: `BOOTSTRAP_ADMIN_ENABLED=true BOOTSTRAP_ADMIN_PASSWORD=.
 
 ## Estrutura
 `shared/` (segurança, exceções, storage) · um pacote por módulo com `controller/service/repository/domain/dto/mapper`.
-Módulos implementados: `usuario` (completo), `orcamento` (completo), `obra` (só o adapter de alocação).
-Migrations: `V1` usuários/permissões, `V2` obras/canteiros/alocações, `V3`/`V3_1` auditoria, `V4` diário, `V5` orçamento.
+Módulos implementados: `usuario`, `obra` (painel e diário), `orcamento`, `compras`, `estoque`.
+Migrations: `V1` usuários/permissões, `V2` obras/canteiros/alocações, `V3`/`V3_1` auditoria, `V4` diário, `V5` orçamento,
+`V6` materiais, `V7` compras, `V8` estoque.
 A numeração segue a ordem em que os módulos entram na develop.
 
 ## Orçamento (UC10 · RF-30 a RF-34, RF-74)
@@ -35,3 +36,13 @@ A numeração segue a ordem em que os módulos entram na develop.
 - Módulo nunca usa repository de outro módulo; use o service público ou um *port* em `shared`.
 - Controllers: `@PreAuthorize("@perm.pode(#obraId, 'MODULO', 'ACAO')")`.
 - Nunca expor entidades JPA; use DTOs.
+
+## Compras e Estoque (implementados)
+Migrations: `V6` materiais, `V7` fornecedores/pedidos/itens/cotações/histórico, `V8` saldo e movimentação de estoque.
+- **Compras** (`/api/obras/{obraId}/pedidos-compra`, `/api/fornecedores`): máquina de estados do PedidoCompra no domínio
+  (`SOLICITADO → EM_COTACAO → COMPRADO → EM_TRANSITO → ENTREGUE`; `CANCELADO` só até `EM_COTACAO`).
+- **Estoque** (`/api/obras/{obraId}/estoque`, `/api/materiais`): saldo por (material, canteiro); entrada, saída e
+  transferência numa única transação, com lock pessimista no saldo.
+- Compras → Estoque: `EstoqueService.registrarEntradaEstoque` chama o service público de compras (mesma transação).
+- Dependências ainda inexistentes entram por *ports* em `shared.port`: `ObraConsultaPort` (adapter em `obra`),
+  `OrcamentoPort` (implementado por `orcamento.service.OrcamentoAdapter`).

@@ -29,4 +29,17 @@ public class ContextoAlocacaoAdapter implements ContextoAlocacaoPort {
                 .query(Long.class)
                 .list();
     }
+
+    @Override
+    public List<Long> cargoIdsAtivosEmQualquerObra(Long usuarioId) {
+        return jdbc.sql("""
+                SELECT DISTINCT aoc.cargo_id
+                  FROM alocacao_obra ao
+                  JOIN alocacao_obra_cargo aoc ON aoc.alocacao_obra_id = ao.id
+                 WHERE ao.usuario_id = :usuario AND ao.data_fim IS NULL
+                """)
+                .param("usuario", usuarioId)
+                .query(Long.class)
+                .list();
+    }
 }
