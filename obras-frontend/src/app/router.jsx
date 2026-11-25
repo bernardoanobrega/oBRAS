@@ -60,6 +60,7 @@ export const router = createBrowserRouter([
           { path: 'cronograma', element: <CronogramasPage /> },
           { path: 'orcamento', element: <OrcamentosPage /> },
           { path: 'configuracoes', element: <ConfiguracoesPage /> },
+          { path: 'documentos', element: <DocumentosPage /> },
           {
             path: 'obras/:obraId',
             element: <ObraLayout />,

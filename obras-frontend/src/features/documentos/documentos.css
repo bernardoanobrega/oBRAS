@@ -1,0 +1,529 @@
+.documentos-area {
+  color: theme(colors.texto.DEFAULT);
+  background: theme(colors.fundo);
+  min-height: 70vh;
+  padding: 24px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.documentos-area *,
+.doc-modal * {
+  box-sizing: border-box;
+}
+.documentos-area button,
+.doc-modal button,
+.documentos-area select,
+.doc-modal select {
+  cursor: pointer;
+}
+.documentos-area button,
+.doc-modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid theme(colors.borda.DEFAULT);
+  border-radius: 6px;
+  padding: 8px 11px;
+  font-size: 12px;
+  background: theme(colors.superficie.DEFAULT);
+  color: theme(colors.texto.DEFAULT);
+}
+.documentos-area button:hover,
+.doc-modal button:hover {
+  background: theme(colors.borda.DEFAULT);
+}
+.documentos-area button:disabled,
+.doc-modal button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.documentos-area :focus-visible,
+.doc-modal :focus-visible {
+  outline: 2px solid theme(colors.brand.DEFAULT);
+  outline-offset: 3px;
+}
+.documentos-area .doc-primary,
+.doc-modal .doc-primary {
+  background: theme(colors.brand.DEFAULT);
+  color: theme(colors.brand.fundo);
+  border-color: theme(colors.brand.DEFAULT);
+  font-weight: 600;
+}
+.documentos-area .doc-primary:hover,
+.doc-modal .doc-primary:hover {
+  background: theme(colors.brand.claro);
+}
+.doc-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.doc-page-header h1 {
+  font-size: 24px;
+  font-weight: 650;
+  margin: 3px 0 0;
+  letter-spacing: -0.5px;
+}
+.doc-eyebrow {
+  color: theme(colors.texto.fraco);
+  font-size: 10px;
+  letter-spacing: 1.3px;
+}
+.doc-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.doc-toolbar > svg {
+  color: theme(colors.brand.DEFAULT);
+}
+.documentos-area a {
+  color: theme(colors.brand.claro);
+}
+.doc-topbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.doc-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+  background: theme(colors.superficie.DEFAULT);
+  border: 1px solid theme(colors.borda.DEFAULT);
+  border-radius: 6px;
+  padding: 0 11px;
+  color: theme(colors.texto.suave);
+}
+.doc-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 0;
+  background: transparent;
+  border: 0;
+  color: theme(colors.texto.DEFAULT);
+  outline: none;
+  font-size: 13px;
+}
+.documentos-area select,
+.doc-modal select,
+.doc-modal input:not([type="file"]),
+.doc-modal textarea {
+  border: 1px solid theme(colors.borda.DEFAULT);
+  background: theme(colors.superficie.DEFAULT);
+  color: theme(colors.texto.DEFAULT);
+  padding: 9px 10px;
+  border-radius: 6px;
+  max-width: 100%;
+}
+.doc-grid {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.doc-directories,
+.doc-list {
+  border: 1px solid theme(colors.borda.DEFAULT);
+  border-radius: 8px;
+  background: theme(colors.superficie.DEFAULT);
+  overflow: hidden;
+}
+.doc-directories header {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 13px;
+  border-bottom: 1px solid theme(colors.borda.DEFAULT);
+  font-size: 12px;
+}
+.doc-directories header span,
+.doc-folder span {
+  color: theme(colors.texto.fraco);
+  font-size: 10px;
+}
+.documentos-area .doc-folder {
+  width: calc(100% - 16px);
+  margin: 3px 8px;
+  display: flex;
+  justify-content: flex-start;
+  padding: 11px 8px;
+  font-size: 11px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+}
+.doc-folder svg {
+  flex-shrink: 0;
+  color: theme(colors.brand.DEFAULT);
+}
+.doc-folder span {
+  margin-left: auto;
+}
+.documentos-area .doc-subfolder {
+  padding-left: 24px;
+}
+.doc-subfolder svg {
+  color: theme(colors.texto.suave);
+}
+.documentos-area .doc-folder.selected {
+  background: theme(colors.brand.fundo);
+  color: theme(colors.brand.DEFAULT);
+}
+.doc-directories footer {
+  padding: 13px;
+  display: flex;
+  gap: 7px;
+  border-top: 1px solid theme(colors.borda.DEFAULT);
+  margin-top: 10px;
+  font-size: 10px;
+  color: theme(colors.texto.suave);
+}
+.doc-directories footer svg {
+  color: theme(colors.sucesso.DEFAULT);
+}
+.doc-list-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid theme(colors.borda.DEFAULT);
+}
+.doc-list-header h2 {
+  font-weight: 600;
+  font-size: 13px;
+}
+.doc-list-header p {
+  color: theme(colors.texto.suave);
+  margin-top: 4px;
+  font-size: 11px;
+}
+.doc-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.doc-check input {
+  accent-color: theme(colors.brand.DEFAULT);
+}
+.doc-stats {
+  padding: 10px 18px;
+  display: flex;
+  justify-content: space-around;
+  gap: 15px;
+  border-bottom: 1px solid theme(colors.borda.DEFAULT);
+  font-size: 11px;
+  color: theme(colors.texto.suave);
+}
+.doc-stats b {
+  color: theme(colors.sucesso.DEFAULT);
+}
+.doc-cards {
+  display: grid;
+  gap: 13px;
+  padding: 12px;
+}
+.doc-card {
+  border: 1px solid theme(colors.borda.DEFAULT);
+  border-radius: 7px;
+  background: theme(colors.superficie.DEFAULT);
+  overflow: hidden;
+}
+.doc-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 12px;
+}
+.doc-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 38px;
+  border: 1px solid theme(colors.borda.DEFAULT);
+  border-radius: 6px;
+  background: theme(colors.superficie.alta);
+  color: theme(colors.brand.DEFAULT);
+}
+.doc-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.doc-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.doc-title-row h3 {
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.doc-card-info p {
+  margin: 6px 0;
+  color: theme(colors.texto.DEFAULT);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.doc-card-info small,
+.doc-version small {
+  color: theme(colors.texto.suave);
+  font-size: 10px;
+  display: block;
+}
+.doc-badge {
+  display: inline-block;
+  border: 1px solid theme(colors.sucesso.fundo);
+  color: theme(colors.sucesso.DEFAULT);
+  background: theme(colors.sucesso.fundo);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.doc-badge.old {
+  background: theme(colors.borda.DEFAULT);
+  color: theme(colors.texto.suave);
+  border-color: theme(colors.borda.DEFAULT);
+}
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.doc-card-main > .doc-actions {
+  margin-left: auto;
+  align-self: center;
+}
+.doc-actions button {
+  font-size: 10px;
+}
+.doc-history {
+  border-top: 1px solid theme(colors.borda.DEFAULT);
+  padding: 0 10px 8px;
+}
+.doc-history summary {
+  cursor: pointer;
+  padding: 10px 2px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  color: theme(colors.texto.suave);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.doc-history summary span {
+  margin-left: auto;
+}
+.doc-version {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid theme(colors.borda.DEFAULT);
+  font-size: 10px;
+}
+.doc-version.current {
+  background: theme(colors.sucesso.fundo);
+}
+.doc-version time {
+  color: theme(colors.texto.suave);
+  white-space: nowrap;
+}
+.doc-version p {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.doc-version button {
+  border: 0;
+  background: transparent;
+  padding: 3px;
+  font-size: 10px;
+}
+.doc-empty {
+  padding: 60px 24px;
+  text-align: center;
+  color: theme(colors.texto.suave);
+}
+.doc-empty svg {
+  margin: 0 auto 15px;
+  color: theme(colors.brand.DEFAULT);
+  width: 32px;
+  height: 32px;
+}
+.doc-empty h3 {
+  color: theme(colors.texto.DEFAULT);
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+.doc-muted {
+  color: theme(colors.texto.suave);
+  font-size: 12px;
+  margin: 12px 0;
+}
+.doc-error {
+  color: theme(colors.perigo.DEFAULT);
+  background: theme(colors.perigo.fundo);
+  border: 1px solid theme(colors.perigo.fundo);
+  padding: 12px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+.doc-error button {
+  margin-left: 10px;
+}
+.doc-success {
+  padding: 12px;
+  color: theme(colors.sucesso.DEFAULT);
+}
+.doc-modal {
+  color: theme(colors.texto.DEFAULT);
+  background: theme(colors.superficie.DEFAULT);
+  border: 1px solid theme(colors.borda.DEFAULT);
+  border-radius: 12px;
+  width: min(540px, calc(100% - 28px));
+  max-height: 90vh;
+  padding: 24px;
+  font-size: 13px;
+}
+.doc-modal::backdrop {
+  background: theme(colors.fundo / 73%);
+  backdrop-filter: blur(3px);
+}
+.doc-modal > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+.doc-modal h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+.doc-modal h3 {
+  margin-top: 18px;
+  font-weight: 600;
+}
+.doc-modal-amplo {
+  width: min(1000px, calc(100% - 28px));
+}
+.doc-form {
+  display: grid;
+  gap: 15px;
+}
+.doc-form label {
+  display: grid;
+  gap: 7px;
+  color: theme(colors.texto.suave);
+  font-size: 12px;
+}
+.doc-form footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 6px;
+}
+.doc-form .doc-upload {
+  border: 1px dashed theme(colors.brand.fundo);
+  padding: 20px;
+  border-radius: 8px;
+  background: theme(colors.brand.fundo);
+  color: theme(colors.brand.claro);
+}
+.doc-upload input {
+  max-width: 100%;
+  font-size: 12px;
+}
+.doc-preview {
+  width: 100%;
+  height: 65vh;
+  object-fit: contain;
+  border: 0;
+  background: theme(colors.borda.DEFAULT);
+  margin: 12px 0;
+}
+.doc-download-link,
+.doc-history-link {
+  display: block;
+  color: theme(colors.brand.claro);
+  margin: 12px 0;
+}
+.doc-dialog-actions {
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+@media (max-width: 1250px) {
+  .doc-card-main {
+    flex-wrap: wrap;
+  }
+  .doc-card-main > .doc-actions {
+    width: 100%;
+    padding-left: 46px;
+  }
+  .doc-grid {
+    grid-template-columns: 225px minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+  .documentos-area {
+    padding: 15px;
+    border-radius: 8px;
+  }
+  .doc-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .doc-grid {
+    grid-template-columns: 1fr;
+  }
+  .doc-directories {
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .doc-topbar {
+    flex-wrap: wrap;
+  }
+  .doc-topbar > .doc-search {
+    flex-basis: 100%;
+  }
+  .doc-version {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .doc-version p {
+    flex-basis: 100%;
+  }
+  .doc-list-header {
+    flex-wrap: wrap;
+  }
+  .doc-card-main > .doc-actions {
+    padding-left: 0;
+  }
+  .doc-toolbar {
+    width: 100%;
+  }
+  .doc-toolbar select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+
+@media (max-width:767px) {
+  .documentos-area button,.doc-modal button { min-height:44px; }
+}

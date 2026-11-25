@@ -29,6 +29,8 @@ Login/sessão, layout responsivo (menu lateral no escritório, barra inferior no
 guards de rota, **Usuários** (lista, cadastro, edição, desativar, permissões individuais),
 **Orçamento** (menu lateral e aba da obra: indicadores, planilha orçado x realizado, lançamento de custo,
 decisões financeiras e cancelamento).
+**Contratos/documentos e prestadores** (upload, revisões, visualização, download e histórico),
+**Painel de obra e diário**, **Compras** e **Estoque**.
 Demais módulos: telas "em construção" com o escopo (UCs/RFs) da documentação.
 
 ## Tema (paleta do Figma)
@@ -50,3 +52,15 @@ nem as cores padrão do Tailwind (`slate`, `red`, `amber`...).
 - Uma feature não importa de outra feature; o que for comum sobe para `shared/`.
 - Toda chamada passa por `shared/api/http.js`. Erros: `mensagemErro(e)` e `errosPorCampo(e)`.
 - Upload: validar com `validarArquivo` (PDF/PNG/JPG, 10 MB) antes de enviar.
+
+## Contratos e documentos
+
+- `/documentos`: seletor de obras autorizadas, diretórios por categoria/disciplina, busca por código/título,
+  upload, novas revisões, visualização de PDF/imagens e download autenticado.
+- `/obras/:obraId/documentos`: o mesmo repositório limitado à obra da rota.
+- `/prestadores`: cadastro, edição, desativação e consulta de contratos/histórico.
+- Contratos podem receber um prestador no upload ou posteriormente pelo botão “Vincular prestador”.
+- A aparência escura/amarela do design fica restrita às rotas deste módulo. O layout responde a telas móveis.
+- “Atual” identifica a última revisão publicada. Não há aprovação técnica nem dados fictícios embutidos na interface.
+- O módulo exige obras já cadastradas no banco pelo módulo de obras; quando não houver, apresenta estado vazio.
+- Testes: `npm test`; compilação: `npm run build`.
