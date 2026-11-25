@@ -1,0 +1,190 @@
+@startuml analysis-diagram-detalhes-obra
+title oBRAS - Diagrama de Classes de Análise (Módulo Detalhes de Obra)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Usuario <<externa>>
+class Cargo <<externa>>
+class Orcamento <<externa>>
+class Cronograma <<externa>>
+
+' ===== NÚCLEO =====
+class Obra <<Entity>> {
+  -id : int
+  -nome : String
+  -descricao : String
+  -tipologia : Tipologia
+  -endereco : String
+  -inicioPrevisto : Date
+  -fimPrevisto : Date
+  -status : StatusObra
+  -responsavel : Usuario [0..1]
+  -art : String
+  --
+  +alocarUsuario(u : Usuario, cargos : Cargo[]) : AlocacaoObra
+  +encerrarAlocacao(a : AlocacaoObra) : AlocacaoObra
+  +listarOcorrencias(inicio : Date, fim : Date) : Ocorrencia[]
+  +alterarResponsavel() : void
+  +iniciar()
+  +paralisar()
+  +retomar()
+  +concluir()
+  +cancelar()
+}
+
+note bottom of Obra
+  Sem adicionarFoto: foto nasce de ocorrência/fachada de aplicação (ADR-02).
+end note
+
+class AlocacaoObra <<Entity>> {
+  -id : int
+  -idUsuario : int
+  -cargos : Cargo[]
+  -dataInicio : Date
+  -dataFim : Date
+  --
+  +definirCargos(cargos : Cargo[]) : void
+  +encerrar() : void
+  +estaAtiva() : boolean
+}
+
+note right of AlocacaoObra
+  Auditoria em decisão (ADR-04, antes da F2).
+end note
+
+abstract class Auditavel <<Entity>> {
+  -id : int
+  #excluido : boolean
+}
+
+class RegistroDiario <<Entity>> {
+  -id : int
+  -idObra: int
+  -data : Date
+  -clima : CondicaoClimatica
+  -descricao: String
+  -equipePresente : AlocacaoObra[]
+  --
+  +registrarOcorrencia(cat : CategoriaOcorrencia, descricao : String, autor : Usuario) : Ocorrencia
+  +registrarParalisacao(cat : CategoriaOcorrencia, descricao : String, autor : Usuario, inicioParalisacao : DateTime, fimParalisacao : DateTime) : Paralisacao
+  +alterarOcorrencia(Ocorrencia) : void
+  +excluirOcorrencia(Ocorrencia) : Ocorrencia
+}
+
+note right of RegistroDiario
+  Clima único/dia (ADR-01); sem turno, temperatura ou sincronização.
+end note
+
+class Ocorrencia <<Entity>> {
+  -id : int
+  -idRegistro: int
+  -dataHora : DateTime
+  -categoria : CategoriaOcorrencia
+  -descricao : String
+  --
+  +registrarFotografia(f : RegistroFotografico) : void
+  +alterarFotografia(f : RegistroFotografico) : void
+  +excluirFotografia(f : RegistroFotografico) : void
+}
+
+class Paralisacao <<Entity>> {
+  -inicioParalisacao : DateTime
+  -fimParalisacao : DateTime
+}
+
+note bottom of Paralisacao
+  Herda categoria de Ocorrencia; categoria obrigatória (ADR-08).
+end note
+
+class RegistroAuditoria <<Entity>> {
+  -id : int
+  -idAuditavel : int
+  -acao : AcaoAuditoria
+  -usuario : Usuario
+  -dataHora : DateTime
+}
+
+class RegistroFotografico <<Entity>> {
+  -id : int
+  -idOcorrencia: int
+  -arquivo : String
+  -legenda : String
+  -dataEnvio : DateTime
+}
+
+' ===== ENUMERAÇÕES =====
+enum StatusObra {
+  PLANEJADA
+  EM_ANDAMENTO
+  PARALISADA
+  CANCELADA
+  CONCLUIDA
+}
+
+enum Tipologia {
+  RESIDENCIAL
+  COMERCIAL
+  INDUSTRIAL
+  INFRAESTRUTURA
+  REFORMA
+  RESTAURO
+}
+
+enum CondicaoClimatica {
+  ENSOLARADO
+  NUBLADO
+  CHUVA_FRACA
+  CHUVA_FORTE
+}
+
+enum CategoriaOcorrencia {
+  INTEMPERIE
+  LOGISTICA
+  SEGURANCA
+  OUTRO
+}
+
+enum AcaoAuditoria {
+  CRIACAO
+  EDICAO
+  EXCLUSAO
+}
+
+' ===== RELAÇÕES =====
+RegistroDiario "1" --> "0..*" Ocorrencia : contem
+note on link
+  ocorrencia.registro_diario_id NOT NULL
+end note
+
+Ocorrencia "1" --> "0..*" RegistroFotografico : contem
+note on link
+  registro_fotografico.ocorrencia_id NOT NULL
+end note
+AlocacaoObra "1" --> "0..*" Ocorrencia : registra
+Usuario "1" --> "0..*" AlocacaoObra : alocado em
+Cargo "1..*" --> "0..*" AlocacaoObra : define papeis
+Obra "1" *-- "0..*" AlocacaoObra : membro de
+Obra "1" -- "1" Auditavel : auditavel_id
+Orcamento "0..1" --> "1" Obra : informa
+Cronograma "0..1" --> "1" Obra : informa
+Obra "1" *-- "0..*" RegistroDiario : possui
+Auditavel "1" --> "0..*" RegistroAuditoria : historico
+Auditavel <|-- Ocorrencia
+Auditavel <|-- RegistroDiario
+Auditavel <|-- RegistroFotografico
+Ocorrencia <|-- Paralisacao
+
+note right of Obra
+  Composição com Auditavel via auditavel_id (1..1), sem reescrever PK/FKs de obra.
+  Na persistência, auditavel é tabela concreta (ver ADR-04).
+  Dois padrões coexistem: Obra por composição; RegistroDiario por herança
+  (registro_diario.id REFERENCES auditavel(id)), ver ADR-04.
+  JOINED registrada como alternativa, não adotada nesta versão (ADR-04); reabrir exige ADR específico.
+end note
+
+@enduml

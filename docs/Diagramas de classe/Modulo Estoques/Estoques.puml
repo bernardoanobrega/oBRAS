@@ -1,0 +1,90 @@
+@startuml estoques-class-diagram
+title OBRAS - Diagrama de Classes (Módulo Controle de Estoque)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Obra <<externa>>
+class PedidoCompra <<externa>>
+class ItemPedido <<externa>>
+
+' ===== FRONTEIRA E CONTROLE (BCE) =====
+class TelaMovimentacaoEstoque <<Boundary>> {
+  +confirmarEntradaEstoqueRegistrada() : void
+  +confirmarSaidaEstoqueRegistrada(emAlerta : Boolean) : void
+  +exibirMensagemErro(mensagem : String) : void
+}
+
+class ControleMovimentacaoEstoque <<Control>> {
+  +registrarEntradaEstoque(pedidoId : Long) : void
+  +registrarSaidaEstoque(materialId : Long, quantidade : Double) : void
+}
+
+' ===== NÚCLEO (ENTIDADES) =====
+class Material <<Entity>> {
+  -id : Long
+  -nome : String
+  -descricao : String
+  -unidadeMedida : String
+  --
+  +getId() : Long
+  +getNome() : String
+  +buscarPorId(id : Long) : Material
+}
+
+class SaldoEstoque <<Entity>> {
+  -id : Long
+  -quantidadeAtual : Double
+  -quantidadeMinima : Double
+  --
+  +buscarPorMaterial(material : Material) : SaldoEstoque
+  +getQuantidadeAtual() : Double
+  +adicionarSaldo(quantidade : Double) : void
+  +subtrairSaldo(quantidade : Double) : void
+  +verificarAlertaMinimo() : Boolean
+  +salvarSaldo() : void
+}
+
+class MovimentacaoEstoque <<Entity>> {
+  -id : Long
+  -tipo : TipoMovimentacao
+  -quantidade : Double
+  -dataMovimentacao : LocalDateTime
+  --
+  +criarMovimentacao(material : Material, quantidade : Double, tipo : TipoMovimentacao) : MovimentacaoEstoque
+  +registrarMovimentacao() : void
+  +salvarMovimentacao() : void
+}
+
+' ===== ENUMERAÇÕES =====
+enum TipoMovimentacao {
+  ENTRADA_COMPRA
+  SAIDA_CONSUMO
+  TRANSFERENCIA
+}
+
+' ===== RELAÇÕES =====
+TelaMovimentacaoEstoque ..> ControleMovimentacaoEstoque : aciona
+ControleMovimentacaoEstoque ..> SaldoEstoque : gerencia
+ControleMovimentacaoEstoque ..> MovimentacaoEstoque : registra
+ControleMovimentacaoEstoque ..> Material : consulta
+ControleMovimentacaoEstoque ..> PedidoCompra : consulta/atualiza
+
+SaldoEstoque "0..*" --> "1" Material : contabiliza
+SaldoEstoque "0..*" --> "1" Obra : pertence a
+MovimentacaoEstoque "0..*" --> "1" Material : movimenta
+MovimentacaoEstoque "0..*" --> "0..1" PedidoCompra : originada de
+PedidoCompra "1" *-- "1..*" ItemPedido : composto por
+ItemPedido "0..*" --> "1" Material : refere-se a
+
+note right of MovimentacaoEstoque
+  Se o tipo for ENTRADA_COMPRA,
+  esta classe referencia o
+  PedidoCompra para rastreabilidade.
+end note
+
+@enduml

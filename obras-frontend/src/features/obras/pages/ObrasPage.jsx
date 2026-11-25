@@ -1,12 +1,146 @@
-import EmConstrucao from '../../../shared/components/feedback/EmConstrucao.jsx';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Pencil, Plus, Search } from 'lucide-react';
+import { mensagemErro } from '../../../shared/api/http.js';
+import Can from '../../../shared/auth/Can.jsx';
+import EmptyState from '../../../shared/components/feedback/EmptyState.jsx';
+import ErrorState from '../../../shared/components/feedback/ErrorState.jsx';
+import Spinner from '../../../shared/components/ui/Spinner.jsx';
+import { paraHeader } from '../api/adaptadores.js';
+import { useObras } from '../api/useObras.js';
+import { Badge, IconButton } from '../components/detalhe/primitivos.jsx';
+import { BOTAO_PRIMARIO, CARD, FOCO, LINK } from '../components/detalhe/tokens.js';
+import ObraFormModal from '../components/ObraFormModal.jsx';
+
+const STATUS = [
+  ['PLANEJADA', 'Planejada'],
+  ['EM_ANDAMENTO', 'Em Andamento'],
+  ['PARALISADA', 'Paralisada'],
+  ['CANCELADA', 'Cancelada'],
+  ['CONCLUIDA', 'Concluída'],
+];
+
+// Tema escuro do Figma (mesma casca do Diário e do Detalhe da obra).
+const CASCA = 'space-y-4 rounded-2xl bg-fundo p-4 font-sans text-texto md:p-6';
+const CAMPO_ESCURO =
+  'min-h-[44px] w-full rounded-lg border border-borda bg-superficie px-3 text-sm text-texto ' +
+  `outline-none placeholder:text-texto-fraco ${FOCO} md:min-h-[36px]`;
+
+const normalizar = (v) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase('pt-BR');
+
+export function filtrarObras(linhas, busca, status) {
+  const termo = normalizar(busca.trim());
+  return linhas.filter((linha) =>
+    (!termo || normalizar(linha.nome).includes(termo)) &&
+    (status === 'TODOS' || linha.statusId === status),
+  );
+}
 
 export default function ObrasPage() {
+  const { obras, carregando, erro, recarregar } = useObras();
+  const [busca, setBusca] = useState('');
+  const [status, setStatus] = useState('TODOS');
+  // obra nula + aberto = cadastro; obra preenchida = edição
+  const [form, setForm] = useState({ aberto: false, obra: null });
+
+  const linhas = useMemo(
+    () => (obras ?? []).map((dto) => ({ ...paraHeader(dto), id: dto.id, statusId: dto.status, dto })),
+    [obras],
+  );
+  const visiveis = useMemo(() => filtrarObras(linhas, busca, status), [linhas, busca, status]);
+
   return (
-    <EmConstrucao
-      titulo="Obras"
-      casosDeUso="UC04, UC05"
-      requisitos="RF-05, RF-06, RF-32"
-      descricao="Lista de obras com filtro por status e cadastro. Falta no backend um endpoint de obras do usuário."
-    />
+    <div className={CASCA}>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-semibold text-texto">Obras</h1>
+          <p className="text-xs text-texto-fraco">Obras que você pode visualizar</p>
+        </div>
+        {/* sem obraId => permissão global (ADR-11): ainda não existe obra para perguntar */}
+        <Can modulo="DETALHES_OBRA" acao="CRIAR">
+          <button type="button" className={`${BOTAO_PRIMARIO} min-h-[44px] md:min-h-[36px]`}
+                  onClick={() => setForm({ aberto: true, obra: null })}>
+            <Plus size={14} /> Nova obra
+          </button>
+        </Can>
+      </header>
+
+      {erro && <ErrorState mensagem={mensagemErro(erro)} onTentarNovamente={recarregar} />}
+      {carregando && <Spinner className="py-16" />}
+      {obras && obras.length === 0 && <EmptyState mensagem="Nenhuma obra disponível para visualização." />}
+
+      {obras && obras.length > 0 && (
+        <>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label className="relative sm:max-w-xs sm:flex-1">
+              <span className="sr-only">Buscar obra</span>
+              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-texto-fraco" />
+              <input name="busca" placeholder="Buscar por nome da obra" value={busca}
+                     onChange={(e) => setBusca(e.target.value)} className={`${CAMPO_ESCURO} pl-9`} />
+            </label>
+            <label className="sm:w-48">
+              <span className="sr-only">Status</span>
+              <select id="status" className={CAMPO_ESCURO} value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="TODOS">Todos os status</option>
+                {STATUS.map(([valor, rotulo]) => <option key={valor} value={valor}>{rotulo}</option>)}
+              </select>
+            </label>
+            <p className="text-xs text-texto-fraco sm:ml-auto">{visiveis.length} de {linhas.length} obras</p>
+          </div>
+
+          {visiveis.length === 0 ? (
+            <EmptyState mensagem="Nenhuma obra corresponde aos filtros." />
+          ) : (
+            <div className={`${CARD} overflow-x-auto`}>
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs text-texto-fraco">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Obra</th>
+                    <th className="px-4 py-3 font-medium">Tipologia</th>
+                    <th className="px-4 py-3 font-medium">Localização</th>
+                    <th className="px-4 py-3 font-medium">Previsão</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 text-right font-medium">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visiveis.map((obra) => (
+                    <tr key={obra.id} className="border-t border-borda">
+                      <td className="px-4 py-3 font-medium text-texto">{obra.nome}</td>
+                      <td className="px-4 py-3 text-texto-suave">{obra.tipologia}</td>
+                      <td className="px-4 py-3 text-texto-suave">{obra.localizacao}</td>
+                      <td className="px-4 py-3 text-texto-suave">{obra.previsao}</td>
+                      <td className="px-4 py-3">
+                        <Badge tom={obra.statusTom} dot>{obra.status}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* com obraId => permissão daquela obra (cargo da alocação + exceções) */}
+                          <Can modulo="DETALHES_OBRA" acao="EDITAR" obraId={obra.id}>
+                            <IconButton icon={Pencil} label={`Editar obra ${obra.nome}`}
+                                        onClick={() => setForm({ aberto: true, obra: obra.dto })} />
+                          </Can>
+                          <Link className={`px-2 ${LINK}`}
+                                to={`/obras/${obra.id}/resumo`}>
+                            Abrir
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      <ObraFormModal
+        aberto={form.aberto}
+        obra={form.obra}
+        onFechar={() => setForm({ aberto: false, obra: null })}
+        onSalvo={() => { setForm({ aberto: false, obra: null }); recarregar(); }}
+      />
+    </div>
   );
 }

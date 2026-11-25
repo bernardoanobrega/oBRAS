@@ -1,0 +1,76 @@
+@startuml 01_cadastrar_e_vincular_documento
+!theme plain
+skinparam maxMessageSize 150
+skinparam shadowing false
+skinparam ParticipantPadding 18
+hide footbox
+autonumber
+title oBRAS - Armazenar e vincular documento\nUC17 e UC18 - RF-21 e RF-22
+
+actor "Administrador / Gestor da Obra" as user
+boundary "TelaDocumento" as view <<view>>
+control "ControleDocumento" as ctrl <<Controller>>
+entity "prestador : PrestadorServico" as prestador <<Entity>>
+
+note over user, ctrl
+  Pré-condição: obra existente selecionada; usuário autenticado
+  e com permissão explícita de envio na obra (RNF-03).
+  Prestador é opcional e só pode ser informado para CONTRATO.
+end note
+user -> view ++ : Preencher título, categoria e arquivo; informar prestador opcional
+view -> ctrl ++ : cadastrarDocumento(obra, titulo, categoria, arquivoEnviado, prestador, usuario)
+opt prestador informado
+  ctrl -> prestador ++ : estaAtivo()
+  return prestadorAtivo
+end
+break título vazio ou categoria inválida ou vínculo contratual inválido
+  ctrl --> view : informarFalha("Dados inválidos ou prestador inativo")
+  view --> user : Exibir motivo da rejeição
+end
+ctrl -> ctrl ++ : validarArquivo(arquivoEnviado)
+note right of ctrl : RNF-10: PDF, PNG ou JPG; máximo de 10 MB por arquivo.
+return arquivoValido
+break não arquivoValido
+  ctrl --> view : informarFalha("Formato ou tamanho não permitido")
+  view --> user : Exibir motivo da rejeição
+end
+ctrl -> ctrl ++ : prepararArquivo(arquivoEnviado)
+note right of ctrl : Armazena o conteúdo e forma ArquivoDocumento com os metadados.
+return arquivoArmazenado
+break falha no armazenamento
+  ctrl --> view : informarFalha("Falha no envio do arquivo")
+  view --> user : Exibir falha; nenhum documento é confirmado
+end
+create entity "documento : Documento" as documento <<Entity>>
+ctrl -->> documento : Documento(titulo, categoria, obra, arquivoArmazenado, usuario, agora)
+activate documento
+create entity "versaoInicial : VersaoDocumento" as versao <<Entity>>
+documento -->> versao : VersaoDocumento(documento, 1, arquivoArmazenado, usuario, agora)
+note right of versao : Vincula versão 1, seu arquivo e autor ao documento.
+deactivate documento
+opt prestador informado
+  ctrl -> documento ++ : vincularPrestador(prestador, usuario, agora)
+  documento -> documento ++ : registrarHistorico(VINCULO_CONTRATO, versaoInicial, usuario, agora)
+  create entity "eventoVinculo : HistoricoDocumentalPrestador" as eventoVinculo <<Entity>>
+  documento -->> eventoVinculo : HistoricoDocumentalPrestador(VINCULO_CONTRATO, documento, versaoInicial, prestador, usuario, agora)
+  return eventoVinculo
+  documento -> documento ++ : registrarHistorico(INCLUSAO_VERSAO, versaoInicial, usuario, agora)
+  create entity "eventoInclusao : HistoricoDocumentalPrestador" as eventoInclusao <<Entity>>
+  documento -->> eventoInclusao : HistoricoDocumentalPrestador(INCLUSAO_VERSAO, documento, versaoInicial, prestador, usuario, agora)
+  return eventoInclusao
+  return
+end
+ctrl -> documento ++ : salvarDocumento()
+return salvo
+alt salvo
+  ctrl --> view : confirmarDocumentoCriado(documento)
+  view --> user : Exibir confirmação e incluir no painel da obra
+else não salvo
+  ctrl -> ctrl ++ : descartarArquivoPreparado(arquivoArmazenado)
+  return arquivoDescartado
+  ctrl --> view : informarFalha("Documento não registrado")
+  view --> user : Exibir falha; cadastro não é confirmado
+end
+deactivate ctrl
+deactivate view
+@enduml
