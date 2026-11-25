@@ -31,6 +31,9 @@ export function mensagemErro(err) {
   return err.response.data?.mensagem || 'Erro inesperado. Tente novamente.';
 }
 
+/** Requisição abortada pela limpeza de um useEffect: não é erro para o usuário. */
+export const requisicaoCancelada = (err) => axios.isCancel(err);
+
 /** Erros de validação (HTTP 400) no formato { campo: mensagem }. */
 export function errosPorCampo(err) {
   const campos = err.response?.data?.campos ?? [];

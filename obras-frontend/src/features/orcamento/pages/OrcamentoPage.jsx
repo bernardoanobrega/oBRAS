@@ -1,12 +1,8 @@
-import EmConstrucao from '../../../shared/components/feedback/EmConstrucao.jsx';
+import { useParams } from 'react-router-dom';
+import PainelOrcamento from '../components/PainelOrcamento.jsx';
 
+/** Aba "Orçamento" dentro do painel da obra (UC10). */
 export default function OrcamentoPage() {
-  return (
-    <EmConstrucao
-      titulo="Orçamento"
-      casosDeUso="UC10"
-      requisitos="RF-13, RF-14, RF-33"
-      descricao="Planilha orçamentária, lançamento de custo realizado, comparativo orçado x realizado e saúde financeira (saudável, atenção, crítica)."
-    />
-  );
+  const { obraId } = useParams();
+  return <PainelOrcamento key={obraId} obraId={obraId} />;
 }
