@@ -1,0 +1,29 @@
+@startuml fase-states
+title Diagrama de Estados da Classe Fase
+
+skinparam state {
+    BackgroundColor #FFFFFF
+    BorderColor #444444
+    BackgroundColor<<final>> #EEEEEE
+}
+skinparam ArrowFontSize 12
+skinparam NoteBackgroundColor #FFFBE6
+hide empty description
+
+' ===== ESTADOS =====
+state NAO_INICIADA : Fase criada, ainda não iniciada
+state EM_ANDAMENTO : Fase em execução
+state CONCLUIDA <<final>> : Fase finalizada 
+state CANCELADA <<final>> : Fase cancelada
+
+' ===== TRANSIÇÕES =====
+[*] --> NAO_INICIADA: adicionarFase(...)
+NAO_INICIADA --> EM_ANDAMENTO: registrarAvanco(...) \n[validarPeriodo() == true]
+EM_ANDAMENTO --> EM_ANDAMENTO: registrarAvanco(...) \n[calcularPercentualConcluido() < 100%]
+EM_ANDAMENTO --> CONCLUIDA: concluir(...) \n[calcularPercentualConcluido() == 100%]
+NAO_INICIADA --> CANCELADA: cancelar()
+EM_ANDAMENTO --> CANCELADA: cancelar()
+CONCLUIDA --> [*]
+CANCELADA --> [*]
+
+@enduml

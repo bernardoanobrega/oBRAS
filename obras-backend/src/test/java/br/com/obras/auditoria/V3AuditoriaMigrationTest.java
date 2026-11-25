@@ -211,7 +211,7 @@ class V3AuditoriaMigrationTest {
         }
         assertEquals(List.of("1", "2"), versoesAplicadas());
 
-        migrate(null);
+        migrate("4");
         assertEquals(List.of("1", "2", "3", "3.1", "4"), versoesAplicadas());
 
         try (Connection conexao = connection()) {
