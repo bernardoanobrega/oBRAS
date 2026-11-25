@@ -7,6 +7,7 @@ import br.com.obras.diario.domain.CategoriaOcorrencia;
 import br.com.obras.diario.domain.Clima;
 import br.com.obras.diario.domain.Ocorrencia;
 import br.com.obras.diario.domain.RegistroDiario;
+import br.com.obras.diario.dto.NovaOcorrenciaDto;
 import br.com.obras.diario.dto.NovaOcorrenciaRapidaDto;
 import br.com.obras.diario.dto.NovoDiarioDto;
 import br.com.obras.diario.mapper.DiarioMapper;
@@ -116,7 +117,7 @@ class DiarioServiceTest {
         when(diarios.buscarAtivoPorData(OBRA_ID, DATA)).thenReturn(Optional.empty());
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, CategoriaOcorrencia.OUTRO, "Fachada leste", "Fachada leste", null, null
+            DATA, null, CategoriaOcorrencia.OUTRO, "Fachada leste", "Fachada leste", DATA.atTime(9, 0), null
         );
 
         RegraNegocioException e = assertThrows(
@@ -131,7 +132,7 @@ class DiarioServiceTest {
         prepararOcorrenciaRapidaEmDiarioExistente();
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, null, "Fachada leste", null, null, null
+            DATA, null, null, "Fachada leste", null, DATA.atTime(9, 0), null
         );
 
         assertEquals(CategoriaOcorrencia.OUTRO.name(), service.ocorrenciaRapida(OBRA_ID, dto).categoria());
@@ -142,10 +143,34 @@ class DiarioServiceTest {
         prepararOcorrenciaRapidaEmDiarioExistente();
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, CategoriaOcorrencia.SEGURANCA, "Andaime sem guarda-corpo", null, null, null
+            DATA, null, CategoriaOcorrencia.SEGURANCA, "Andaime sem guarda-corpo", null, DATA.atTime(9, 0), null
         );
 
         assertEquals(CategoriaOcorrencia.SEGURANCA.name(), service.ocorrenciaRapida(OBRA_ID, dto).categoria());
+    }
+
+    /** L32: o autor é a alocação do usuário do token; o payload nem tem campo de autor. */
+    @Test
+    void autorNaoVemDoPayload() {
+        Obra obra = obra();
+        when(diarios.buscar(OBRA_ID, 100L)).thenReturn(Optional.of(diario(auditavel(100L), obra)));
+        AlocacaoObra doToken = alocacao(7L);
+        when(obras.alocacaoAtiva(OBRA_ID, USUARIO_ID)).thenReturn(Optional.of(doToken));
+        when(auditoria.criar(any(AcaoAuditoria.class), isNull())).thenAnswer(i -> auditavel(200L));
+        when(ocorrencias.saveAndFlush(any(Ocorrencia.class))).thenAnswer(i -> i.getArgument(0));
+
+        var dto = new NovaOcorrenciaDto(CategoriaOcorrencia.OUTRO, "Registro", DATA.atTime(9, 0), null);
+        var result = service.adicionarOcorrencia(OBRA_ID, 100L, dto);
+
+        var salva = org.mockito.ArgumentCaptor.forClass(Ocorrencia.class);
+        verify(ocorrencias).saveAndFlush(salva.capture());
+        verify(obras).alocacaoAtiva(OBRA_ID, USUARIO_ID);
+        assertSame(doToken, salva.getValue().getAlocacaoObra(), "autor = alocação do usuário autenticado");
+        assertEquals(7L, result.autor().alocacaoId());
+        assertTrue(java.util.Arrays.stream(NovaOcorrenciaDto.class.getRecordComponents())
+                .noneMatch(c -> c.getName().toLowerCase().contains("autor")
+                        || c.getName().toLowerCase().contains("usuario")),
+            "o DTO de entrada não aceita autor nem usuário");
     }
 
     private void prepararOcorrenciaRapidaEmDiarioExistente() {
@@ -163,7 +188,7 @@ class DiarioServiceTest {
         Obra obra = obra();
         RegistroDiario diario = diario(auditavel(100L), obra);
         Ocorrencia ocorrencia = Ocorrencia.criar(
-            auditavel(200L), diario, alocacao(7L), LocalDateTime.now(), CategoriaOcorrencia.OUTRO, "Fachada"
+            auditavel(200L), diario, alocacao(7L), DATA.atTime(9, 0), CategoriaOcorrencia.OUTRO, "Fachada"
         );
         ReflectionTestUtils.setField(ocorrencia, "id", 300L);
         when(ocorrencias.buscar(OBRA_ID, 300L)).thenReturn(Optional.of(ocorrencia));

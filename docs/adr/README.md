@@ -18,6 +18,7 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | [ADR-15](./ADR-15-v5-integridade-obra-diario.md) | V5: integridade entre obras no diário e exclusão física em cascata | Proposto (Cauã), aguarda Thierry | 2026-11-24 |
 | [ADR-16](./ADR-16-mapper-entidade-dto.md) | Conversão entidade → DTO em classe mapper | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
 | [ADR-17](./ADR-17-diario-expoe-nomes.md) | DTOs do diário expõem nome da equipe presente e do autor | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
+| [ADR-18](./ADR-18-ocorrencia-mesmo-dia-diario.md) | Ocorrência sempre no mesmo dia do diário | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
 
 ## Confirmações (sem ADR novo)
 | Data | Item | Decisão |
@@ -38,6 +39,8 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | 2026-11-25 | L30 / nome de método | `findAtivo` renomeado para **`buscarAtivoPorData`**, no padrão português dos demais (`buscar`, `listarPorObra`) |
 | 2026-11-25 | L31 / contrato do service | **O contrato segue o código**: `DiarioService` (não `RegistroDiarioService`), `editar` (não `atualizar`), entrada `NovoDiarioDto` / `AlterarDiarioDto` (o `DiarioDto` é de saída) e usuário via `CurrentUser.id()`, nunca por parâmetro, para o cliente não poder agir em nome de outro usuário. Contrato do L31 corrigido |
 | 2026-11-25 | Obra excluída logicamente (L11) | **`ObraService` ignora obra excluída**: `ObraRepository.buscarAtiva` e `listarAtivas` juntam com `auditavel` e filtram `excluido = false`. Obra excluída passa a dar 404 em todo o módulo, diário incluído (`ObraRepositoryTest`) |
+| 2026-11-25 | L32 / contrato do service | **O contrato segue o código**: `DiarioService.adicionarOcorrencia` / `editarOcorrencia` (não `OcorrenciaService.criar` / `atualizar`), entrada `NovaOcorrenciaDto` e autor via `CurrentUser.id()`. **Sem `listar` próprio**: as ocorrências vêm no `DiarioDto` do `buscar` do diário. **Paralisação sem categoria própria**: nasce com a ocorrência e herda a categoria dela (confirmação do L29) |
+| 2026-11-25 | L32 + L36 / exclusão do diário | **Cascata lógica, como o L36 define**: excluir o diário marca como excluídas as ocorrências ativas e as fotos dele; excluir a ocorrência marca as fotos. Cada item ganha o próprio `EXCLUSAO` na auditoria, na mesma transação, e nada é apagado fisicamente. Assim, ocorrência de diário excluído não pode mais ser editada nem receber foto. Antecipado no L32 porque era um furo no vínculo ocorrência–diário |
 
 ## Template
 ```

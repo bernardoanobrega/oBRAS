@@ -119,8 +119,16 @@ public class DiarioService {
         return montarDiario(diarios.saveAndFlush(diario));
     }
 
+    /**
+     * Exclusão lógica em cascata (L36): o diário, as ocorrências ativas dele e as
+     * fotos dessas ocorrências são marcados como excluídos, cada um com o próprio
+     * registro de auditoria EXCLUSAO, na mesma transação. Nada é apagado do banco.
+     */
     public void excluir(Long obraId, Long diarioId) {
         RegistroDiario diario = obterDiario(obraId, diarioId);
+        // fotos primeiro: a consulta só enxerga fotos de ocorrências ainda ativas
+        fotos.listarPorDiario(diarioId).forEach(f -> auditoria.excluir(f.getAuditavel()));
+        ocorrencias.listarPorDiario(diarioId).forEach(o -> auditoria.excluir(o.getAuditavel()));
         auditoria.excluir(diario.getAuditavel());
         diario.excluirLogico();
         diarios.saveAndFlush(diario);
@@ -157,8 +165,11 @@ public class DiarioService {
         return mapper.paraDto(salva, fotos.listarPorOcorrencia(salva.getId()));
     }
 
+    /** Exclusão lógica da ocorrência e das fotos dela, cada uma auditada (L36). */
     public void excluirOcorrencia(Long obraId, Long ocorrenciaId) {
-        auditoria.excluir(obterOcorrencia(obraId, ocorrenciaId).getAuditavel());
+        Ocorrencia ocorrencia = obterOcorrencia(obraId, ocorrenciaId);
+        fotos.listarPorOcorrencia(ocorrenciaId).forEach(f -> auditoria.excluir(f.getAuditavel()));
+        auditoria.excluir(ocorrencia.getAuditavel());
     }
 
     public OcorrenciaDto ocorrenciaRapida(Long obraId, NovaOcorrenciaRapidaDto dto) {

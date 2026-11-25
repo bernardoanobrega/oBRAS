@@ -9,12 +9,19 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ParalisacaoTest {
+    private static RegistroDiario diarioDoDia(LocalDateTime momento) {
+        RegistroDiario d = mock(RegistroDiario.class);
+        when(d.getData()).thenReturn(momento.toLocalDate());
+        return d;
+    }
+
     private static final LocalDateTime INICIO = LocalDateTime.of(2026, 11, 24, 13, 0);
 
     private final Ocorrencia ocorrencia = Ocorrencia.criar(
-        Auditavel.novo(), mock(RegistroDiario.class), mock(AlocacaoObra.class),
+        Auditavel.novo(), diarioDoDia(INICIO), mock(AlocacaoObra.class),
         INICIO, CategoriaOcorrencia.INTEMPERIE, "Chuva forte parou a concretagem"
     );
 
