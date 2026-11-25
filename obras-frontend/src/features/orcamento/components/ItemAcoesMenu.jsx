@@ -62,7 +62,7 @@ export default function ItemAcoesMenu({ descricaoItem, acoes }) {
         aria-haspopup="menu"
         aria-expanded={aberto}
         onClick={() => setAberto((a) => !a)}
-        className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 md:h-9 md:w-9"
+        className="flex h-11 w-11 items-center justify-center rounded-lg text-texto-suave hover:bg-superficie-alta md:h-9 md:w-9"
       >
         <MoreVertical size={18} />
       </button>
@@ -77,7 +77,7 @@ export default function ItemAcoesMenu({ descricaoItem, acoes }) {
               left: posicao?.left ?? 0,
               visibility: posicao ? 'visible' : 'hidden',
             }}
-            className="z-50 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 text-left shadow-lg"
+            className="z-50 w-48 overflow-hidden rounded-lg border border-borda bg-superficie py-1 text-left shadow-lg"
           >
             {acoes.map(({ rotulo, aoClicar, desabilitada, dica }) => (
               <li key={rotulo} role="none">
@@ -90,7 +90,7 @@ export default function ItemAcoesMenu({ descricaoItem, acoes }) {
                     setAberto(false);
                     aoClicar();
                   }}
-                  className="block min-h-[44px] w-full px-4 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 md:min-h-[36px]"
+                  className="block min-h-[44px] w-full px-4 text-left text-sm text-texto hover:bg-superficie-alta disabled:cursor-not-allowed disabled:text-texto-fraco md:min-h-[36px]"
                 >
                   {rotulo}
                 </button>

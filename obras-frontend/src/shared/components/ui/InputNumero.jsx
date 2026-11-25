@@ -67,7 +67,7 @@ export default function InputNumero({
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={campo} className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor={campo} className="mb-1 block text-sm font-medium text-texto">
           {label}
         </label>
       )}
@@ -80,12 +80,12 @@ export default function InputNumero({
         autoComplete="off"
         value={exibicao}
         onChange={aoDigitar}
-        className={`min-h-[44px] w-full rounded-lg border px-3 text-right text-sm tabular-nums outline-none focus:ring-2 focus:ring-brand-500 md:min-h-[36px] ${
-          erro ? 'border-red-500' : 'border-slate-300'
+        className={`min-h-[44px] w-full rounded-lg border bg-fundo px-3 text-right text-sm tabular-nums text-texto outline-none placeholder:text-texto-fraco focus:ring-2 focus:ring-brand md:min-h-[36px] ${
+          erro ? 'border-perigo' : 'border-borda-forte'
         }`}
         {...props}
       />
-      {erro && <p className="mt-1 text-xs text-red-600">{erro}</p>}
+      {erro && <p className="mt-1 text-xs text-perigo">{erro}</p>}
     </div>
   );
 }

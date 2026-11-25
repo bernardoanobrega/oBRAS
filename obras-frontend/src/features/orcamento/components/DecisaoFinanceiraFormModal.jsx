@@ -76,7 +76,7 @@ export default function DecisaoFinanceiraFormModal({ aberto, obraId, decisao, on
           erro={erros.valorImpacto}
           required
         />
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-texto-suave">
           Valor positivo amplia o orçamento (aditivo); negativo reduz (contenção), por exemplo
           -50.000,00. Use 0 para só registrar a decisão.
         </p>

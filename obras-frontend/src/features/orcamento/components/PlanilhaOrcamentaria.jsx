@@ -8,9 +8,9 @@ import SituacaoBadge from './SituacaoBadge.jsx';
 const quantidade = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 });
 
 const COR_DESVIO_POR_SAUDE = {
-  SAUDAVEL: 'text-green-700',
-  ATENCAO: 'text-yellow-700',
-  CRITICA: 'text-red-700',
+  SAUDAVEL: 'text-sucesso',
+  ATENCAO: 'text-brand-claro',
+  CRITICA: 'text-perigo',
 };
 
 /** Planilha orçamentária executiva (RF-32) com orçado x realizado por item (RF-33). */
@@ -41,11 +41,11 @@ export default function PlanilhaOrcamentaria({ orcamento, pode, editavel, onNovo
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
+    <section className="rounded-xl border border-borda bg-superficie shadow-sm lg:col-span-2">
       <header className="flex flex-wrap items-center justify-between gap-2 p-4">
         <div>
-          <h2 className="font-semibold text-slate-800">Planilha orçamentária</h2>
-          <p className="text-xs text-slate-500">{itens.length} itens · valores em reais</p>
+          <h2 className="font-semibold text-texto">Planilha orçamentária</h2>
+          <p className="text-xs text-texto-suave">{itens.length} itens · valores em reais</p>
         </div>
         {editavel && pode('CRIAR') && <Button onClick={onNovoItem}>Novo item</Button>}
       </header>
@@ -57,7 +57,7 @@ export default function PlanilhaOrcamentaria({ orcamento, pode, editavel, onNovo
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
-            <thead className="text-left text-xs uppercase tracking-wide text-slate-500">
+            <thead className="text-left text-xs uppercase tracking-wide text-texto-suave">
               <tr>
                 <th className="px-4 py-2 font-medium">Código</th>
                 <th className="px-4 py-2 font-medium">Descrição</th>
@@ -74,10 +74,10 @@ export default function PlanilhaOrcamentaria({ orcamento, pode, editavel, onNovo
             </thead>
             <tbody>
               {itens.map((item) => (
-                <tr key={item.id} className="border-t border-slate-100">
-                  <td className="px-4 py-3 font-mono text-xs text-slate-600">{item.codigo}</td>
-                  <td className="px-4 py-3 font-medium text-slate-800">{item.descricao}</td>
-                  <td className="px-2 py-3 text-slate-500">{item.unidade}</td>
+                <tr key={item.id} className="border-t border-borda">
+                  <td className="px-4 py-3 font-mono text-xs text-texto-suave">{item.codigo}</td>
+                  <td className="px-4 py-3 font-medium text-texto">{item.descricao}</td>
+                  <td className="px-2 py-3 text-texto-suave">{item.unidade}</td>
                   <td className="px-2 py-3 text-right">{quantidade.format(item.quantidade)}</td>
                   <td className="px-4 py-3 text-right">{formatarMoeda(item.valorOrcado)}</td>
                   <td className="px-4 py-3 text-right">{formatarMoeda(item.totalRealizado)}</td>
@@ -99,7 +99,7 @@ export default function PlanilhaOrcamentaria({ orcamento, pode, editavel, onNovo
         </div>
       )}
 
-      <footer className="border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
+      <footer className="border-t border-borda px-4 py-3 text-xs text-texto-suave">
         {itens.length} itens · atualizado em {formatarDataLocal(dataUltimaAtualizacao)}
       </footer>
     </section>

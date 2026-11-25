@@ -9,7 +9,7 @@ export default function RodapeFormulario({
   return (
     <>
       {erroGeral && (
-        <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-700">
+        <p role="alert" className="rounded bg-perigo-fundo p-2 text-sm text-perigo">
           {erroGeral}
         </p>
       )}

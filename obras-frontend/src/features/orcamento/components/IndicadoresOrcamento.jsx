@@ -8,18 +8,29 @@ import {
 } from '../../../shared/utils/formatadores.js';
 import SituacaoBadge from './SituacaoBadge.jsx';
 
-function Indicador({ icone: Icone, titulo, valor, detalhe, selo }) {
+// Quadrado atrás do ícone, na cor da situação (como no protótipo).
+const TONS_ICONE = {
+  brand: 'bg-brand-fundo text-brand',
+  sucesso: 'bg-sucesso-fundo text-sucesso',
+  perigo: 'bg-perigo-fundo text-perigo',
+};
+
+const TOM_DA_SAUDE = { SAUDAVEL: 'sucesso', ATENCAO: 'brand', CRITICA: 'perigo' };
+
+function Indicador({ icone: Icone, tom, titulo, valor, detalhe, selo }) {
   return (
-    <div className="flex flex-col gap-2 p-4 md:p-5">
-      <div className="flex items-start justify-between gap-2">
-        <span className="rounded-lg bg-brand-50 p-2 text-brand-700">
+    <div className="flex flex-col gap-3 p-5 md:p-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${TONS_ICONE[tom]}`}
+        >
           <Icone size={18} aria-hidden="true" />
         </span>
-        {selo}
+        <p className="text-xs font-medium uppercase tracking-wide text-texto-suave">{titulo}</p>
+        <span className="ml-auto">{selo}</span>
       </div>
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{titulo}</p>
-      <p className="text-2xl font-semibold text-slate-900 md:text-3xl">{valor}</p>
-      <p className="text-sm text-slate-600">{detalhe}</p>
+      <p className="text-2xl font-semibold text-texto md:text-3xl">{valor}</p>
+      <p className="text-sm text-texto-suave">{detalhe}</p>
     </div>
   );
 }
@@ -32,10 +43,11 @@ export default function IndicadoresOrcamento({ orcamento }) {
   return (
     <section
       aria-label="Indicadores da saúde financeira"
-      className="grid divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white shadow-sm md:grid-cols-3 md:divide-x md:divide-y-0"
+      className="grid divide-y divide-borda rounded-xl border border-borda bg-superficie shadow-sm md:grid-cols-3 md:divide-x md:divide-y-0"
     >
       <Indicador
         icone={BarChart3}
+        tom="brand"
         titulo="Orçamento aprovado"
         valor={formatarMoeda(indicadores.totalOrcado)}
         detalhe={`${itens.length} itens · alerta em ${formatarPercentual(percentualLimiteAlerta)}`}
@@ -43,6 +55,7 @@ export default function IndicadoresOrcamento({ orcamento }) {
       />
       <Indicador
         icone={CheckCircle2}
+        tom={TOM_DA_SAUDE[indicadores.saude] ?? 'sucesso'}
         titulo="Realizado"
         valor={formatarMoeda(indicadores.totalRealizado)}
         detalhe={`${formatarPercentual(indicadores.percentualExecutado)} do total orçado`}
@@ -50,6 +63,7 @@ export default function IndicadoresOrcamento({ orcamento }) {
       />
       <Indicador
         icone={AlertTriangle}
+        tom={estaAcimaDoOrcado ? 'perigo' : 'sucesso'}
         titulo="Desvio (realizado − orçado)"
         valor={formatarMoedaComSinal(indicadores.desvioAbsoluto)}
         detalhe={`${formatarPercentualComSinal(indicadores.desvioPercentual)} sobre o orçado · ${

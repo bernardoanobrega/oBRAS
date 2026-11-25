@@ -47,7 +47,6 @@ export default function OrcamentosPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-xl font-semibold">Orçamento</h1>
         <div className="flex flex-wrap items-end gap-2">
           {orcamentos?.length > 0 && (
             <Select

@@ -70,9 +70,9 @@ export default function CustosItemModal({
   return (
     <Modal aberto={aberto} onFechar={onFechar} titulo="Custos do item" largura="max-w-2xl">
       {item && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-superficie-alta p-3 text-sm text-texto-suave">
           <div>
-            <p className="font-medium text-slate-800">
+            <p className="font-medium text-texto">
               {item.codigo} · {item.descricao}
             </p>
             <p>
@@ -89,7 +89,7 @@ export default function CustosItemModal({
       )}
 
       {formulario.aberto && (
-        <div className="mb-4 rounded-lg border border-slate-200 p-4">
+        <div className="mb-4 rounded-lg border border-borda p-4">
           <CustoRealizadoForm
             obraId={obraId}
             itemId={itemId}
@@ -101,27 +101,29 @@ export default function CustosItemModal({
       )}
 
       {erro && (
-        <p role="alert" className="mb-3 rounded bg-red-50 p-2 text-sm text-red-700">
+        <p role="alert" className="mb-3 rounded bg-perigo-fundo p-2 text-sm text-perigo">
           {erro}
         </p>
       )}
       {!custos && !erro && <Spinner className="my-6" />}
       {custos?.length === 0 && (
-        <p className="py-6 text-center text-sm text-slate-500">Nenhum custo lançado neste item.</p>
+        <p className="py-6 text-center text-sm text-texto-suave">
+          Nenhum custo lançado neste item.
+        </p>
       )}
 
       {custos?.length > 0 && (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-borda">
           {custos.map((custo) => (
             <li key={custo.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-800">{custo.descricao}</p>
-                <p className="text-xs text-slate-500">
+                <p className="truncate text-sm font-medium text-texto">{custo.descricao}</p>
+                <p className="text-xs text-texto-suave">
                   {formatarDataLocal(custo.dataLancamento)} · {ORIGENS_CUSTO[custo.origem]}
                   {custo.vinculadoAOutroModulo && ' · lançado por outro módulo'}
                 </p>
               </div>
-              <p className="text-sm font-semibold text-slate-800">{formatarMoeda(custo.valor)}</p>
+              <p className="text-sm font-semibold text-texto">{formatarMoeda(custo.valor)}</p>
               {!custo.vinculadoAOutroModulo && (
                 <div className="flex gap-1">
                   {pode('EDITAR') && (
@@ -129,7 +131,7 @@ export default function CustosItemModal({
                       type="button"
                       aria-label={`Editar lançamento ${custo.descricao}`}
                       onClick={() => setFormulario({ aberto: true, custo })}
-                      className="flex h-11 w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 md:h-9 md:w-9"
+                      className="flex h-11 w-11 items-center justify-center rounded-lg text-texto-suave hover:bg-superficie-alta md:h-9 md:w-9"
                     >
                       <Pencil size={16} />
                     </button>
@@ -139,7 +141,7 @@ export default function CustosItemModal({
                       type="button"
                       aria-label={`Remover lançamento ${custo.descricao}`}
                       onClick={() => remover(custo)}
-                      className="flex h-11 w-11 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 md:h-9 md:w-9"
+                      className="flex h-11 w-11 items-center justify-center rounded-lg text-perigo hover:bg-perigo-fundo md:h-9 md:w-9"
                     >
                       <Trash2 size={16} />
                     </button>

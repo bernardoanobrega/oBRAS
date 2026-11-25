@@ -37,7 +37,7 @@ export default function CustoRealizadoForm({ obraId, itemId, custo, onCancelar, 
 
   return (
     <form onSubmit={aoEnviar} className="space-y-3">
-      <h3 className="text-sm font-semibold text-slate-800">
+      <h3 className="text-sm font-semibold text-texto">
         {edicao ? 'Editar lançamento' : 'Novo lançamento'}
       </h3>
       <Input
