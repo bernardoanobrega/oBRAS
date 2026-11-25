@@ -2,6 +2,9 @@ import { http } from '../../../shared/api/http.js';
 
 const urlOrcamento = (obraId) => `/api/obras/${obraId}/orcamento`;
 
+// Obras visíveis ao usuário: só para mostrar o nome da obra e escolher a obra do novo orçamento.
+export const listarObras = (signal) => http.get('/api/obras', { signal }).then((r) => r.data);
+
 export const listarOrcamentos = (signal) =>
   http.get('/api/orcamentos', { signal }).then((r) => r.data);
 

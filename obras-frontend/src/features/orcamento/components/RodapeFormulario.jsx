@@ -3,6 +3,7 @@ import Button from '../../../shared/components/ui/Button.jsx';
 export default function RodapeFormulario({
   erroGeral,
   enviando,
+  bloqueado = false,
   onCancelar,
   rotuloEnviar = 'Salvar',
 }) {
@@ -17,7 +18,7 @@ export default function RodapeFormulario({
         <Button variante="secundario" onClick={onCancelar}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={enviando}>
+        <Button type="submit" disabled={enviando || bloqueado}>
           {enviando ? 'Salvando...' : rotuloEnviar}
         </Button>
       </div>

@@ -1,7 +1,10 @@
 import Button from '../../../shared/components/ui/Button.jsx';
 import EmptyState from '../../../shared/components/feedback/EmptyState.jsx';
-import { formatarMoeda, formatarPercentualComSinal } from '../../../shared/utils/formatadores.js';
-import { formatarDataLocal } from '../utils/orcamento.js';
+import {
+  formatarDataIso,
+  formatarMoeda,
+  formatarPercentualComSinal,
+} from '../../../shared/utils/formatadores.js';
 import ItemAcoesMenu from './ItemAcoesMenu.jsx';
 import SituacaoBadge from './SituacaoBadge.jsx';
 
@@ -100,7 +103,7 @@ export default function PlanilhaOrcamentaria({ orcamento, pode, editavel, onNovo
       )}
 
       <footer className="border-t border-borda px-4 py-3 text-xs text-texto-suave">
-        {itens.length} itens · atualizado em {formatarDataLocal(dataUltimaAtualizacao)}
+        {itens.length} itens · atualizado em {formatarDataIso(dataUltimaAtualizacao)}
       </footer>
     </section>
   );

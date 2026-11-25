@@ -1,15 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatarDataLocal, paraDecimal, situacao } from './orcamento.js';
-
-describe('formatarDataLocal', () => {
-  it('não volta um dia em datas ISO sem hora', () => {
-    expect(formatarDataLocal('2026-11-25')).toBe('25/11/2026');
-  });
-
-  it('mostra traço sem data', () => {
-    expect(formatarDataLocal(null)).toBe('—');
-  });
-});
+import { paraDecimal, rotuloObra, situacao } from './orcamento.js';
 
 describe('situacao', () => {
   it('devolve rótulo e tom da saúde financeira', () => {
@@ -28,5 +18,15 @@ describe('paraDecimal', () => {
 
   it('aceita vírgula como separador decimal', () => {
     expect(paraDecimal('1250,5')).toBe('1250.5');
+  });
+});
+
+describe('rotuloObra', () => {
+  it('dado a obra na lista do usuário, então mostra o nome', () => {
+    expect(rotuloObra(2, [{ id: 2, nome: 'Residencial Teste' }])).toBe('Residencial Teste');
+  });
+
+  it('dado a obra fora da lista, então mostra o número', () => {
+    expect(rotuloObra(7, [])).toBe('Obra #7');
   });
 });

@@ -1,7 +1,6 @@
 import { Pencil } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button.jsx';
-import { formatarMoedaComSinal } from '../../../shared/utils/formatadores.js';
-import { formatarDataLocal } from '../utils/orcamento.js';
+import { formatarDataIso, formatarMoedaComSinal } from '../../../shared/utils/formatadores.js';
 
 // Como no protótipo: decisão mais recente em verde, anteriores em cinza e a elaboração (base) em âmbar.
 const MARCADOR = 'absolute -left-[9px] top-0.5 h-4 w-4 rounded';
@@ -59,14 +58,14 @@ export default function HistoricoOrcamento({
             </div>
             <p className="mt-0.5 text-xs text-texto-suave">{decisao.justificativa}</p>
             <p className="mt-0.5 text-xs text-texto-fraco">
-              {formatarDataLocal(decisao.dataDecisao)}
+              {formatarDataIso(decisao.dataDecisao)}
             </p>
           </li>
         ))}
         <li className="relative border-l-2 border-borda pl-5">
           <span className={`${MARCADOR} bg-brand`} aria-hidden="true" />
           <p className="text-sm font-medium text-texto">Orçamento elaborado</p>
-          <p className="mt-0.5 text-xs text-texto-fraco">{formatarDataLocal(dataElaboracao)}</p>
+          <p className="mt-0.5 text-xs text-texto-fraco">{formatarDataIso(dataElaboracao)}</p>
         </li>
       </ol>
 

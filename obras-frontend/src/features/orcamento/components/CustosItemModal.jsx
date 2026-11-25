@@ -4,9 +4,9 @@ import Modal from '../../../shared/components/ui/Modal.jsx';
 import Button from '../../../shared/components/ui/Button.jsx';
 import Spinner from '../../../shared/components/ui/Spinner.jsx';
 import { mensagemErro, requisicaoCancelada } from '../../../shared/api/http.js';
-import { formatarMoeda } from '../../../shared/utils/formatadores.js';
+import { formatarDataIso, formatarMoeda } from '../../../shared/utils/formatadores.js';
 import { listarCustos, removerCusto } from '../api/orcamentoApi.js';
-import { ORIGENS_CUSTO, formatarDataLocal } from '../utils/orcamento.js';
+import { ORIGENS_CUSTO } from '../utils/orcamento.js';
 import CustoRealizadoForm from './CustoRealizadoForm.jsx';
 
 const SEM_FORMULARIO = { aberto: false, custo: null };
@@ -119,7 +119,7 @@ export default function CustosItemModal({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-texto">{custo.descricao}</p>
                 <p className="text-xs text-texto-suave">
-                  {formatarDataLocal(custo.dataLancamento)} · {ORIGENS_CUSTO[custo.origem]}
+                  {formatarDataIso(custo.dataLancamento)} · {ORIGENS_CUSTO[custo.origem]}
                   {custo.vinculadoAOutroModulo && ' · lançado por outro módulo'}
                 </p>
               </div>

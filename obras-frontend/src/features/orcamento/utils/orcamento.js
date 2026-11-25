@@ -21,14 +21,9 @@ export const LIMITE_ALERTA_PADRAO = '90';
 
 export const situacao = (codigo) => SITUACOES[codigo] ?? SITUACAO_DESCONHECIDA;
 
-/**
- * LocalDate do backend (2026-11-25) -> 25/11/2026, sem passar por Date (que voltaria um dia no fuso).
- * Trocar por formatarDataIso de shared/utils/formatadores.js quando feat/painel-obra entrar em develop.
- */
-export const formatarDataLocal = (iso) => {
-  const [ano, mes, dia] = String(iso ?? '').split('-');
-  return ano && mes && dia ? `${dia}/${mes}/${ano}` : '—';
-};
+/** Nome da obra; usa o número se a obra não estiver na lista do usuário. */
+export const rotuloObra = (obraId, obras = []) =>
+  obras.find((obra) => obra.id === obraId)?.nome ?? `Obra #${obraId}`;
 
 /** Campo numérico vazio vira null para o backend responder "Informe ..." em vez de erro de formato. */
 export const paraDecimal = (texto) => {

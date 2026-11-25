@@ -5,14 +5,15 @@ import Spinner from '../../../shared/components/ui/Spinner.jsx';
 import EmptyState from '../../../shared/components/feedback/EmptyState.jsx';
 import ErrorState from '../../../shared/components/feedback/ErrorState.jsx';
 import { mensagemErro, requisicaoCancelada } from '../../../shared/api/http.js';
-import { listarOrcamentos } from '../api/orcamentoApi.js';
-import { situacao } from '../utils/orcamento.js';
+import { listarObras, listarOrcamentos } from '../api/orcamentoApi.js';
+import { rotuloObra, situacao } from '../utils/orcamento.js';
 import PainelOrcamento from '../components/PainelOrcamento.jsx';
 import NovoOrcamentoModal from '../components/NovoOrcamentoModal.jsx';
 
 /** Item "Orçamento" do menu lateral: escolhe a obra e mostra o painel orçamentário dela. */
 export default function OrcamentosPage() {
   const [orcamentos, setOrcamentos] = useState(null);
+  const [obras, setObras] = useState([]);
   const [obraSelecionada, setObraSelecionada] = useState(null);
   const [erro, setErro] = useState(null);
   const [criando, setCriando] = useState(false);
@@ -20,7 +21,11 @@ export default function OrcamentosPage() {
   const carregar = useCallback(async (signal) => {
     setErro(null);
     try {
-      const lista = await listarOrcamentos(signal);
+      const [lista, obrasDoUsuario] = await Promise.all([
+        listarOrcamentos(signal),
+        listarObras(signal),
+      ]);
+      setObras(obrasDoUsuario);
       setOrcamentos(lista);
       setObraSelecionada((atual) => atual ?? lista[0]?.obraId ?? null);
     } catch (e) {
@@ -41,7 +46,13 @@ export default function OrcamentosPage() {
   }
 
   const opcoesObra = Object.fromEntries(
-    (orcamentos ?? []).map((o) => [o.obraId, `Obra #${o.obraId} · ${situacao(o.status).rotulo}`]),
+    (orcamentos ?? []).map((o) => [
+      o.obraId,
+      `${rotuloObra(o.obraId, obras)} · ${situacao(o.status).rotulo}`,
+    ]),
+  );
+  const obrasSemOrcamento = obras.filter(
+    (obra) => !(orcamentos ?? []).some((o) => o.obraId === obra.id),
   );
 
   return (
@@ -73,7 +84,12 @@ export default function OrcamentosPage() {
         <PainelOrcamento key={obraSelecionada} obraId={obraSelecionada} />
       )}
 
-      <NovoOrcamentoModal aberto={criando} onFechar={() => setCriando(false)} onCriado={aoCriar} />
+      <NovoOrcamentoModal
+        aberto={criando}
+        obras={obrasSemOrcamento}
+        onFechar={() => setCriando(false)}
+        onCriado={aoCriar}
+      />
     </div>
   );
 }
