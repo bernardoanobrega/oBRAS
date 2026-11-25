@@ -11,7 +11,7 @@ skinparam NoteBackgroundColor #FFFBE6
 hide empty description
 
 ' ===== ESTADOS =====
-state PLANEJADA : Obra cadastrada, ainda não iniciada
+state PLANEJADA : Obra cadastrada, ainda não iniciada\nResponsável técnico opcional
 state EM_ANDAMENTO : Obra em execução
 state PARALISADA : Atividades interrompidas
 state CONCLUIDA <<final>> : Obra finalizada
@@ -19,8 +19,8 @@ state CANCELADA <<final>> : Obra cancelada (nunca apagada)
 
 ' ===== TRANSIÇÕES =====
 [*] --> PLANEJADA : cadastrar [usuário autorizado]
-PLANEJADA --> EM_ANDAMENTO : iniciar() \n[há responsável técnico definido]
-EM_ANDAMENTO --> PARALISADA : paralisar()
+PLANEJADA --> EM_ANDAMENTO : iniciar() \n[responsável técnico definido e ativo]
+EM_ANDAMENTO --> PARALISADA : paralisar() (manual)
 PARALISADA --> EM_ANDAMENTO : retomar()
 EM_ANDAMENTO --> CONCLUIDA : concluir()\n/ encerrar alocações ativas\n(dataFim = hoje)
 PLANEJADA --> CANCELADA : cancelar()\n/ encerrar alocações ativas\n(dataFim = hoje)
@@ -28,5 +28,10 @@ EM_ANDAMENTO --> CANCELADA : cancelar()\n/ encerrar alocações ativas\n(dataFim
 PARALISADA --> CANCELADA : cancelar()\n/ encerrar alocações ativas\n(dataFim = hoje)
 CONCLUIDA --> [*]
 CANCELADA --> [*]
+
+note right of PARALISADA
+  Transição manual de gestão. Paralisação registrada no diário
+  não muda status da obra (ADR-08).
+end note
 
 @enduml

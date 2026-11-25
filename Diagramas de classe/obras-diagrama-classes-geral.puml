@@ -144,15 +144,28 @@ Cargo --> Permissao : concede
 Obra *-- Canteiro : possui
 Obra *-- AlocacaoObra : membro de
 Obra *-- RegistroDiario : possui
+Obra -- Auditavel : auditavel_id (1..1)
 AlocacaoObra --> Ocorrencia : registra
-RegistroDiario --> Ocorrencia : contém
+RegistroDiario "1" --> "0..*" Ocorrencia : contém
 RegistroDiario --> AlocacaoObra : equipe presente
-Ocorrencia --> RegistroFotografico : contém
+Ocorrencia "1" --> "0..*" RegistroFotografico : contém
 Ocorrencia <|-- Paralisacao
 Auditavel <|-- Ocorrencia
 Auditavel <|-- RegistroDiario
 Auditavel <|-- RegistroFotografico
 Auditavel --> RegistroAuditoria : histórico
+
+note right of AlocacaoObra
+  Auditoria em decisão (ADR-04, antes da F2).
+end note
+
+note right of Obra
+  Obra auditável por composição (auditavel_id 1..1), sem reescrever PK/FKs (ver ADR-04).
+  Na persistência, auditavel é tabela concreta (ver ADR-04).
+  Dois padrões coexistem: Obra por composição; RegistroDiario por herança
+  (registro_diario.id REFERENCES auditavel(id)), ver ADR-04.
+  JOINED alternativa não adotada (ADR-04). Foto nasce de ocorrência/fachada de aplicação (ADR-02).
+end note
 
 ' =====================================================
 ' RELAÇÕES INTERNAS: ORÇAMENTO

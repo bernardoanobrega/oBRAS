@@ -11,7 +11,7 @@ import DashboardPage from '../features/dashboard/pages/DashboardPage.jsx';
 import ObrasPage from '../features/obras/pages/ObrasPage.jsx';
 import ObraLayout from '../features/obras/pages/ObraLayout.jsx';
 import IndexObra from '../features/obras/pages/IndexObra.jsx';
-import ResumoObraPage from '../features/obras/pages/ResumoObraPage.jsx';
+import DetalheObraPage from '../features/obras/pages/DetalheObraPage.jsx';
 import EquipeObraPage from '../features/obras/pages/EquipeObraPage.jsx';
 import DiarioPage from '../features/obras/pages/DiarioPage.jsx';
 import CronogramaPage from '../features/cronograma/pages/CronogramaPage.jsx';
@@ -65,7 +65,7 @@ export const router = createBrowserRouter([
             element: <ObraLayout />,
             children: [
               { index: true, element: <IndexObra /> },
-              daObra('resumo', 'DETALHES_OBRA', <ResumoObraPage />),
+              daObra('resumo', 'DETALHES_OBRA', <DetalheObraPage />),
               daObra('equipe', 'DETALHES_OBRA', <EquipeObraPage />),
               daObra('diario', 'DETALHES_OBRA', <DiarioPage />),
               daObra('cronograma', 'CRONOGRAMA', <CronogramaPage />),
