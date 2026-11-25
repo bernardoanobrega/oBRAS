@@ -1,4 +1,5 @@
 import {
+  BriefcaseBusiness,
   Building2,
   Calculator,
   CalendarDays,
@@ -14,7 +15,8 @@ import {
 // Ordem e rótulos do menu do protótipo do Figma.
 // modulo === null => sempre visível a qualquer usuário autenticado.
 // Itens com modulo exigem permissão GLOBAL VISUALIZAR (individual).
-// Cronograma e Orçamento são por obra: o item aparece para todos e a página trata as obras permitidas.
+// Cronograma, Orçamento e Documentos são por obra: o item aparece para todos e a página trata as obras
+// permitidas. Prestadores não está no Figma; fica junto de Documentos (mesmo módulo).
 export const ITENS_MENU = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid, modulo: 'DASHBOARD' },
   { to: '/obras', label: 'Detalhe de Obra', icon: Building2, modulo: null },
@@ -23,7 +25,13 @@ export const ITENS_MENU = [
   { to: '/materiais', label: 'Estoque', icon: Package, modulo: 'ESTOQUE' },
   { to: '/fornecedores', label: 'Compras', icon: ShoppingCart, modulo: 'COMPRAS_FORNECEDORES' },
   { to: '/equipamentos', label: 'Equipamentos', icon: Wrench, modulo: 'MAQUINAS_EQUIPAMENTOS' },
-  { to: '/prestadores', label: 'Documentos', icon: FileText, modulo: 'CONTRATOS_DOCUMENTOS' },
+  { to: '/documentos', label: 'Documentos', icon: FileText, modulo: null },
+  {
+    to: '/prestadores',
+    label: 'Prestadores',
+    icon: BriefcaseBusiness,
+    modulo: 'CONTRATOS_DOCUMENTOS',
+  },
   { to: '/usuarios', label: 'Usuários', icon: Users, modulo: 'USUARIOS' },
   { to: '/configuracoes', label: 'Configurações', icon: Settings, modulo: null },
 ];

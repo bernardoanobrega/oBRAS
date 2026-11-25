@@ -10,10 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.time.Instant;
 import java.util.List;
@@ -69,9 +71,10 @@ public class GlobalExceptionHandler {
         return resp(HttpStatus.CONFLICT, "O registro foi alterado por outra operação. Tente novamente.");
     }
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ExceptionHandler({MissingServletRequestParameterException.class, MissingServletRequestPartException.class,
+            MethodArgumentTypeMismatchException.class})
     ResponseEntity<ApiError> requisicaoInvalida(Exception e) {
-        return resp(HttpStatus.BAD_REQUEST, "Requisição inválida: verifique os valores enviados");
+        return resp(HttpStatus.BAD_REQUEST, "Requisição inválida. Confira os campos e o arquivo enviados.");
     }
 
     /**
