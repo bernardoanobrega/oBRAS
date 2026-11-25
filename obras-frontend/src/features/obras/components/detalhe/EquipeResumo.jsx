@@ -9,8 +9,8 @@ export default function EquipeResumo({ equipe }) {
 
   return (
     <section className={`${CARD} p-5`}>
-      <h3 className="text-sm font-semibold text-white">Equipe técnica e responsáveis</h3>
-      <p className="text-xs text-zinc-500">
+      <h3 className="text-sm font-semibold text-texto">Equipe técnica e responsáveis</h3>
+      <p className="text-xs text-texto-fraco">
         {membros.length} {membros.length === 1 ? 'profissional alocado' : 'profissionais alocados'}
       </p>
 
@@ -21,7 +21,7 @@ export default function EquipeResumo({ equipe }) {
       ) : (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="text-[10px] tracking-wider text-zinc-500">
+            <thead className="text-[10px] tracking-wider text-texto-fraco">
               <tr>
                 <th className="py-2 font-normal">PROFISSIONAL</th>
                 <th className="font-normal">CARGO</th>
@@ -34,7 +34,7 @@ export default function EquipeResumo({ equipe }) {
                   <td>
                     <div className="flex items-center gap-3">
                       <Avatar tom={p.tom}>{p.sigla}</Avatar>
-                      <p className="whitespace-nowrap text-white">{p.nome}</p>
+                      <p className="whitespace-nowrap text-texto">{p.nome}</p>
                     </div>
                   </td>
                   <td>

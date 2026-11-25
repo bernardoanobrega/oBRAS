@@ -80,10 +80,10 @@ export default function ObrasPage() {
               className="sm:max-w-xs sm:flex-1"
             />
             <div className="sm:w-56">
-              <label htmlFor="status" className="mb-1 block text-sm font-medium text-slate-700">Status</label>
+              <label htmlFor="status" className="mb-1 block text-sm font-medium text-texto">Status</label>
               <select
                 id="status"
-                className="min-h-[44px] w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:ring-2 focus:ring-brand-500 md:min-h-[36px]"
+                className="min-h-[44px] w-full rounded-lg border border-borda-forte px-3 text-sm outline-none focus:ring-2 focus:ring-brand md:min-h-[36px]"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
@@ -91,15 +91,15 @@ export default function ObrasPage() {
                 {STATUS.map(([valor, rotulo]) => <option key={valor} value={valor}>{rotulo}</option>)}
               </select>
             </div>
-            <p className="text-sm text-slate-500 sm:ml-auto">{visiveis.length} de {linhas.length} obras</p>
+            <p className="text-sm text-texto-suave sm:ml-auto">{visiveis.length} de {linhas.length} obras</p>
           </div>
 
           {visiveis.length === 0 ? (
             <EmptyState mensagem="Nenhuma obra corresponde aos filtros." />
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <div className="overflow-x-auto rounded-xl border border-borda bg-superficie">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-slate-600">
+                <thead className="bg-superficie-alta text-left text-texto-suave">
                   <tr>
                     <th className="px-4 py-3">Obra</th>
                     <th className="px-4 py-3">Tipologia</th>
@@ -120,7 +120,7 @@ export default function ObrasPage() {
                         <Badge tom={TOM_CLARO[obra.statusTom] ?? 'cinza'}>{obra.status}</Badge>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link className="font-medium text-brand-700 hover:underline" to={`/obras/${obra.id}/resumo`}>
+                        <Link className="font-medium text-brand-claro hover:underline" to={`/obras/${obra.id}/resumo`}>
                           Abrir
                         </Link>
                       </td>

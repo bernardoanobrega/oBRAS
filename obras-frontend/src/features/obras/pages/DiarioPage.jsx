@@ -22,7 +22,7 @@ export default function DiarioPage() {
   const { resumos, diario, selecionadoId, carregando, erro, recarregar, selecionarDiario } = useDiario(obraId);
   const podeEditar = !carregandoPermissao && pode('DETALHES_OBRA', 'CRIAR');
 
-  const casca = 'space-y-6 rounded-2xl bg-[#111111] p-4 font-sans text-zinc-200 md:p-6';
+  const casca = 'space-y-6 rounded-2xl bg-fundo p-4 font-sans text-texto md:p-6';
 
   if (carregando) {
     return (
@@ -48,8 +48,8 @@ export default function DiarioPage() {
     <div className={casca}>
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-white">Diário de ocorrências</h1>
-          <p className="text-xs text-zinc-500">UC21 · RF-25, RF-26</p>
+          <h1 className="text-lg font-semibold text-texto">Diário de ocorrências</h1>
+          <p className="text-xs text-texto-fraco">UC21 · RF-25, RF-26</p>
         </div>
         <Badge tom={podeEditar ? 'green' : 'neutral'}>{podeEditar ? 'Permissão de edição' : 'Somente leitura'}</Badge>
       </header>

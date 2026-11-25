@@ -18,7 +18,7 @@ function mensagemFalha(erro) {
 export default function EquipeObraPage() {
   const { obraId } = useParams();
   const { obra, equipe, carregando, erro, recarregar } = useDetalheObra(obraId);
-  const casca = 'space-y-6 rounded-2xl bg-[#111111] p-4 font-sans text-zinc-200 md:p-6';
+  const casca = 'space-y-6 rounded-2xl bg-fundo p-4 font-sans text-texto md:p-6';
 
   if (carregando) {
     return (
@@ -51,14 +51,14 @@ export default function EquipeObraPage() {
     <div className={casca}>
       <h2 className="sr-only">Equipe da Obra</h2>
       <header className="flex flex-wrap items-center gap-3">
-        <h3 className="text-xl font-semibold text-white">Equipe · {obra.nome}</h3>
+        <h3 className="text-xl font-semibold text-texto">Equipe · {obra.nome}</h3>
         <Badge tom={obra.statusTom ?? 'green'} dot>{obra.status}</Badge>
       </header>
       <dl className={`${CARD} grid grid-cols-2 gap-4 p-5 text-xs md:grid-cols-4`}>
         {campos.map(([rotulo, valor]) => (
           <div key={rotulo} className="flex flex-col gap-1">
-            <dt className="text-zinc-500">{rotulo}</dt>
-            <dd className="font-medium text-zinc-200">{valor}</dd>
+            <dt className="text-texto-fraco">{rotulo}</dt>
+            <dd className="font-medium text-texto">{valor}</dd>
           </div>
         ))}
       </dl>

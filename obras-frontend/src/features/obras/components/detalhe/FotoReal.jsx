@@ -31,16 +31,16 @@ export default function FotoReal({ obraId, foto, className = 'aspect-[4/3]' }) {
 
   return (
     <figure className="overflow-hidden rounded-md">
-      <div className={`w-full bg-zinc-800 ${className}`}>
+      <div className={`w-full bg-superficie-alta ${className}`}>
         {url ? (
           <img src={url} alt={foto.legenda} className="size-full object-cover" />
         ) : (
-          <div className="grid size-full place-items-center text-xs text-zinc-500">
+          <div className="grid size-full place-items-center text-xs text-texto-fraco">
             {falhou ? 'Foto indisponível' : 'Carregando foto…'}
           </div>
         )}
       </div>
-      <figcaption className="mt-1.5 text-[11px] text-zinc-300">{foto.legenda}</figcaption>
+      <figcaption className="mt-1.5 text-[11px] text-texto-suave">{foto.legenda}</figcaption>
     </figure>
   );
 }

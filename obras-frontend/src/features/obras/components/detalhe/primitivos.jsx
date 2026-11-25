@@ -11,11 +11,11 @@ export function Badge({ tom = 'neutral', dot = false, children }) {
 
 export function Avatar({ tom = 'neutral', children, className = '' }) {
   const cor = {
-    amber: 'bg-amber-500/20 text-amber-400',
-    blue: 'bg-blue-500/20 text-blue-300',
-    green: 'bg-green-500/20 text-green-400',
-    red: 'bg-red-500/20 text-red-400',
-    neutral: 'bg-zinc-800 text-zinc-200',
+    amber: 'bg-brand-fundo text-brand-claro',
+    blue: 'bg-info-fundo text-info',
+    green: 'bg-sucesso-fundo text-sucesso',
+    red: 'bg-perigo-fundo text-perigo',
+    neutral: 'bg-superficie-alta text-texto',
   }[tom];
 
   return (
@@ -25,9 +25,9 @@ export function Avatar({ tom = 'neutral', children, className = '' }) {
   );
 }
 
-export function ProgressBar({ value, color = 'bg-amber-500', className = '' }) {
+export function ProgressBar({ value, color = 'bg-brand', className = '' }) {
   return (
-    <div className={`h-1.5 w-full overflow-hidden rounded-full bg-zinc-800 ${className}`}>
+    <div className={`h-1.5 w-full overflow-hidden rounded-full bg-superficie-alta ${className}`}>
       <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }} />
     </div>
   );
@@ -39,7 +39,7 @@ export function IconButton({ icon: Icon, label, onClick }) {
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="grid size-8 place-items-center rounded-lg border border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+      className="grid size-8 place-items-center rounded-lg border border-borda text-texto-suave hover:bg-superficie-alta"
     >
       <Icon size={14} />
     </button>

@@ -9,8 +9,8 @@ export default function MuralFotos({ obraId, fotos = [] }) {
     <section className={`${CARD} p-5`}>
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-white">Mural de evidências fotográficas</h3>
-          <p className="text-xs text-zinc-500">{itens.length} registros de ocorrências</p>
+          <h3 className="text-sm font-semibold text-texto">Mural de evidências fotográficas</h3>
+          <p className="text-xs text-texto-fraco">{itens.length} registros de ocorrências</p>
         </div>
       </header>
 

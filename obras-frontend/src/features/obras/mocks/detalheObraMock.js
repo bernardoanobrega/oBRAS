@@ -43,7 +43,7 @@ export const OCORRENCIAS = [
 ];
 
 export const FOTOS = [
-  { id: 1, legenda: 'Pilares P-10 e P-12 - 4º Pavimento · 25/09', gradiente: 'from-amber-500/30 to-zinc-800' },
-  { id: 2, legenda: 'Subsolo 01 · 23/09', gradiente: 'from-blue-500/30 to-zinc-800' },
-  { id: 3, legenda: 'Fachada Leste · 20/09', gradiente: 'from-green-500/30 to-zinc-800' },
+  { id: 1, legenda: 'Pilares P-10 e P-12 - 4º Pavimento · 25/09', gradiente: 'from-brand/30 to-superficie-alta' },
+  { id: 2, legenda: 'Subsolo 01 · 23/09', gradiente: 'from-info/30 to-superficie-alta' },
+  { id: 3, legenda: 'Fachada Leste · 20/09', gradiente: 'from-sucesso/30 to-superficie-alta' },
 ];

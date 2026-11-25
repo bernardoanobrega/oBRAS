@@ -13,7 +13,7 @@ export default function DiarioDetalhe({ obraId, diario }) {
     return (
       <section className={CARD}>
         <header className="p-5 pb-0">
-          <h2 className="text-sm font-semibold text-white">Registro do dia</h2>
+          <h2 className="text-sm font-semibold text-texto">Registro do dia</h2>
         </header>
         <div className="p-5">
           <EmptyState mensagem="Sem diário registrado para esta obra." />
@@ -26,8 +26,8 @@ export default function DiarioDetalhe({ obraId, diario }) {
     <section className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-white">Registro de {dados.data}</h2>
-          <p className="mt-1 text-xs text-zinc-500">{dados.descricao}</p>
+          <h2 className="text-sm font-semibold text-texto">Registro de {dados.data}</h2>
+          <p className="mt-1 text-xs text-texto-fraco">{dados.descricao}</p>
         </div>
         <Badge tom="neutral">{dados.equipePresenteIds.length} na equipe</Badge>
       </div>

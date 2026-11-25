@@ -17,8 +17,8 @@ export default function OcorrenciasRecentes({ ocorrencias = [] }) {
     <section className={`${CARD} p-5`}>
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-white">Registro de ocorrências e imprevistos</h3>
-          <p className="text-xs text-zinc-500">Registro do diário selecionado</p>
+          <h3 className="text-sm font-semibold text-texto">Registro de ocorrências e imprevistos</h3>
+          <p className="text-xs text-texto-fraco">Registro do diário selecionado</p>
         </div>
       </header>
 
@@ -37,14 +37,14 @@ export default function OcorrenciasRecentes({ ocorrencias = [] }) {
                 </span>
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[11px] text-zinc-500">{item.data}</span>
+                    <span className="font-mono text-[11px] text-texto-fraco">{item.data}</span>
                     <Badge tom={item.tom ?? 'neutral'} dot>
                       {item.tag}
                     </Badge>
                   </div>
-                  <p className="mt-1.5 text-sm text-zinc-200">{item.texto}</p>
+                  <p className="mt-1.5 text-sm text-texto">{item.texto}</p>
                   {item.paralisacao && (
-                    <p className="mt-1 text-[11px] text-zinc-500">
+                    <p className="mt-1 text-[11px] text-texto-fraco">
                       Paralisação: {item.paralisacao.inicio} → {item.paralisacao.fim}
                     </p>
                   )}

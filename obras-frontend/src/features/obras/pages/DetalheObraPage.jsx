@@ -29,7 +29,7 @@ export default function DetalheObraPage() {
   const { diario, erro: erroDiario, recarregar: recarregarDiario } = useDiario(obraId);
   const dadosDiario = paraDiario(diario);
 
-  const casca = 'space-y-6 rounded-2xl bg-[#111111] p-4 font-sans text-zinc-200 md:p-6';
+  const casca = 'space-y-6 rounded-2xl bg-fundo p-4 font-sans text-texto md:p-6';
 
   if (carregando) {
     return (
@@ -57,9 +57,9 @@ export default function DetalheObraPage() {
       <ObraHeader obra={obra} pode={pode} />
       <ClimaDiaCard clima={paraClimaDia(diario)} />
       {erroDiario && (
-        <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-300">
+        <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-perigo/40 bg-perigo-fundo p-3 text-xs text-perigo">
           <span>Não foi possível carregar o diário desta obra.</span>
-          <button type="button" onClick={recarregarDiario} className="min-h-[44px] px-2 font-semibold text-red-200">
+          <button type="button" onClick={recarregarDiario} className="min-h-[44px] px-2 font-semibold text-perigo">
             Tentar novamente
           </button>
         </div>

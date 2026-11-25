@@ -20,8 +20,8 @@ export default function ClimaDiaCard({ clima }) {
           <Icon size={18} />
         </span>
         <div>
-          <p className="text-sm font-semibold text-white">{info.condicao ?? '—'}</p>
-          <p className="text-xs text-zinc-500">{info.data ?? '—'}</p>
+          <p className="text-sm font-semibold text-texto">{info.condicao ?? '—'}</p>
+          <p className="text-xs text-texto-fraco">{info.data ?? '—'}</p>
         </div>
       </div>
       <Badge tom={info.tom ?? 'neutral'} dot>

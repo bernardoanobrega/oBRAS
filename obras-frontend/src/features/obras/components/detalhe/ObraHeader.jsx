@@ -15,16 +15,16 @@ export default function ObraHeader({ obra, pode }) {
     <section className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
       <div>
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-xl font-semibold text-white">{obra.nome}</h2>
+          <h2 className="text-xl font-semibold text-texto">{obra.nome}</h2>
           <Badge tom={obra.statusTom ?? 'green'} dot>
             {obra.status}
           </Badge>
         </div>
-        <dl className="mt-2 flex max-w-xl flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+        <dl className="mt-2 flex max-w-xl flex-wrap gap-x-4 gap-y-1 text-xs text-texto-fraco">
           {campos.map(([k, v]) => (
             <div key={k} className="flex gap-1.5">
               <dt>{k}</dt>
-              <dd className="font-medium text-zinc-200">{v}</dd>
+              <dd className="font-medium text-texto">{v}</dd>
             </div>
           ))}
         </dl>

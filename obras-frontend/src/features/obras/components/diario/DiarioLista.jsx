@@ -10,8 +10,8 @@ export default function DiarioLista({ resumos = [], selecionadoId, onSelecionar 
     <section className={`${CARD} p-4`}>
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-white">Diários registrados</h2>
-          <p className="text-xs text-zinc-500">Selecione um registro</p>
+          <h2 className="text-sm font-semibold text-texto">Diários registrados</h2>
+          <p className="text-xs text-texto-fraco">Selecione um registro</p>
         </div>
         <Badge tom="neutral">{itens.length}</Badge>
       </header>
@@ -29,12 +29,12 @@ export default function DiarioLista({ resumos = [], selecionadoId, onSelecionar 
               onClick={() => onSelecionar?.(item.id)}
               className={`min-h-[44px] shrink-0 rounded-lg border px-3 py-2 text-left ${
                 selecionadoId === item.id
-                  ? 'border-amber-500 bg-amber-500/10'
-                  : 'border-zinc-800 bg-[#121215] hover:bg-zinc-800'
+                  ? 'border-brand bg-brand-fundo'
+                  : 'border-borda bg-superficie hover:bg-superficie-alta'
               }`}
             >
-              <span className="block text-sm font-semibold text-white">{item.data}</span>
-              <span className="mt-1 block text-xs text-zinc-400">{item.clima}</span>
+              <span className="block text-sm font-semibold text-texto">{item.data}</span>
+              <span className="mt-1 block text-xs text-texto-suave">{item.clima}</span>
               <span className="mt-2 block">
                 <Badge tom={item.tom}>{item.totalOcorrencias} ocorrência(s)</Badge>
               </span>
