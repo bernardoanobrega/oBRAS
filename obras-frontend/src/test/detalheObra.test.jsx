@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
@@ -342,7 +343,7 @@ describe('componentes extraídos', () => {
 
 describe('contrato de arquivos', () => {
   it('nenhumImportAbsolutoForaDoSrc', () => {
-    const raiz = new URL('../features/obras', import.meta.url).pathname;
+    const raiz = fileURLToPath(new URL('../features/obras', import.meta.url));
     const arquivos = [];
     const varrer = (dir) => {
       for (const nome of readdirSync(dir)) {

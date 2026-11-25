@@ -29,7 +29,7 @@ export default function DiarioLista({ resumos = [], selecionadoId, onSelecionar 
               onClick={() => onSelecionar?.(item.id)}
               className={`min-h-[44px] shrink-0 rounded-lg border px-3 py-2 text-left ${
                 selecionadoId === item.id
-                  ? 'border-amber-500 bg-amber-500/10'
+                  ? 'border-petro-amarelo bg-petro-amarelo/10'
                   : 'border-zinc-800 bg-[#121215] hover:bg-zinc-800'
               }`}
             >

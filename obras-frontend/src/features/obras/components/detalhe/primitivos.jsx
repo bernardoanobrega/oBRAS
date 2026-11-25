@@ -25,7 +25,7 @@ export function Avatar({ tom = 'neutral', children, className = '' }) {
   );
 }
 
-export function ProgressBar({ value, color = 'bg-amber-500', className = '' }) {
+export function ProgressBar({ value, color = 'bg-petro-verde-claro', className = '' }) {
   return (
     <div className={`h-1.5 w-full overflow-hidden rounded-full bg-zinc-800 ${className}`}>
       <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }} />

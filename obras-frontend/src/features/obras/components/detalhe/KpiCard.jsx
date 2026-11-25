@@ -7,7 +7,7 @@ export default function KpiCard({ icon: Icon, titulo, badge = 'SIMULADO', childr
   return (
     <article className={`${CARD} p-5`}>
       <header className="flex items-center gap-3">
-        <span className="grid size-7 place-items-center rounded-md bg-amber-500/10 text-amber-500">
+        <span className="grid size-7 place-items-center rounded-md bg-petro-amarelo/10 text-petro-amarelo">
           <Icon size={14} />
         </span>
         <h3 className="text-[10px] tracking-wider text-zinc-400">{titulo}</h3>

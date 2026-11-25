@@ -4,9 +4,16 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Paleta provisória (verde/amarelo Petrobras) até a padronização oficial das cores.
+        // Trocar a paleta = mudar só este bloco.
+        petro: {
+          verde: { DEFAULT: '#008542', claro: '#00A651', escuro: '#006B35' },
+          amarelo: { DEFAULT: '#FDB913', claro: '#FFC940' },
+        },
+        // brand = cor de destaque das telas claras (login, menu, Usuários), agora em tons de verde
         brand: {
-          50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 500: '#f97316',
-          600: '#ea580c', 700: '#c2410c', 800: '#9a3412',
+          50: '#e6f4ec', 100: '#c2e5d0', 200: '#8fd0a9', 500: '#00a651',
+          600: '#008542', 700: '#006b35', 800: '#00532a',
         },
       },
     },
