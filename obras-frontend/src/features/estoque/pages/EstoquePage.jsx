@@ -211,24 +211,24 @@ export default function EstoquePage() {
   }
 
   return (
-    <div className="space-y-5 rounded-2xl bg-[#111318] p-5 text-slate-100 shadow-xl">
+    <div className="space-y-5 rounded-2xl bg-fundo p-5 text-texto shadow-xl">
       {/* Barra de Ferramentas Superior (idêntica a 1440w light (1).svg) */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Seletor de Almoxarifado / Canteiro */}
-          <div className="relative flex items-center rounded-lg border border-slate-800 bg-[#181b22] px-3 py-2">
-            <Warehouse size={16} className="mr-2 text-amber-500" />
+          <div className="relative flex items-center rounded-lg border border-borda bg-superficie px-3 py-2">
+            <Warehouse size={16} className="mr-2 text-brand" />
             <select
               aria-label="Selecionar canteiro"
               value={canteiroFiltro}
               onChange={(e) => setCanteiroFiltro(e.target.value)}
-              className="w-52 bg-transparent text-sm text-slate-200 outline-none"
+              className="w-52 bg-transparent text-sm text-texto outline-none"
             >
-              <option value="" className="bg-[#181b22]">
+              <option value="" className="bg-superficie">
                 Todos os Canteiros (Obra #{obraId})
               </option>
               {canteirosDisponiveis.map((cId) => (
-                <option key={cId} value={cId} className="bg-[#181b22]">
+                <option key={cId} value={cId} className="bg-superficie">
                   Canteiro / Almoxarifado #{cId}
                 </option>
               ))}
@@ -240,10 +240,10 @@ export default function EstoquePage() {
             <button
               type="button"
               onClick={() => abrirModal('entrada')}
-              className="flex items-center gap-2 rounded-lg border border-slate-800 bg-[#181b22] px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-700 hover:bg-slate-800"
+              className="flex items-center gap-2 rounded-lg border border-borda bg-superficie px-4 py-2 text-sm font-medium text-texto-suave transition hover:border-borda-forte hover:bg-superficie-alta"
               title="Registrar Entrada de Pedido em Trânsito (UC13)"
             >
-              <Download size={16} className="text-slate-300" />
+              <Download size={16} className="text-texto-suave" />
               <span>Receber Pedido</span>
             </button>
           </Can>
@@ -253,7 +253,7 @@ export default function EstoquePage() {
             <button
               type="button"
               onClick={() => abrirModal('configurar')}
-              className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-400"
+              className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-fundo transition hover:bg-brand-claro"
             >
               <Plus size={16} />
               <span>Configurar Saldo</span>
@@ -267,24 +267,24 @@ export default function EstoquePage() {
             <button
               type="button"
               onClick={() => abrirModal('saida')}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-[#181b22] px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800"
+              className="flex items-center gap-1.5 rounded-lg border border-borda bg-superficie px-3 py-2 text-xs font-medium text-texto-suave hover:bg-superficie-alta"
             >
-              <MinusCircle size={14} className="text-rose-400" /> Saída Consumo
+              <MinusCircle size={14} className="text-perigo" /> Saída Consumo
             </button>
             <button
               type="button"
               onClick={() => abrirModal('transferencia')}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-[#181b22] px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800"
+              className="flex items-center gap-1.5 rounded-lg border border-borda bg-superficie px-3 py-2 text-xs font-medium text-texto-suave hover:bg-superficie-alta"
             >
-              <ArrowLeftRight size={14} className="text-sky-400" /> Transferir
+              <ArrowLeftRight size={14} className="text-info" /> Transferir
             </button>
           </Can>
-          <div className="flex rounded-lg border border-slate-800 bg-[#181b22] p-0.5 text-xs">
+          <div className="flex rounded-lg border border-borda bg-superficie p-0.5 text-xs">
             <button
               type="button"
               onClick={() => setAba('saldos')}
               className={`rounded-md px-2.5 py-1.5 font-medium ${
-                aba === 'saldos' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
+                aba === 'saldos' ? 'bg-brand text-fundo' : 'text-texto-fraco'
               }`}
             >
               Monitoramento
@@ -293,7 +293,7 @@ export default function EstoquePage() {
               type="button"
               onClick={() => setAba('consolidado')}
               className={`rounded-md px-2.5 py-1.5 font-medium ${
-                aba === 'consolidado' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
+                aba === 'consolidado' ? 'bg-brand text-fundo' : 'text-texto-fraco'
               }`}
             >
               Consolidado
@@ -302,7 +302,7 @@ export default function EstoquePage() {
               type="button"
               onClick={() => setAba('movimentacoes')}
               className={`rounded-md px-2.5 py-1.5 font-medium ${
-                aba === 'movimentacoes' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
+                aba === 'movimentacoes' ? 'bg-brand text-fundo' : 'text-texto-fraco'
               }`}
             >
               Histórico
@@ -312,7 +312,7 @@ export default function EstoquePage() {
       </div>
 
       {avisoSucesso && (
-        <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-950/40 px-4 py-2.5 text-sm text-emerald-300">
+        <div className="flex items-center justify-between rounded-xl border border-sucesso/30 bg-sucesso-fundo px-4 py-2.5 text-sm text-sucesso">
           <span>{avisoSucesso}</span>
           <button
             type="button"
@@ -325,27 +325,27 @@ export default function EstoquePage() {
       )}
 
       {/* 3 KPI Cards Superiores (1440w light (1).svg) */}
-      <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-800/90 bg-[#161920] p-4 md:grid-cols-3">
-        <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-[#1b1f28] p-4">
+      <div className="grid grid-cols-1 gap-4 rounded-xl border border-borda bg-superficie p-4 md:grid-cols-3">
+        <div className="flex items-center justify-between rounded-xl border border-borda bg-superficie-alta p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/15 text-amber-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-fundo text-brand-claro">
               <ClipboardList size={20} />
             </div>
             <div>
-              <p className="text-xs text-slate-400">Itens Monitorados</p>
-              <p className="text-xl font-bold text-slate-100">{kpis.totalMonitorados}</p>
+              <p className="text-xs text-texto-fraco">Itens Monitorados</p>
+              <p className="text-xl font-bold text-texto">{kpis.totalMonitorados}</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-[#1b1f28] p-4">
+        <div className="flex items-center justify-between rounded-xl border border-borda bg-superficie-alta p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/15 text-sky-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info-fundo text-info">
               <Wallet size={20} />
             </div>
             <div>
-              <p className="text-xs text-slate-400">Volume Físico Total</p>
-              <p className="text-xl font-bold text-slate-100">
+              <p className="text-xs text-texto-fraco">Volume Físico Total</p>
+              <p className="text-xl font-bold text-texto">
                 {kpis.volumeTotalAcumulado.toLocaleString('pt-BR', {
                   maximumFractionDigits: 2,
                 })}
@@ -354,14 +354,14 @@ export default function EstoquePage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-[#1b1f28] p-4">
+        <div className="flex items-center justify-between rounded-xl border border-borda bg-superficie-alta p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/15 text-rose-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-perigo-fundo text-perigo">
               <AlertTriangle size={20} />
             </div>
             <div>
-              <p className="text-xs text-slate-400">Itens em Alerta / Esgotados</p>
-              <p className="text-xl font-bold text-rose-400">{kpis.criticosOuAlerta}</p>
+              <p className="text-xs text-texto-fraco">Itens em Alerta / Esgotados</p>
+              <p className="text-xl font-bold text-perigo">{kpis.criticosOuAlerta}</p>
             </div>
           </div>
         </div>
@@ -372,22 +372,22 @@ export default function EstoquePage() {
 
       {/* Painel Principal: Lista de Saldos com Barras de Nível e Ações Rápidas (1440w light (1).svg) */}
       {aba === 'saldos' && saldos && (
-        <div className="rounded-xl border border-slate-800 bg-[#161920] p-5">
+        <div className="rounded-xl border border-borda bg-superficie p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-texto-fraco">
               Níveis de Saldo por Canteiro (UC13 / RF-17 / RF-35)
             </h2>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-texto-suave">
               {saldosOrdenados.length} registro(s)
             </span>
           </div>
 
           {saldosOrdenados.length === 0 ? (
-            <p className="py-8 text-center text-sm text-slate-400">
+            <p className="py-8 text-center text-sm text-texto-fraco">
               Nenhum saldo configurado para este filtro. Clique em &ldquo;Configurar Saldo&rdquo; para iniciar.
             </p>
           ) : (
-            <div className="divide-y divide-slate-800/60">
+            <div className="divide-y divide-borda">
               {saldosOrdenados.map((s) => {
                 const atual = Number(s.quantidadeAtual || 0);
                 const minima = Number(s.quantidadeMinima || 0);
@@ -398,10 +398,10 @@ export default function EstoquePage() {
                 const ehAtencao = s.situacao === 'ALERTA_MINIMO';
 
                 const corBarra = ehCritico
-                  ? 'bg-rose-500'
+                  ? 'bg-perigo-forte'
                   : ehAtencao
-                  ? 'bg-amber-400'
-                  : 'bg-emerald-500';
+                  ? 'bg-brand-claro'
+                  : 'bg-sucesso';
 
                 return (
                   <div
@@ -410,26 +410,26 @@ export default function EstoquePage() {
                   >
                     {/* Identificação e Barra de Nível */}
                     <div className="flex min-w-[260px] flex-1 items-center gap-4">
-                      <span className="inline-flex min-w-[78px] justify-center rounded-md bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-300">
+                      <span className="inline-flex min-w-[78px] justify-center rounded-md bg-superficie-alta px-2.5 py-1 text-xs font-medium text-texto-suave">
                         Cant. #{s.canteiroId}
                       </span>
                       <div className="min-w-[200px] flex-1">
                         <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                          <span className="font-medium text-slate-100">
+                          <span className="font-medium text-texto">
                             {s.materialNome}{' '}
-                            <span className="text-xs text-slate-400">({s.unidadeMedida})</span>
+                            <span className="text-xs text-texto-fraco">({s.unidadeMedida})</span>
                           </span>
-                          <span className="text-xs text-slate-400">
-                            Saldo: <strong className="text-slate-200">{atual}</strong> / Mín:{' '}
+                          <span className="text-xs text-texto-fraco">
+                            Saldo: <strong className="text-texto">{atual}</strong> / Mín:{' '}
                             {minima}
                             {s.mediaConsumoSemanal != null && (
-                              <span className="ml-2 text-slate-500">
+                              <span className="ml-2 text-texto-suave">
                                 • Consumo sem.: {s.mediaConsumoSemanal}
                               </span>
                             )}
                           </span>
                         </div>
-                        <div className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-slate-800">
+                        <div className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-superficie-alta">
                           <div
                             className={`h-full rounded-full transition-all ${corBarra}`}
                             style={{ width: `${percentual}%` }}
@@ -441,19 +441,19 @@ export default function EstoquePage() {
                     {/* Badges de Estado e Botão de Ação Rápida (1440w light (1).svg) */}
                     <div className="flex items-center gap-3">
                       {ehCritico && (
-                        <span className="inline-flex min-w-[140px] items-center gap-1.5 rounded-md border border-rose-500/40 bg-rose-950/50 px-3 py-1.5 text-xs font-medium text-rose-300">
-                          <AlertTriangle size={14} className="text-rose-400" />
+                        <span className="inline-flex min-w-[140px] items-center gap-1.5 rounded-md border border-perigo/40 bg-perigo-fundo px-3 py-1.5 text-xs font-medium text-perigo">
+                          <AlertTriangle size={14} className="text-perigo" />
                           Esgotado (Crítico)
                         </span>
                       )}
                       {ehAtencao && (
-                        <span className="inline-flex min-w-[140px] items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-950/50 px-3 py-1.5 text-xs font-medium text-amber-300">
-                          <AlertCircle size={14} className="text-amber-400" />
+                        <span className="inline-flex min-w-[140px] items-center gap-1.5 rounded-md border border-brand/40 bg-brand-fundo px-3 py-1.5 text-xs font-medium text-brand-claro">
+                          <AlertCircle size={14} className="text-brand-claro" />
                           Alerta Mínimo
                         </span>
                       )}
                       {!ehCritico && !ehAtencao && (
-                        <span className="inline-flex min-w-[140px] items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-950/30 px-3 py-1.5 text-xs font-medium text-emerald-300">
+                        <span className="inline-flex min-w-[140px] items-center gap-1.5 rounded-md border border-sucesso/30 bg-sucesso-fundo px-3 py-1.5 text-xs font-medium text-sucesso">
                           Regular
                         </span>
                       )}
@@ -464,8 +464,8 @@ export default function EstoquePage() {
                           onClick={() => abrirModal('reposicao', s)}
                           className={`flex min-w-[135px] items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition ${
                             ehCritico
-                              ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
-                              : 'border border-slate-700 bg-[#1b1f28] text-slate-200 hover:bg-slate-800'
+                              ? 'bg-brand text-fundo hover:bg-brand-claro'
+                              : 'border border-borda-forte bg-superficie-alta text-texto hover:bg-superficie-alta'
                           }`}
                           title="Gerar PedidoCompra de reposição (RF-35)"
                         >
@@ -478,7 +478,7 @@ export default function EstoquePage() {
                         <button
                           type="button"
                           onClick={() => abrirModal('configurar', s)}
-                          className="rounded-lg border border-slate-800 p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                          className="rounded-lg border border-borda p-2 text-texto-fraco hover:bg-superficie-alta hover:text-texto"
                           title="Ajustar quantidade mínima"
                         >
                           <Settings size={15} />
@@ -495,29 +495,29 @@ export default function EstoquePage() {
 
       {/* Visão Consolidada da Obra (calcularSaldoObra) */}
       {aba === 'consolidado' && (
-        <div className="rounded-xl border border-slate-800 bg-[#161920] p-5">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
+        <div className="rounded-xl border border-borda bg-superficie p-5">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-texto-fraco">
             Saldo Consolidado da Obra #{obraId} (Soma de Todos os Canteiros)
           </h2>
           {consolidado.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-400">
+            <p className="py-6 text-center text-sm text-texto-fraco">
               Sem saldo consolidado registrado.
             </p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="border-b border-slate-800 text-left text-slate-400">
+              <thead className="border-b border-borda text-left text-texto-fraco">
                 <tr>
                   <th className="py-2">Material</th>
                   <th className="py-2">Unidade</th>
                   <th className="py-2 text-right">Quantidade Total na Obra</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-borda">
                 {consolidado.map((c) => (
                   <tr key={c.materialId}>
-                    <td className="py-3 font-medium text-slate-100">{c.materialNome}</td>
-                    <td className="py-3 text-slate-400">{c.unidadeMedida}</td>
-                    <td className="py-3 text-right font-semibold text-amber-400">
+                    <td className="py-3 font-medium text-texto">{c.materialNome}</td>
+                    <td className="py-3 text-texto-fraco">{c.unidadeMedida}</td>
+                    <td className="py-3 text-right font-semibold text-brand-claro">
                       {c.quantidadeTotal}
                     </td>
                   </tr>
@@ -530,21 +530,21 @@ export default function EstoquePage() {
 
       {/* Histórico de Movimentações (UC14) */}
       {aba === 'movimentacoes' && (
-        <div className="rounded-xl border border-slate-800 bg-[#161920] p-5">
+        <div className="rounded-xl border border-borda bg-superficie p-5">
           <div className="mb-3 flex items-center gap-2">
-            <History size={16} className="text-amber-400" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+            <History size={16} className="text-brand-claro" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-texto-fraco">
               Histórico de Movimentações (Últimos 30 dias)
             </h2>
           </div>
           {movimentacoes.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-400">
+            <p className="py-6 text-center text-sm text-texto-fraco">
               Nenhuma movimentação registrada no período.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="border-b border-slate-800 text-left text-slate-400">
+                <thead className="border-b border-borda text-left text-texto-fraco">
                   <tr>
                     <th className="py-2">Data/Hora</th>
                     <th className="py-2">Tipo</th>
@@ -554,20 +554,20 @@ export default function EstoquePage() {
                     <th className="py-2">Pedido</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-borda">
                   {movimentacoes.map((m) => (
                     <tr key={m.id}>
-                      <td className="py-2.5 text-slate-400">
+                      <td className="py-2.5 text-texto-fraco">
                         {formatarDataHora(m.dataMovimentacao)}
                       </td>
-                      <td className="py-2.5 font-medium text-slate-200">{m.tipo}</td>
-                      <td className="py-2.5 text-slate-100">{m.materialNome}</td>
-                      <td className="py-2.5 font-semibold text-amber-400">{m.quantidade}</td>
-                      <td className="py-2.5 text-slate-400">
+                      <td className="py-2.5 font-medium text-texto">{m.tipo}</td>
+                      <td className="py-2.5 text-texto">{m.materialNome}</td>
+                      <td className="py-2.5 font-semibold text-brand-claro">{m.quantidade}</td>
+                      <td className="py-2.5 text-texto-fraco">
                         {m.canteiroOrigemId ? `Cant. #${m.canteiroOrigemId}` : 'Fornecedor'}{' '}
                         → {m.canteiroDestinoId ? `Cant. #${m.canteiroDestinoId}` : 'Consumo'}
                       </td>
-                      <td className="py-2.5 text-slate-400">
+                      <td className="py-2.5 text-texto-fraco">
                         {m.pedidoCompraId ? `#${m.pedidoCompraId}` : '—'}
                       </td>
                     </tr>
@@ -595,18 +595,18 @@ export default function EstoquePage() {
             : 'Gerar Solicitação de Reposição (Estoque → Compras)'
         }
       >
-        <form onSubmit={executarOperacao} className="space-y-3 text-slate-800">
+        <form onSubmit={executarOperacao} className="space-y-3 text-texto">
           {modalAtivo === 'entrada' ? (
             <>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-texto">
                   Pedido de Compra (Status: EM_TRANSITO)
                 </label>
                 {pedidosTransito.length > 0 ? (
                   <select
                     value={formOp.pedidoId}
                     onChange={(e) => setFormOp((f) => ({ ...f, pedidoId: e.target.value }))}
-                    className="min-h-[38px] w-full rounded-lg border border-slate-300 px-3 text-sm"
+                    className="min-h-[38px] w-full rounded-lg border border-borda-forte px-3 text-sm"
                     required
                   >
                     {pedidosTransito.map((p) => (
@@ -639,7 +639,7 @@ export default function EstoquePage() {
           ) : (
             <>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
+                <label className="mb-1 block text-sm font-medium text-texto">
                   Material
                 </label>
                 {materiais.length > 0 ? (
@@ -649,7 +649,7 @@ export default function EstoquePage() {
                       setFormOp((f) => ({ ...f, materialId: e.target.value }))
                     }
                     disabled={!!itemSelecionado}
-                    className="min-h-[38px] w-full rounded-lg border border-slate-300 px-3 text-sm disabled:bg-slate-100"
+                    className="min-h-[38px] w-full rounded-lg border border-borda-forte px-3 text-sm disabled:bg-superficie-alta"
                     required
                   >
                     <option value="">Selecione...</option>
@@ -731,7 +731,7 @@ export default function EstoquePage() {
           )}
 
           {erroModal && (
-            <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-700">
+            <p role="alert" className="rounded bg-perigo-fundo p-2 text-sm text-perigo">
               {erroModal}
             </p>
           )}

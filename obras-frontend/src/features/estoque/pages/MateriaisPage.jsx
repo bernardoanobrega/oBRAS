@@ -69,8 +69,8 @@ export default function MateriaisPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Package className="text-brand-600" size={22} />
-          <h1 className="text-xl font-semibold text-slate-800">Catálogo de Materiais</h1>
+          <Package className="text-brand-claro" size={22} />
+          <h1 className="text-xl font-semibold text-texto">Catálogo de Materiais</h1>
         </div>
         <Can modulo="ESTOQUE" acao="CRIAR">
           <Button onClick={() => abrirModal(null)}>
@@ -87,13 +87,13 @@ export default function MateriaisPage() {
         className="flex gap-2"
       >
         <div className="relative flex-1">
-          <Search size={16} className=" absolute left-3 top-3 text-slate-400" />
+          <Search size={16} className=" absolute left-3 top-3 text-texto-fraco" />
           <input
             type="text"
             placeholder="Buscar material por nome..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="min-h-[38px] w-full rounded-lg border border-slate-300 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-brand-500"
+            className="min-h-[38px] w-full rounded-lg border border-borda-forte pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
         <Button type="submit" variante="secundario">
@@ -108,9 +108,9 @@ export default function MateriaisPage() {
       )}
 
       {materiais && materiais.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-borda bg-superficie shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-slate-600">
+            <thead className="bg-superficie-alta text-left text-texto-suave">
               <tr>
                 <th className="px-4 py-3">ID</th>
                 <th className="px-4 py-3">Insumo / Material</th>
@@ -121,15 +121,15 @@ export default function MateriaisPage() {
             </thead>
             <tbody>
               {materiais.map((m) => (
-                <tr key={m.id} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-4 py-3 text-slate-500">#{m.id}</td>
-                  <td className="px-4 py-3 font-medium text-slate-800">{m.nome}</td>
+                <tr key={m.id} className="border-t border-borda hover:bg-superficie-alta">
+                  <td className="px-4 py-3 text-texto-suave">#{m.id}</td>
+                  <td className="px-4 py-3 font-medium text-texto">{m.nome}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                    <span className="rounded bg-superficie-alta px-2 py-0.5 text-xs font-medium text-texto">
                       {m.unidadeMedida}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{m.descricao || '—'}</td>
+                  <td className="px-4 py-3 text-texto-suave">{m.descricao || '—'}</td>
                   <td className="px-4 py-3 text-right">
                     <Can modulo="ESTOQUE" acao="EDITAR">
                       <Button variante="secundario" onClick={() => abrirModal(m)}>
@@ -174,7 +174,7 @@ export default function MateriaisPage() {
             erro={errosCampo.descricao}
           />
           {erroModal && (
-            <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-700">
+            <p role="alert" className="rounded bg-perigo-fundo p-2 text-sm text-perigo">
               {erroModal}
             </p>
           )}
