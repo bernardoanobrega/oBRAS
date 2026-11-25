@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
@@ -171,11 +172,13 @@ describe('DetalheObraPage', () => {
       carregando: false,
     }));
     const html = renderShell();
+    // O menu lateral também tem Cronograma e Orçamento; a regra vale só para as abas da obra.
+    const abas = html.match(/<nav[^>]*aria-label="Abas da obra"[^>]*>.*?<\/nav>/s)[0];
     expect(html).toContain('Obra #1');
-    expect(html).toContain('>Resumo<');
-    expect(html).toContain('>Equipe<');
-    expect(html).not.toContain('>Cronograma<');
-    expect(html).not.toContain('>Orçamento<');
+    expect(abas).toContain('>Resumo<');
+    expect(abas).toContain('>Equipe<');
+    expect(abas).not.toContain('>Cronograma<');
+    expect(abas).not.toContain('>Orçamento<');
   });
 
   it('acaoSemPermissaoNaoAparece', () => {
@@ -342,7 +345,7 @@ describe('componentes extraídos', () => {
 
 describe('contrato de arquivos', () => {
   it('nenhumImportAbsolutoForaDoSrc', () => {
-    const raiz = new URL('../features/obras', import.meta.url).pathname;
+    const raiz = fileURLToPath(new URL('../features/obras', import.meta.url));
     const arquivos = [];
     const varrer = (dir) => {
       for (const nome of readdirSync(dir)) {

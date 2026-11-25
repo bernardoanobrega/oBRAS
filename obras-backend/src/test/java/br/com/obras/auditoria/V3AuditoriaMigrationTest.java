@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 class V3AuditoriaMigrationTest {
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16");
@@ -211,7 +211,7 @@ class V3AuditoriaMigrationTest {
         }
         assertEquals(List.of("1", "2"), versoesAplicadas());
 
-        migrate(null);
+        migrate("4");
         assertEquals(List.of("1", "2", "3", "3.1", "4"), versoesAplicadas());
 
         try (Connection conexao = connection()) {
