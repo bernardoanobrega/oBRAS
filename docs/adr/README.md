@@ -16,6 +16,8 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | [ADR-13](./ADR-13-painel-agrega-modulos.md) | Painel da obra (RF-73) agrega dados de outros módulos via ports | Proposto (Cauã), aguarda Thierry | 2026-11-23 |
 | [ADR-14](./ADR-14-categoria-padrao-ocorrencia-rapida.md) | Ocorrência rápida: categoria opcional com padrão `OUTRO` | Proposto (Cauã), aguarda Thierry | 2026-11-24 |
 | [ADR-15](./ADR-15-v5-integridade-obra-diario.md) | V5: integridade entre obras no diário e exclusão física em cascata | Proposto (Cauã), aguarda Thierry | 2026-11-24 |
+| [ADR-16](./ADR-16-mapper-entidade-dto.md) | Conversão entidade → DTO em classe mapper | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
+| [ADR-17](./ADR-17-diario-expoe-nomes.md) | DTOs do diário expõem nome da equipe presente e do autor | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
 
 ## Confirmações (sem ADR novo)
 | Data | Item | Decisão |
@@ -30,6 +32,10 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | 2026-11-24 | L29 / vínculos e campos obrigatórios | **Validar também no domínio**: `Ocorrencia.criar` rejeita diário, autor e categoria nulos e descrição vazia; `Paralisacao.criar` rejeita ocorrência nula; `RegistroFotografico.criar` rejeita ocorrência nula e arquivo vazio, com `RegraNegocioException` (422), além do DTO e do banco |
 | 2026-11-24 | L29 / edição de ocorrência | **Edição completa, não parcial**: o `PUT` reenvia categoria, descrição, dataHora e paralisação (o formulário abre preenchido com os valores atuais). `Ocorrencia.editar` rejeita categoria nula e descrição vazia e mantém o estado anterior; `dataHora` nula mantém a atual; paralisação ausente continua significando "remover". Motivo: na edição parcial, "não enviado" e "apagar" ficariam ambíguos, e a paralisação seria removida sem querer |
 | 2026-11-24 | L27 / autor da ocorrência | **Manter `alocacao_obra_id`** (o contrato citava `autor_id`): o autor é a alocação do usuário na obra, não o usuário, porque é ela que diz quem ele era naquela obra; o domínio do L29 usa `AlocacaoObra autor`. Contrato do L27 corrigido |
+| 2026-11-25 | L30 / clima inválido no JSON | **400, não 500**: valor fora do enum, data mal formatada ou JSON quebrado falham no Jackson, antes da Bean Validation. O `GlobalExceptionHandler` (`shared`) passa a tratar `HttpMessageNotReadableException` como 400 "Dados inválidos", indicando o campo quando possível. Vale para toda a API |
+| 2026-11-25 | L30 / teste `dtoFotoRejeitaOcorrenciaNula` | **Substituído**: não existe DTO de entrada de foto; a ocorrência vem da URL (`/ocorrencias/{ocorrenciaId}/fotos`) e não chega nula. A regra já é provada por `RegistroFotograficoTest.rejeitaFotoSemOcorrencia` (L29) e pelo `NOT NULL` da V4 |
+| 2026-11-25 | L30 / consultas sem N+1 | **Uma consulta por tipo de dado**: a lista de diários conta as ocorrências numa consulta agrupada (`contarPorDiarios`); o detalhe busca ocorrências com autor e paralisação (`join fetch`), fotos ativas do diário inteiro (`listarPorDiario`) e equipe com nomes (`buscarComEquipe`). As fotos excluídas passam a ser filtradas na query, não em memória. No módulo `obra` (L19), `findAtivasPorIds` e `findAtivaPorUsuario` ganharam `join fetch a.usuario`, para que a equipe editada e o autor de uma ocorrência nova também saiam com o nome sem consulta extra (`AlocacaoObraRepositoryTest`) |
+| 2026-11-25 | L30 / nome de método | `findAtivo` renomeado para **`buscarAtivoPorData`**, no padrão português dos demais (`buscar`, `listarPorObra`) |
 
 ## Template
 ```

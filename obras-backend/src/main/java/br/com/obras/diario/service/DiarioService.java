@@ -19,6 +19,8 @@ import br.com.obras.diario.dto.NovaOcorrenciaRapidaDto;
 import br.com.obras.diario.dto.NovoDiarioDto;
 import br.com.obras.diario.dto.OcorrenciaDto;
 import br.com.obras.diario.dto.ParalisacaoDto;
+import br.com.obras.diario.mapper.DiarioMapper;
+import br.com.obras.diario.repository.ContagemOcorrencias;
 import br.com.obras.diario.repository.OcorrenciaRepository;
 import br.com.obras.diario.repository.ParalisacaoRepository;
 import br.com.obras.diario.repository.RegistroDiarioRepository;
@@ -33,7 +35,6 @@ import br.com.obras.shared.storage.ArquivoArmazenado;
 import br.com.obras.shared.storage.ArquivoStorageService;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,7 +42,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -56,6 +59,7 @@ public class DiarioService {
     private final ObraService obras;
     private final AuditoriaService auditoria;
     private final ArquivoStorageService storage;
+    private final DiarioMapper mapper;
 
     public DiarioService(
         RegistroDiarioRepository diarios,
@@ -64,8 +68,10 @@ public class DiarioService {
         RegistroFotograficoRepository fotos,
         ObraService obras,
         AuditoriaService auditoria,
-        ArquivoStorageService storage
+        ArquivoStorageService storage,
+        DiarioMapper mapper
     ) {
+        this.mapper = mapper;
         this.diarios = diarios;
         this.ocorrencias = ocorrencias;
         this.paralisacoes = paralisacoes;
@@ -78,8 +84,17 @@ public class DiarioService {
     @Transactional(readOnly = true)
     public List<DiarioResumoDto> listar(Long obraId) {
         obras.obterEntidade(obraId);
-        return diarios.listarPorObra(obraId).stream()
-            .map(d -> DiarioResumoDto.de(d, ocorrencias.contarPorDiario(d.getId())))
+        List<RegistroDiario> lista = diarios.listarPorObra(obraId);
+        if (lista.isEmpty()) return List.of();
+
+        // Uma consulta para todas as contagens, em vez de uma por diário (N+1).
+        Map<Long, Long> totais = ocorrencias.contarPorDiarios(
+                lista.stream().map(RegistroDiario::getId).toList()
+            ).stream()
+            .collect(Collectors.toMap(ContagemOcorrencias::diarioId, ContagemOcorrencias::total));
+
+        return lista.stream()
+            .map(d -> mapper.paraResumo(d, totais.getOrDefault(d.getId(), 0L)))
             .toList();
     }
 
@@ -87,19 +102,21 @@ public class DiarioService {
         RegistroDiario diario = criarDiario(
             obraId, dto.data(), dto.clima(), dto.descricao(), dto.equipePresenteIds()
         );
-        return DiarioDto.de(diario, List.of());
+        return mapper.paraDto(diario, List.of(), List.of());
     }
 
     @Transactional(readOnly = true)
     public DiarioDto buscar(Long obraId, Long diarioId) {
-        return DiarioDto.de(obterDiario(obraId, diarioId), listarOcorrencias(diarioId));
+        RegistroDiario diario = diarios.buscarComEquipe(obraId, diarioId)
+            .orElseThrow(() -> new RecursoNaoEncontradoException("RegistroDiario", diarioId));
+        return montarDiario(diario);
     }
 
     public DiarioDto editar(Long obraId, Long diarioId, AlterarDiarioDto dto) {
         RegistroDiario diario = obterDiario(obraId, diarioId);
         diario.editar(dto.clima(), dto.descricao(), validarEquipe(obraId, dto.equipePresenteIds()));
         auditoria.registrar(diario.getAuditavel(), AcaoAuditoria.EDICAO, null);
-        return DiarioDto.de(diarios.saveAndFlush(diario), listarOcorrencias(diarioId));
+        return montarDiario(diarios.saveAndFlush(diario));
     }
 
     public void excluir(Long obraId, Long diarioId) {
@@ -136,7 +153,8 @@ public class DiarioService {
         }
 
         auditoria.registrar(ocorrencia.getAuditavel(), AcaoAuditoria.EDICAO, null);
-        return OcorrenciaDto.de(ocorrencias.saveAndFlush(ocorrencia));
+        Ocorrencia salva = ocorrencias.saveAndFlush(ocorrencia);
+        return mapper.paraDto(salva, fotos.listarPorOcorrencia(salva.getId()));
     }
 
     public void excluirOcorrencia(Long obraId, Long ocorrenciaId) {
@@ -145,7 +163,7 @@ public class DiarioService {
 
     public OcorrenciaDto ocorrenciaRapida(Long obraId, NovaOcorrenciaRapidaDto dto) {
         obras.obterEntidade(obraId);
-        RegistroDiario diario = diarios.findAtivo(obraId, dto.data()).orElse(null);
+        RegistroDiario diario = diarios.buscarAtivoPorData(obraId, dto.data()).orElse(null);
         if (diario == null) {
             if (dto.clima() == null) {
                 throw new RegraNegocioException("Clima é obrigatório quando não existe diário no dia");
@@ -175,7 +193,7 @@ public class DiarioService {
             RegistroFotografico foto = RegistroFotografico.criar(
                 auditavel, ocorrencia, armazenado.localizador(), legenda
             );
-            return FotoDto.de(fotos.saveAndFlush(foto));
+            return mapper.paraDto(fotos.saveAndFlush(foto));
         } catch (RuntimeException e) {
             storage.descartar(armazenado.localizador());
             throw e;
@@ -186,7 +204,7 @@ public class DiarioService {
     public FotoDownloadDto buscarFoto(Long obraId, Long fotoId) {
         RegistroFotografico foto = obterFoto(obraId, fotoId);
         Resource resource = storage.carregar(foto.getArquivo());
-        return new FotoDownloadDto(resource, mediaType(foto.getArquivo()), nomeArquivo(foto.getArquivo()));
+        return mapper.paraDownload(foto, resource);
     }
 
     public void excluirFoto(Long obraId, Long fotoId) {
@@ -201,7 +219,7 @@ public class DiarioService {
         Set<Long> equipeIds
     ) {
         Obra obra = obras.obterEntidade(obraId);
-        if (diarios.findAtivo(obraId, data).isPresent()) {
+        if (diarios.buscarAtivoPorData(obraId, data).isPresent()) {
             throw new RegraNegocioException(MSG_DUPLICADO);
         }
         List<AlocacaoObra> equipe = validarEquipe(obraId, equipeIds);
@@ -235,7 +253,7 @@ public class DiarioService {
             ));
             ocorrencia.definirParalisacao(criada);
         }
-        return OcorrenciaDto.de(ocorrencia);
+        return mapper.paraDto(ocorrencia, List.of()); // recém-criada: ainda sem fotos
     }
 
     private List<AlocacaoObra> validarEquipe(Long obraId, Set<Long> ids) {
@@ -269,10 +287,13 @@ public class DiarioService {
             .orElseThrow(() -> new RecursoNaoEncontradoException("RegistroFotografico", fotoId));
     }
 
-    private List<OcorrenciaDto> listarOcorrencias(Long diarioId) {
-        return ocorrencias.listarPorDiario(diarioId).stream()
-            .map(OcorrenciaDto::de)
-            .toList();
+    /**  de Detalhe do diário: 1 consulta ocorrências (com autor) + 1 de fotos ativas. */
+    private DiarioDto montarDiario(RegistroDiario diario) {
+        return mapper.paraDto(
+            diario,
+            ocorrencias.listarPorDiario(diario.getId()),
+            fotos.listarPorDiario(diario.getId())
+        );
     }
 
     private boolean mensagemContem(Throwable erro, String trecho) {
@@ -282,16 +303,5 @@ public class DiarioService {
             atual = atual.getCause();
         }
         return false;
-    }
-
-    private String nomeArquivo(String localizador) {
-        return localizador.substring(localizador.lastIndexOf('/') + 1);
-    }
-
-    private MediaType mediaType(String localizador) {
-        String caminho = localizador.toLowerCase();
-        if (caminho.endsWith(".png")) return MediaType.IMAGE_PNG;
-        if (caminho.endsWith(".jpg") || caminho.endsWith(".jpeg")) return MediaType.IMAGE_JPEG;
-        return MediaType.APPLICATION_OCTET_STREAM;
     }
 }
