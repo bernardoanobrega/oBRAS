@@ -73,7 +73,7 @@ export default function PermissoesModal({ aberto, usuario, onFechar }) {
                       <td key={acao} className="px-2 py-2 text-center">
                         <input
                           type="checkbox"
-                          className="h-5 w-5 accent-brand-600"
+                          className="h-5 w-5 accent-brand"
                           checked={marcadas.has(chave)}
                           disabled={salvando === chave}
                           onChange={() => alternar(modulo, acao)}
@@ -86,7 +86,7 @@ export default function PermissoesModal({ aberto, usuario, onFechar }) {
               ))}
             </tbody>
           </table>
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-texto-suave">
             As alterações são salvas na hora. Permissões por obra vêm dos cargos da alocação do usuário.
           </p>
         </div>

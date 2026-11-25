@@ -49,7 +49,7 @@ export default function UsuarioFormModal({ aberto, usuario, onFechar, onSalvo })
           <Input label="Senha (mín. 8 caracteres)" name="senha" type="password" autoComplete="new-password"
                  value={form.senha} onChange={mudar('senha')} erro={erros.senha} required />
         )}
-        {erroGeral && <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-700">{erroGeral}</p>}
+        {erroGeral && <p role="alert" className="rounded bg-perigo-fundo p-2 text-sm text-perigo">{erroGeral}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button variante="secundario" onClick={onFechar}>Cancelar</Button>
           <Button type="submit" disabled={enviando}>{enviando ? 'Salvando...' : 'Salvar'}</Button>

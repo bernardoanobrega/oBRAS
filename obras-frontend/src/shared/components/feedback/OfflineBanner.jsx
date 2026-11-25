@@ -18,7 +18,7 @@ export default function OfflineBanner() {
 
   if (online) return null;
   return (
-    <div className="flex items-center justify-center gap-2 bg-red-600 px-3 py-2 text-center text-sm text-white" role="alert">
+    <div className="flex items-center justify-center gap-2 bg-perigo-forte px-3 py-2 text-center text-sm text-texto" role="alert">
       <WifiOff size={16} />
       Sem conexão. O oBRAS exige internet: aguarde o sinal para salvar seus registros.
     </div>

@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 @layer base {
+  /* Tema escuro: controles nativos (select, data, barra de rolagem) também ficam escuros. */
+  :root { color-scheme: dark; }
   html, body, #root { height: 100%; }
-  body { @apply antialiased; }
+  body { @apply bg-fundo text-texto antialiased; }
 }

@@ -52,9 +52,9 @@ export default function UsuariosPage() {
       {usuarios && usuarios.length === 0 && <EmptyState mensagem="Nenhum usuário cadastrado." />}
 
       {usuarios && usuarios.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-xl border border-borda bg-superficie">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-slate-600">
+            <thead className="bg-superficie-alta text-left text-texto-suave">
               <tr>
                 <th className="px-4 py-3">Nome</th>
                 <th className="px-4 py-3">Login</th>

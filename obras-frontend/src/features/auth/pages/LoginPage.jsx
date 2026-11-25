@@ -32,12 +32,12 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-full items-center justify-center p-4">
-      <form onSubmit={enviar} className="w-full max-w-sm space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-center text-2xl font-bold text-brand-700">oBRAS</h1>
-        <p className="text-center text-sm text-slate-500">Entre para acessar suas obras</p>
+      <form onSubmit={enviar} className="w-full max-w-sm space-y-4 rounded-2xl border border-borda bg-superficie p-6 shadow-sm">
+        <h1 className="text-center text-2xl font-bold text-brand-claro">oBRAS</h1>
+        <p className="text-center text-sm text-texto-suave">Entre para acessar suas obras</p>
         <Input label="Login" name="login" autoComplete="username" value={login} onChange={(e) => setLogin(e.target.value)} required />
         <Input label="Senha" name="senha" type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
-        {erro && <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-700">{erro}</p>}
+        {erro && <p role="alert" className="rounded bg-perigo-fundo p-2 text-sm text-perigo">{erro}</p>}
         <Button type="submit" className="w-full" disabled={enviando}>
           {enviando ? 'Entrando...' : 'Entrar'}
         </Button>
