@@ -62,7 +62,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({DiarioService.class, DiarioMapper.class, AuditoriaService.class, ObraService.class,
         DiarioServiceIntegracaoTest.PausaNaChecagem.class})
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 class DiarioServiceIntegracaoTest {
     private static final LocalDate DIA = LocalDate.of(2026, 11, 18);
     private static final String MSG_DUPLICADO = "Já existe registro para o dia";

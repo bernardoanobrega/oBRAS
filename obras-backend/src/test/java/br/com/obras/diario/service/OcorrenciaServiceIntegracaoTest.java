@@ -55,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({DiarioService.class, DiarioMapper.class, AuditoriaService.class, ObraService.class})
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 class OcorrenciaServiceIntegracaoTest {
     private static final LocalDate DIA = LocalDate.of(2026, 11, 18);
     private static final LocalDateTime DEZ_HORAS = DIA.atTime(10, 0);
