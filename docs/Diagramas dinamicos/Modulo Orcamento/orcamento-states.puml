@@ -11,25 +11,29 @@ skinparam NoteBackgroundColor #FFFBE6
 hide empty description
 
 ' ===== ESTADOS =====
-state ELABORACAO : Orçamento criado, itens sendo adicionados
-state SAUDAVEL : Execução dentro do planejado e abaixo do limite de alerta
-state ATENCAO : Atingiu o percentualLimiteAlerta
-state CRITICA : Orçamento em estouro crítico (vários itens em desvio)
-state CANCELADO <<final>> : Orçamento cancelado
+state ELABORACAO : Orçamento criado, sem itens
+state SAUDAVEL : Executado abaixo do limite de alerta e sem item em estouro
+state ATENCAO : Atingiu o percentualLimiteAlerta ou possui item em estouro
+state CRITICA : Total realizado acima do total orçado
+state CANCELADO <<final>> : Orçamento cancelado (não aceita alterações)
+
+note "Após qualquer custo, edição de item, remoção de item ou decisão,\no status é recalculado por gerarIndicadoresSaude()." as N1
 
 ' ===== TRANSIÇÕES =====
-[*] --> ELABORACAO : cadastrar [Usuário autorizado]
+[*] --> ELABORACAO : elaborar() [Usuário autorizado]
 
 ELABORACAO --> SAUDAVEL : adicionarItem(...) \n[Iniciar acompanhamento]
 
-SAUDAVEL --> SAUDAVEL : item.registrarCusto(...) / gerarIndicadoresSaude() \n[saude == SAUDAVEL]
-SAUDAVEL --> ATENCAO : item.registrarCusto(...) / gerarIndicadoresSaude() \n[saude == ATENCAO]
+SAUDAVEL --> SAUDAVEL : item.registrarCusto(...) \n[saude == SAUDAVEL]
+SAUDAVEL --> ATENCAO : item.registrarCusto(...) \n[saude == ATENCAO]
+SAUDAVEL --> CRITICA : item.registrarCusto(...) \n[saude == CRITICA]
 
 ATENCAO --> SAUDAVEL : registrarDecisao(...) \nReduçao de desvio [saude == SAUDAVEL]
 ATENCAO --> ATENCAO : item.registrarCusto(...) \n[saude == ATENCAO]
-ATENCAO --> CRITICA : item.registrarCusto(...) / gerarIndicadoresSaude() \n[saude == CRITICA]
+ATENCAO --> CRITICA : item.registrarCusto(...) \n[saude == CRITICA]
 
 CRITICA --> ATENCAO : registrarDecisao(...) \nContenção de custos [saude == ATENCAO]
+CRITICA --> SAUDAVEL : registrarDecisao(...) \n[saude == SAUDAVEL]
 CRITICA --> CRITICA : item.registrarCusto(...) \n[saude == CRITICA]
 
 ELABORACAO --> CANCELADO : cancelar()
@@ -38,5 +42,10 @@ ATENCAO --> CANCELADO : cancelar()
 CRITICA --> CANCELADO : cancelar()
 
 CANCELADO --> [*]
+
+note right of CANCELADO
+  Qualquer operação em CANCELADO
+  lança RegraNegocioException
+end note
 
 @enduml

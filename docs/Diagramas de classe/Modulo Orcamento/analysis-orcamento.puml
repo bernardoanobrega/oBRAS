@@ -1,0 +1,150 @@
+@startuml orcamento-class-diagram
+title OBRAS - Diagrama de Classes (Módulo Orçamento)
+
+skinparam classAttributeIconSize 0
+skinparam ClassFontSize 14
+skinparam classBackgroundColor<<externa>> #EEEEEE
+skinparam classBorderColor<<externa>> #888888
+hide empty members
+
+' ===== CLASSES EXTERNAS =====
+class Obra <<externa>>
+class Usuario <<externa>>
+
+' ===== NÚCLEO =====
+class Orcamento <<Entity>> {
+  -id : Long
+  -dataElaboracao : LocalDate
+  -dataUltimaAtualizacao : LocalDate
+  -percentualLimiteAlerta : BigDecimal
+  -status : StatusOrcamento
+  --
+  +{static} elaborar(idObra : Long, percentualLimiteAlerta : BigDecimal) : Orcamento
+  +adicionarItem(codigo : String, descricao : String, unidade : String, quantidade : BigDecimal, custoUnitarioOrcado : BigDecimal) : ItemOrcado
+  +removerItem(idItem : Long) : void
+  +buscarItem(idItem : Long) : ItemOrcado
+  +registrarDecisao(descricao : String, justificativa : String, valorImpacto : BigDecimal, autor : Usuario) : DecisaoFinanceira
+  +editarDecisao(idDecisao : Long, descricao : String, justificativa : String, valorImpacto : BigDecimal) : DecisaoFinanceira
+  +buscarDecisao(idDecisao : Long) : DecisaoFinanceira
+  +calcularTotalOrcado() : BigDecimal
+  +calcularTotalRealizado() : BigDecimal
+  +calcularDesvioFinanceiro() : BigDecimal
+  +calcularPercentualDesvio() : BigDecimal
+  +listarItensEmDesvio() : ItemOrcado[]
+  +gerarIndicadoresSaude() : IndicadorSaudeFinanceira
+  +cancelar() : void
+}
+
+class ItemOrcado <<Entity>> {
+  -id : Long
+  -idOrcamento : Long
+  -codigo : String
+  -descricao : String
+  -unidade : String
+  -quantidade : BigDecimal
+  -custoUnitarioOrcado : BigDecimal
+  --
+  +registrarCusto(descricao : String, valor : BigDecimal, origem : OrigemCusto, idOrigem : Long, autor : Usuario) : CustoRealizado
+  +buscarCusto(idCusto : Long) : CustoRealizado
+  +editarCusto(idCusto : Long, descricao : String, valor : BigDecimal, origem : OrigemCusto) : CustoRealizado
+  +removerCusto(idCusto : Long) : void
+  +atualizarValores(quantidade : BigDecimal, custoUnitarioOrcado : BigDecimal) : void
+  +calcularValorOrcado() : BigDecimal
+  +calcularTotalRealizado() : BigDecimal
+  +calcularDesvioFinanceiro() : BigDecimal
+  +calcularPercentualDesvio() : BigDecimal
+  +calcularPercentualExecutado() : BigDecimal
+  +estaEmEstouro() : boolean
+  +classificarSaude(limiteAlerta : BigDecimal) : SaudeFinanceira
+  +possuiCustos() : boolean
+}
+
+class CustoRealizado <<Entity>> {
+  -id : Long
+  -idItem : Long
+  -dataLancamento : LocalDate
+  -descricao : String
+  -valor : BigDecimal
+  -origem : OrigemCusto
+  -idOrigem : Long
+  --
+  +validar() : boolean
+  +estaVinculadoAOutroModulo() : boolean
+  ~atualizar(descricao : String, valor : BigDecimal, origem : OrigemCusto) : void
+}
+
+class DecisaoFinanceira <<Entity>> {
+  -id : Long
+  -idOrcamento : Long
+  -dataDecisao : LocalDate
+  -descricao : String
+  -justificativa : String
+  -valorImpacto : BigDecimal
+  --
+  ~atualizar(descricao : String, justificativa : String, valorImpacto : BigDecimal) : void
+}
+
+class IndicadorSaudeFinanceira <<ValueObject>> {
+  -totalOrcado : BigDecimal
+  -totalRealizado : BigDecimal
+  -desvioAbsoluto : BigDecimal
+  -desvioPercentual : BigDecimal
+  -percentualExecutado : BigDecimal
+  -quantidadeItensEmEstouro : int
+  -saude : SaudeFinanceira
+  --
+  +classificarSaude(limiteAlerta : BigDecimal) : SaudeFinanceira
+  +possuiAlerta() : boolean
+}
+
+' ===== ENUMERAÇÕES =====
+enum StatusOrcamento {
+  ELABORACAO
+  SAUDAVEL
+  ATENCAO
+  CRITICA
+  CANCELADO
+}
+
+enum SaudeFinanceira {
+  SAUDAVEL
+  ATENCAO
+  CRITICA
+}
+
+enum OrigemCusto {
+  MATERIAL
+  MAO_DE_OBRA
+  EQUIPAMENTO
+  SERVICO_TERCEIRIZADO
+  OUTRO
+}
+
+note right of IndicadorSaudeFinanceira
+  CRITICA: totalRealizado > totalOrcado
+  ATENCAO: percentualExecutado >= percentualLimiteAlerta
+           ou algum item em estouro
+  SAUDAVEL: demais casos
+end note
+
+note bottom of CustoRealizado
+  Custo com idOrigem (lançado por outro módulo)
+  não pode ser editado nem removido no orçamento
+end note
+
+note bottom of DecisaoFinanceira
+  valorImpacto entra no total orçado
+  (positivo = aditivo, negativo = contenção)
+end note
+
+' ===== RELAÇÕES =====
+Orcamento "0..1" --> "1" Obra : informa
+Orcamento "1" *-- "0..*" ItemOrcado : composto por
+ItemOrcado "1" *-- "0..*" CustoRealizado : recebe
+Orcamento "1" *-- "0..*" DecisaoFinanceira : registra
+Orcamento ..> IndicadorSaudeFinanceira : gera
+Orcamento --> StatusOrcamento
+Usuario "1" --> "0..*" CustoRealizado : lança
+Usuario "1" --> "0..*" DecisaoFinanceira : toma
+
+@enduml
