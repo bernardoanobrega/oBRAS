@@ -4,7 +4,11 @@ import br.com.obras.shared.exception.RecursoNaoEncontradoException;
 import br.com.obras.shared.exception.RegraNegocioException;
 import br.com.obras.usuario.domain.Permissao;
 import br.com.obras.usuario.domain.Usuario;
-import br.com.obras.usuario.dto.*;
+import br.com.obras.usuario.dto.AtualizarUsuarioDto;
+import br.com.obras.usuario.dto.DefinirPermissaoDto;
+import br.com.obras.usuario.dto.NovoUsuarioDto;
+import br.com.obras.usuario.dto.PermissaoIndividualDto;
+import br.com.obras.usuario.dto.UsuarioDto;
 import br.com.obras.usuario.repository.PermissaoRepository;
 import br.com.obras.usuario.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -66,5 +70,13 @@ public class UsuarioService {
 
     private Usuario obter(Long id) {
         return usuarios.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Usuário", id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<PermissaoIndividualDto> listarPermissoesIndividuais(Long id) {
+        return obter(id).getPermissoes().stream()
+                .map(pu -> new PermissaoIndividualDto(pu.getPermissao().getModulo(),
+                        pu.getPermissao().getAcao(), pu.isConcedida()))
+                .toList();
     }
 }
