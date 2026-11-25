@@ -18,8 +18,8 @@ Para criar o 1º admin: `BOOTSTRAP_ADMIN_ENABLED=true BOOTSTRAP_ADMIN_PASSWORD=.
 ## Estrutura
 `shared/` (segurança, exceções, storage) · um pacote por módulo com `controller/service/repository/domain/dto/mapper`.
 Módulos implementados: `usuario` (completo), `orcamento` (completo), `obra` (só o adapter de alocação).
-Migrations: `V1` usuários/permissões, `V2` obras/canteiros/alocações, `V10` orçamento
-(número provisório: a numeração entre módulos ainda será combinada pelo grupo).
+Migrations: `V1` usuários/permissões, `V2` obras/canteiros/alocações, `V3`/`V3_1` auditoria, `V4` diário, `V5` orçamento.
+A numeração segue a ordem em que os módulos entram na develop.
 
 ## Orçamento (UC10 · RF-30 a RF-34, RF-74)
 - `GET /api/orcamentos`: orçamentos das obras em que o usuário tem `ORCAMENTO:VISUALIZAR`.
