@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @ConditionalOnProperty(name = "app.bootstrap.admin.enabled", havingValue = "true")
 public class AdminBootstrap implements ApplicationRunner {
+    private static final int MATERIAIS_NOS_PEDIDOS_DEMONSTRACAO = 5;
+
     private static final Logger log = LoggerFactory.getLogger(AdminBootstrap.class);
 
     private final UsuarioRepository usuarios;
@@ -71,13 +73,16 @@ public class AdminBootstrap implements ApplicationRunner {
         Long totalObras = jdbc.sql("SELECT count(*) FROM obra").query(Long.class).single();
         if (totalObras > 0) return;
 
+        // A V3_1 (auditoria da obra) exige um registro auditável para cada obra.
+        Long auditavelId = jdbc.sql("INSERT INTO auditavel DEFAULT VALUES RETURNING id").query(Long.class).single();
         Long obraId = jdbc.sql("""
-                INSERT INTO obra (nome, descricao, tipologia, endereco, inicio_previsto, fim_previsto, status, art, responsavel_id)
+                INSERT INTO obra (nome, descricao, tipologia, endereco, inicio_previsto, fim_previsto, status, art,
+                                  responsavel_id, auditavel_id)
                 VALUES ('Residencial Parque das Águas', 'Torres A e B - 18 pavimentos', 'RESIDENCIAL',
                         'Av. Beira Mar, 1200 - Aracaju/SE', CURRENT_DATE - 60, CURRENT_DATE + 300,
-                        'EM_ANDAMENTO', 'ART-SE-2026-00981', :respId)
+                        'EM_ANDAMENTO', 'ART-SE-2026-00981', :respId, :auditavelId)
                 RETURNING id
-                """).param("respId", adminId).query(Long.class).single();
+                """).param("respId", adminId).param("auditavelId", auditavelId).query(Long.class).single();
 
         jdbc.sql("INSERT INTO canteiro (obra_id, nome_canteiro) VALUES (:obraId, 'Almoxarifado Central - Bloco A')")
                 .param("obraId", obraId).update();
@@ -91,7 +96,13 @@ public class AdminBootstrap implements ApplicationRunner {
         Long totalMateriais = jdbc.sql("SELECT count(*) FROM material").query(Long.class).single();
         if (totalMateriais > 0) return;
 
-        Long canteiro1 = jdbc.sql("SELECT id FROM canteiro ORDER BY id LIMIT 1").query(Long.class).single();
+        // Banco com obra já cadastrada mas sem canteiro: não há onde guardar o saldo de demonstração.
+        var canteiro = jdbc.sql("SELECT id FROM canteiro ORDER BY id LIMIT 1").query(Long.class).optional();
+        if (canteiro.isEmpty()) {
+            log.warn("Materiais de demonstração ignorados: nenhum canteiro cadastrado.");
+            return;
+        }
+        Long canteiro1 = canteiro.get();
 
         record MatSeed(String nome, String desc, String un, double atual, double min) {}
         var seeds = java.util.List.of(
@@ -125,6 +136,11 @@ public class AdminBootstrap implements ApplicationRunner {
     private void garantirFornecedoresEPedidos(Long adminId) {
         Long totalFornecedores = jdbc.sql("SELECT count(*) FROM fornecedor").query(Long.class).single();
         if (totalFornecedores > 0) return;
+        var matIds = jdbc.sql("SELECT id FROM material ORDER BY id").query(Long.class).list();
+        if (matIds.size() < MATERIAIS_NOS_PEDIDOS_DEMONSTRACAO) {
+            log.warn("Pedidos de demonstração ignorados: faltam materiais cadastrados.");
+            return;
+        }
 
         Long f1 = inserirFornecedor("Votorantim Cimentos N/NE", "10656452000180", "vendas@vcimentos.com.br", "(79) 3214-8800");
         Long f2 = inserirFornecedor("Gerdau Aços Longos S.A.", "33611500000119", "comercial.se@gerdau.com.br", "(79) 3249-1100");
@@ -132,7 +148,6 @@ public class AdminBootstrap implements ApplicationRunner {
         Long f4 = inserirFornecedor("Mineradora São Cristóvão Britas", "41892310000155", "contato@scbritas.com.br", "(79) 99812-3400");
 
         Long obraId = jdbc.sql("SELECT id FROM obra ORDER BY id LIMIT 1").query(Long.class).single();
-        var matIds = jdbc.sql("SELECT id FROM material ORDER BY id").query(Long.class).list();
 
         // 1. SOLICITADO (Urgente e Normal)
         criarPedidoSeed(obraId, adminId, null, "SOLICITADO", "ALTA", 5, matIds.get(0), 150, 38.50);

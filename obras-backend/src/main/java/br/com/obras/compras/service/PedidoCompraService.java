@@ -83,7 +83,8 @@ public class PedidoCompraService {
         boolean excede = itemOrcado != null && itemOrcado.totalRealizado()
                 .add(item.calcularValorSubTotal()).compareTo(itemOrcado.valorOrcado()) > 0;
 
-        pedidos.saveAndFlush(pedido);
+        // O pedido já está gerenciado: save() faria merge e o item novo ficaria transiente (TransientObjectException).
+        pedidos.flush();
         return new ItemAdicionadoDto(mapper.paraDto(pedido), excede);
     }
 
