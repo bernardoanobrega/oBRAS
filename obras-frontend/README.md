@@ -29,6 +29,21 @@ Login/sessão, layout responsivo (menu lateral no escritório, barra inferior no
 guards de rota, **Usuários** (lista, cadastro, edição, desativar, permissões individuais).
 Demais módulos: telas "em construção" com o escopo (UCs/RFs) da documentação.
 
+## Tema (paleta do Figma)
+As cores ficam só em `tailwind.config.js`. Nas telas, use os nomes abaixo, nunca hexadecimal solto
+nem as cores padrão do Tailwind (`slate`, `red`, `amber`...).
+
+| Nome | Uso |
+|---|---|
+| `fundo` | fundo da página e dos campos |
+| `superficie`, `superficie-alta` | cards, cabeçalho e modais; hover e cabeçalho de tabela |
+| `borda`, `borda-forte` | bordas de cards e divisórias; borda de campos e botões secundários |
+| `texto`, `texto-suave`, `texto-fraco` | texto principal, secundário e de apoio |
+| `menu`, `menu-ativo`, `menu-texto`, `menu-destaque` | menu lateral e barra inferior |
+| `brand`, `brand-claro`, `brand-fundo` | destaque âmbar (botão principal, alerta/atenção) |
+| `sucesso`, `perigo`, `info` (+ `-fundo`) | situações ok, crítico/erro e informativo |
+| `neutro` | marcadores e itens inativos |
+
 ## Regras
 - Uma feature não importa de outra feature; o que for comum sobe para `shared/`.
 - Toda chamada passa por `shared/api/http.js`. Erros: `mensagemErro(e)` e `errosPorCampo(e)`.

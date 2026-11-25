@@ -1,8 +1,8 @@
 const VARIANTES = {
-  primario: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-200',
-  secundario: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 disabled:text-slate-400',
-  perigo: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
-  link: 'text-brand-700 hover:underline px-0',
+  primario: 'bg-brand text-fundo hover:bg-brand-claro disabled:bg-brand-fundo disabled:text-texto-fraco',
+  secundario: 'bg-superficie text-texto border border-borda-forte hover:bg-superficie-alta disabled:text-texto-fraco',
+  perigo: 'bg-perigo-forte text-texto hover:bg-perigo disabled:bg-perigo-fundo disabled:text-texto-fraco',
+  link: 'text-brand-claro hover:underline px-0',
 };
 
 // min-h 44px no mobile (toque), menor no desktop

@@ -1,11 +1,16 @@
+// Pílula com borda fina na cor da situação, como os selos do protótipo do Figma.
 const TONS = {
-  verde: 'bg-green-100 text-green-800',
-  amarelo: 'bg-yellow-100 text-yellow-800',
-  vermelho: 'bg-red-100 text-red-800',
-  cinza: 'bg-slate-100 text-slate-700',
-  azul: 'bg-blue-100 text-blue-800',
+  verde: 'border-sucesso/40 bg-sucesso-fundo text-sucesso',
+  amarelo: 'border-brand/40 bg-brand-fundo text-brand-claro',
+  vermelho: 'border-perigo/40 bg-perigo-fundo text-perigo',
+  cinza: 'border-borda bg-superficie-alta text-texto',
+  azul: 'border-info/40 bg-info-fundo text-info',
 };
 
 export default function Badge({ tom = 'cinza', children }) {
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${TONS[tom]}`}>{children}</span>;
+  return (
+    <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${TONS[tom]}`}>
+      {children}
+    </span>
+  );
 }

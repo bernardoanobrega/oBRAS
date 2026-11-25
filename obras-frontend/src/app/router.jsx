@@ -15,6 +15,9 @@ import ResumoObraPage from '../features/obras/pages/ResumoObraPage.jsx';
 import EquipeObraPage from '../features/obras/pages/EquipeObraPage.jsx';
 import DiarioPage from '../features/obras/pages/DiarioPage.jsx';
 import CronogramaPage from '../features/cronograma/pages/CronogramaPage.jsx';
+import CronogramasPage from '../features/cronograma/pages/CronogramasPage.jsx';
+import OrcamentosPage from '../features/orcamento/pages/OrcamentosPage.jsx';
+import ConfiguracoesPage from '../features/configuracoes/pages/ConfiguracoesPage.jsx';
 import OrcamentoPage from '../features/orcamento/pages/OrcamentoPage.jsx';
 import ComprasPage from '../features/compras/pages/ComprasPage.jsx';
 import FornecedoresPage from '../features/compras/pages/FornecedoresPage.jsx';
@@ -54,6 +57,9 @@ export const router = createBrowserRouter([
           { path: 'equipamentos', ...global('MAQUINAS_EQUIPAMENTOS', <EquipamentosPage />) },
           { path: 'prestadores', ...global('CONTRATOS_DOCUMENTOS', <PrestadoresPage />) },
           { path: 'obras', element: <ObrasPage /> },
+          { path: 'cronograma', element: <CronogramasPage /> },
+          { path: 'orcamento', element: <OrcamentosPage /> },
+          { path: 'configuracoes', element: <ConfiguracoesPage /> },
           {
             path: 'obras/:obraId',
             element: <ObraLayout />,
