@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Valida a migration de orçamento e o mapeamento JPA contra um Postgres real (ddl-auto: validate). */
 @DataJpaTest
@@ -71,6 +72,19 @@ class OrcamentoRepositoryTest {
         assertEquals(new BigDecimal("1350.00"), salvo.calcularTotalOrcado());
         assertEquals(new BigDecimal("1300.00"), salvo.calcularTotalRealizado());
         assertEquals(1, salvo.getItens().get(0).getCustos().size());
+    }
+
+    @Test
+    void encontraOrcamentoPeloIdDoItem() {
+        Orcamento orcamento = Orcamento.elaborar(obraId, LIMITE_ALERTA);
+        ItemOrcado item = orcamento.adicionarItem("01.01", "Fundação", "m3", BigDecimal.ONE, BigDecimal.TEN);
+        orcamentos.saveAndFlush(orcamento);
+        entityManager.clear();
+
+        Orcamento encontrado = orcamentos.findByItensId(item.getId()).orElseThrow();
+
+        assertEquals(obraId, encontrado.getObraId());
+        assertTrue(orcamentos.findByItensId(item.getId() + 1).isEmpty());
     }
 
     @Test

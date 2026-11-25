@@ -28,7 +28,8 @@ Migrations: `V1` usuários/permissões, `V2` obras/canteiros/alocações, `V10` 
   `itens/{id}/custos/{custoId}` (`PUT`, `DELETE`; só custos lançados manualmente); `decisoes` (`POST`) e
   `decisoes/{decisaoId}` (`PUT`), ambos exigem `APROVAR`.
 - Saúde: `CRITICA` se realizado > orçado; `ATENCAO` se executado ≥ limite de alerta ou há item em estouro.
-- Outros módulos (ex.: Compras) lançam custo por `OrcamentoService.registrarCusto`.
+- Compras usa `shared/port/OrcamentoPort`, implementado por `OrcamentoAdapter`: consulta o item orçado e
+  lança o custo com origem `MATERIAL` e `idOrigem` = pedido (esses custos não são editáveis na tela).
 
 ## Regras
 - Módulo nunca usa repository de outro módulo; use o service público ou um *port* em `shared`.
