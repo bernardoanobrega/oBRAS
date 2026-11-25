@@ -26,7 +26,9 @@ Login de desenvolvimento: `admin` / `Admin@12345`.
 
 ## Implementado
 Login/sessão, layout responsivo (menu lateral no escritório, barra inferior no celular), banner offline,
-guards de rota, **Usuários** (lista, cadastro, edição, desativar, permissões individuais).
+guards de rota, **Usuários** (lista, cadastro, edição, desativar, permissões individuais),
+**Orçamento** (menu lateral e aba da obra: indicadores, planilha orçado x realizado, lançamento de custo,
+decisões financeiras e cancelamento).
 Demais módulos: telas "em construção" com o escopo (UCs/RFs) da documentação.
 
 ## Tema (paleta do Figma)
