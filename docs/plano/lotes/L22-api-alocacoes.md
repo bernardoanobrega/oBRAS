@@ -69,3 +69,7 @@ Sem migration.
 ## 10. Verificação e evidência
 
 `mvn test`. Evidência: testes de controller.
+
+## 11. Nota do frontend (L25, 2026-11-26)
+
+O front do L25 já chama estas rotas e espera os formatos listados em [`L25-frontend-equipe.md`, seção 11](L25-frontend-equipe.md#pendências-para-o-backend-o-que-o-front-já-chama), incluindo duas rotas que não estão neste contrato: `GET /api/cargos` e `GET /api/obras/{obraId}/alocacoes/candidatos`. Combinar com o Cauã antes de mudar algum formato.

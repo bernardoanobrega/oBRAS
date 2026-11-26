@@ -20,6 +20,7 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | [ADR-17](./ADR-17-diario-expoe-nomes.md) | DTOs do diário expõem nome da equipe presente e do autor | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
 | [ADR-18](./ADR-18-ocorrencia-mesmo-dia-diario.md) | Ocorrência sempre no mesmo dia do diário | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
 | [ADR-19](./ADR-19-corrida-ocorrencia-rapida.md) | Ocorrência rápida em corrida: vincular ao diário já criado | Proposto (Cauã), aguarda Thierry | 2026-11-26 |
+| [ADR-20](./ADR-20-art-texto-na-obra.md) | ART do responsável técnico como texto na obra, sem vínculo com o usuário | Proposto (Cauã), aguarda Thierry | 2026-11-26 |
 
 ## Confirmações (sem ADR novo)
 | Data | Item | Decisão |

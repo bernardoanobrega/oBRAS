@@ -37,14 +37,14 @@ function competencia(data) {
   return `${MESES[indice].charAt(0).toUpperCase()}${MESES[indice].slice(1)}/${ano}`;
 }
 
-function sigla(nome) {
+export function sigla(nome) {
   if (!nome) return '—';
   const partes = String(nome).trim().split(/\s+/).filter(Boolean);
   if (partes.length === 0) return '—';
   return (partes[0][0] + (partes[1]?.[0] ?? '')).toUpperCase();
 }
 
-function tomEquipe(usuarioId) {
+export function tomEquipe(usuarioId) {
   const id = Number(usuarioId);
   if (!Number.isFinite(id)) return 'neutral';
   return TONS_EQUIPE[Math.abs(id) % TONS_EQUIPE.length];
