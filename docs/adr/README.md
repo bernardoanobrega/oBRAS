@@ -19,6 +19,7 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | [ADR-16](./ADR-16-mapper-entidade-dto.md) | Conversão entidade → DTO em classe mapper | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
 | [ADR-17](./ADR-17-diario-expoe-nomes.md) | DTOs do diário expõem nome da equipe presente e do autor | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
 | [ADR-18](./ADR-18-ocorrencia-mesmo-dia-diario.md) | Ocorrência sempre no mesmo dia do diário | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
+| [ADR-19](./ADR-19-corrida-ocorrencia-rapida.md) | Ocorrência rápida em corrida: vincular ao diário já criado | Proposto (Cauã), aguarda Thierry | 2026-11-26 |
 
 ## Confirmações (sem ADR novo)
 | Data | Item | Decisão |
@@ -41,6 +42,9 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | 2026-11-25 | Obra excluída logicamente (L11) | **`ObraService` ignora obra excluída**: `ObraRepository.buscarAtiva` e `listarAtivas` juntam com `auditavel` e filtram `excluido = false`. Obra excluída passa a dar 404 em todo o módulo, diário incluído (`ObraRepositoryTest`) |
 | 2026-11-25 | L32 / contrato do service | **O contrato segue o código**: `DiarioService.adicionarOcorrencia` / `editarOcorrencia` (não `OcorrenciaService.criar` / `atualizar`), entrada `NovaOcorrenciaDto` e autor via `CurrentUser.id()`. **Sem `listar` próprio**: as ocorrências vêm no `DiarioDto` do `buscar` do diário. **Paralisação sem categoria própria**: nasce com a ocorrência e herda a categoria dela (confirmação do L29) |
 | 2026-11-25 | L32 + L36 / exclusão do diário | **Cascata lógica, como o L36 define**: excluir o diário marca como excluídas as ocorrências ativas e as fotos dele; excluir a ocorrência marca as fotos. Cada item ganha o próprio `EXCLUSAO` na auditoria, na mesma transação, e nada é apagado fisicamente. Assim, ocorrência de diário excluído não pode mais ser editada nem receber foto. Antecipado no L32 porque era um furo no vínculo ocorrência–diário |
+| 2026-11-26 | L33 / contrato do service | **O contrato segue o código**: `DiarioService.ocorrenciaRapida(obraId, NovaOcorrenciaRapidaDto)` (não `criarRapida`), autor via `CurrentUser.id()`, categoria opcional com padrão `OUTRO` (ADR-14). **`dataHora` opcional**: ausente vale "agora" e precisa cair no dia `data` (ADR-18); para registrar um dia passado, informa-se o horário |
+| 2026-11-26 | L33 / campos do payload | **Sem `legenda` e sem `paralisacao`**: a legenda é da foto e vai no upload (L35), e o DTO a aceitava e descartava em silêncio; a paralisação vai pelo formulário completo (L38). O contrato dizia "legenda pode compor a descrição", o que não é feito |
+| 2026-11-26 | L33 / diário automático | **Nasce sem descrição**: antes recebia o texto da ocorrência, misturando o resumo do dia com o registro pontual. Equipe presente vazia, clima do payload |
 
 ## Template
 ```

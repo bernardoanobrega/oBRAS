@@ -32,9 +32,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -60,6 +62,7 @@ class DiarioServiceTest {
     @Mock private ObraService obras;
     @Mock private AuditoriaService auditoria;
     @Mock private ArquivoStorageService storage;
+    @Mock private PlatformTransactionManager transacoes;
     @Spy private DiarioMapper mapper = new DiarioMapper();
     @InjectMocks private DiarioService service;
 
@@ -117,7 +120,7 @@ class DiarioServiceTest {
         when(diarios.buscarAtivoPorData(OBRA_ID, DATA)).thenReturn(Optional.empty());
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, CategoriaOcorrencia.OUTRO, "Fachada leste", "Fachada leste", DATA.atTime(9, 0), null
+            DATA, null, CategoriaOcorrencia.OUTRO, "Fachada leste", DATA.atTime(9, 0)
         );
 
         RegraNegocioException e = assertThrows(
@@ -132,7 +135,7 @@ class DiarioServiceTest {
         prepararOcorrenciaRapidaEmDiarioExistente();
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, null, "Fachada leste", null, DATA.atTime(9, 0), null
+            DATA, null, null, "Fachada leste", DATA.atTime(9, 0)
         );
 
         assertEquals(CategoriaOcorrencia.OUTRO.name(), service.ocorrenciaRapida(OBRA_ID, dto).categoria());
@@ -143,10 +146,40 @@ class DiarioServiceTest {
         prepararOcorrenciaRapidaEmDiarioExistente();
 
         var dto = new NovaOcorrenciaRapidaDto(
-            DATA, null, CategoriaOcorrencia.SEGURANCA, "Andaime sem guarda-corpo", null, DATA.atTime(9, 0), null
+            DATA, null, CategoriaOcorrencia.SEGURANCA, "Andaime sem guarda-corpo", DATA.atTime(9, 0)
         );
 
         assertEquals(CategoriaOcorrencia.SEGURANCA.name(), service.ocorrenciaRapida(OBRA_ID, dto).categoria());
+    }
+
+    /**
+     * ADR-19: o INSERT do diário bate no índice único (outra requisição criou o diário
+     * do dia ao mesmo tempo). A transação que falhou é desfeita e a nova tentativa
+     * vincula a ocorrência ao diário que a outra criou.
+     */
+    @Test
+    void corridaNoDiarioRepeteEVinculaAoDiarioCriado() {
+        Obra obra = obra();
+        RegistroDiario daOutraRequisicao = diario(auditavel(100L), obra);
+        when(obras.obterEntidade(OBRA_ID)).thenReturn(obra);
+        when(diarios.buscarAtivoPorData(OBRA_ID, DATA))
+            .thenReturn(Optional.empty(), Optional.empty(), Optional.of(daOutraRequisicao));
+        when(diarios.saveAndFlush(any(RegistroDiario.class))).thenThrow(new DataIntegrityViolationException(
+            "duplicate key value violates unique constraint \"uk_registro_diario_obra_data_ativo\""));
+        AlocacaoObra autor = alocacao(7L);
+        when(obras.alocacaoAtiva(OBRA_ID, USUARIO_ID)).thenReturn(Optional.of(autor));
+        when(auditoria.criar(any(AcaoAuditoria.class), isNull())).thenAnswer(i -> auditavel(200L));
+        when(ocorrencias.saveAndFlush(any(Ocorrencia.class))).thenAnswer(i -> i.getArgument(0));
+
+        var dto = new NovaOcorrenciaRapidaDto(
+            DATA, Clima.CHUVA_FORTE, null, "Fachada leste", DATA.atTime(9, 0)
+        );
+        var result = service.ocorrenciaRapida(OBRA_ID, dto);
+
+        assertEquals(100L, result.diarioId(), "vinculada ao diário da outra requisição");
+        verify(transacoes, times(2)).getTransaction(any());
+        verify(transacoes, times(1)).rollback(any());
+        verify(diarios, times(1)).saveAndFlush(any(RegistroDiario.class));
     }
 
     /** L32: o autor é a alocação do usuário do token; o payload nem tem campo de autor. */

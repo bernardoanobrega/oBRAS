@@ -36,7 +36,10 @@ import br.com.obras.shared.storage.ArquivoStorageService;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -60,6 +63,7 @@ public class DiarioService {
     private final AuditoriaService auditoria;
     private final ArquivoStorageService storage;
     private final DiarioMapper mapper;
+    private final TransactionTemplate transacao;
 
     public DiarioService(
         RegistroDiarioRepository diarios,
@@ -69,8 +73,10 @@ public class DiarioService {
         ObraService obras,
         AuditoriaService auditoria,
         ArquivoStorageService storage,
-        DiarioMapper mapper
+        DiarioMapper mapper,
+        PlatformTransactionManager transacoes
     ) {
+        this.transacao = new TransactionTemplate(transacoes);
         this.mapper = mapper;
         this.diarios = diarios;
         this.ocorrencias = ocorrencias;
@@ -172,21 +178,39 @@ public class DiarioService {
         auditoria.excluir(ocorrencia.getAuditavel());
     }
 
+    /**
+     * Ocorrência rápida (L33): usa o diário ativo do dia ou cria um (clima obrigatório),
+     * tudo numa única transação.
+     *
+     * <p>Condição de corrida (ADR-19): se outra requisição criar o diário do mesmo dia
+     * ao mesmo tempo, o índice único barra o nosso INSERT e o PostgreSQL invalida a
+     * transação. Por isso a transação é aberta aqui, pelo {@link TransactionTemplate}, e
+     * não pelo {@code @Transactional}: descartamos a que falhou e repetimos uma vez numa
+     * transação nova, que já enxerga o diário confirmado pela outra e se vincula a ele.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public OcorrenciaDto ocorrenciaRapida(Long obraId, NovaOcorrenciaRapidaDto dto) {
+        try {
+            return transacao.execute(status -> tentarOcorrenciaRapida(obraId, dto));
+        } catch (DiarioDuplicadoException corrida) {
+            return transacao.execute(status -> tentarOcorrenciaRapida(obraId, dto));
+        }
+    }
+
+    private OcorrenciaDto tentarOcorrenciaRapida(Long obraId, NovaOcorrenciaRapidaDto dto) {
         obras.obterEntidade(obraId);
         RegistroDiario diario = diarios.buscarAtivoPorData(obraId, dto.data()).orElse(null);
         if (diario == null) {
             if (dto.clima() == null) {
                 throw new RegraNegocioException("Clima é obrigatório quando não existe diário no dia");
             }
-            diario = criarDiario(obraId, dto.data(), dto.clima(), dto.descricao(), Set.of());
+            // D4: o diário nasce sem descrição; a descrição do dia não é o texto da ocorrência
+            diario = criarDiario(obraId, dto.data(), dto.clima(), null, Set.of());
         }
         CategoriaOcorrencia categoria = dto.categoria() == null
             ? CategoriaOcorrencia.OUTRO
             : dto.categoria();
-        return criarOcorrencia(
-            diario, categoria, dto.descricao(), dto.dataHora(), dto.paralisacao()
-        );
+        return criarOcorrencia(diario, categoria, dto.descricao(), dto.dataHora(), null);
     }
 
     public FotoDto anexarFoto(Long obraId, Long ocorrenciaId, MultipartFile arquivo, String legenda) {
@@ -231,7 +255,7 @@ public class DiarioService {
     ) {
         Obra obra = obras.obterEntidade(obraId);
         if (diarios.buscarAtivoPorData(obraId, data).isPresent()) {
-            throw new RegraNegocioException(MSG_DUPLICADO);
+            throw new DiarioDuplicadoException();
         }
         List<AlocacaoObra> equipe = validarEquipe(obraId, equipeIds);
         Auditavel auditavel = auditoria.criar(AcaoAuditoria.CRIACAO, null);
@@ -240,7 +264,7 @@ public class DiarioService {
             return diarios.saveAndFlush(diario);
         } catch (DataIntegrityViolationException e) {
             if (mensagemContem(e, "uk_registro_diario_obra_data_ativo")) {
-                throw new RegraNegocioException(MSG_DUPLICADO);
+                throw new DiarioDuplicadoException();
             }
             throw e;
         }
@@ -314,5 +338,10 @@ public class DiarioService {
             atual = atual.getCause();
         }
         return false;
+    }
+
+    /** Diário duplicado no dia (RN-07): continua 422, mas a ocorrência rápida o reconhece. */
+    static final class DiarioDuplicadoException extends RegraNegocioException {
+        DiarioDuplicadoException() { super(MSG_DUPLICADO); }
     }
 }

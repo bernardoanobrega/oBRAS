@@ -62,7 +62,7 @@
 | L30 | Repository, DTO e mapper do diário | 3 | Cauã | L28, L29 | 9 | Concluído |
 | L31 | Serviço de diário e RN-07 | 3 | Cauã | L30 | 12 | Concluído |
 | L32 | Serviço de ocorrências e paralisações | 3 | Cauã | L31 | 12 | Concluído |
-| L33 | Ocorrência rápida e diário automático | 3 | Cauã | L32 | 9 | Em revisão |
+| L33 | Ocorrência rápida e diário automático | 3 | Cauã | L32 | 9 | Concluído |
 | L34 | API de diário e ocorrências | 3 | Cauã | L31–L33 | 7 | Em revisão |
 | L35 | Upload e download de fotos | 3 | Cauã | L34 | 10 | Em revisão |
 | L36 | Exclusão lógica e auditoria do diário | 3 | Cauã | L31–L35 | 7 | Em revisão |
