@@ -12,6 +12,7 @@ import br.com.obras.diario.service.DiarioService;
 import jakarta.validation.Valid;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +38,7 @@ public class DiarioController {
     }
 
     @PostMapping("/diarios")
+    @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("@perm.pode(#obraId, 'DETALHES_OBRA', 'CRIAR')")
     public DiarioDto criar(
         @PathVariable @P("obraId") Long obraId,
@@ -74,6 +76,7 @@ public class DiarioController {
     }
 
     @PostMapping("/diarios/{diarioId}/ocorrencias")
+    @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("@perm.pode(#obraId, 'DETALHES_OBRA', 'CRIAR')")
     public OcorrenciaDto adicionarOcorrencia(
         @PathVariable @P("obraId") Long obraId,
@@ -103,6 +106,7 @@ public class DiarioController {
     }
 
     @PostMapping("/ocorrencias-rapidas")
+    @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("@perm.pode(#obraId, 'DETALHES_OBRA', 'CRIAR')")
     public OcorrenciaDto ocorrenciaRapida(
         @PathVariable @P("obraId") Long obraId,
@@ -115,6 +119,7 @@ public class DiarioController {
         value = "/ocorrencias/{ocorrenciaId}/fotos",
         consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
+    @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("@perm.pode(#obraId, 'DETALHES_OBRA', 'CRIAR')")
     public FotoDto anexarFoto(
         @PathVariable @P("obraId") Long obraId,

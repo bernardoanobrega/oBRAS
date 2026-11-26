@@ -9,7 +9,7 @@ O código implementado exigia que o cliente enviasse a categoria (`@NotNull` em 
 A divergência apareceu na auditoria do L29.
 
 ## Decisão
-Na ocorrência rápida (`POST /api/obras/{obraId}/ocorrencias/rapida`):
+Na ocorrência rápida (`POST /api/obras/{obraId}/ocorrencias-rapidas`; rota corrigida em 2026-11-26, no L34):
 - `categoria` é **opcional** no DTO;
 - se vier nula, o service grava `OUTRO`;
 - se vier preenchida, o service mantém o valor informado.
