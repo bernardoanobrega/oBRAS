@@ -15,6 +15,7 @@ public record ObraDto(
     String status,
     String art,
     Long responsavelId,
+    String responsavelNome,
     Long auditavelId
 ) {
     public ObraDto(
@@ -30,22 +31,44 @@ public record ObraDto(
         Long responsavelId
     ) {
         this(id, nome, descricao, tipologia, endereco, inicioPrevisto, fimPrevisto,
-            status, art, responsavelId, null);
+            status, art, responsavelId, null, null);
     }
 
-    public static ObraDto de(Obra o) {
+    public ObraDto(
+        Long id,
+        String nome,
+        String descricao,
+        String tipologia,
+        String endereco,
+        LocalDate inicioPrevisto,
+        LocalDate fimPrevisto,
+        String status,
+        String art,
+        Long responsavelId,
+        Long auditavelId
+    ) {
+        this(id, nome, descricao, tipologia, endereco, inicioPrevisto, fimPrevisto,
+            status, art, responsavelId, null, auditavelId);
+    }
+
+    public static ObraDto de(Obra obra) {
+        return de(obra, null);
+    }
+
+    public static ObraDto de(Obra obra, String responsavelNome) {
         return new ObraDto(
-            o.getId(),
-            o.getNome(),
-            o.getDescricao(),
-            o.getTipologia().name(),
-            o.getEndereco(),
-            o.getInicioPrevisto(),
-            o.getFimPrevisto(),
-            o.getStatus().name(),
-            o.getArt(),
-            o.getResponsavelId(),
-            o.getAuditavelId()
+            obra.getId(),
+            obra.getNome(),
+            obra.getDescricao(),
+            obra.getTipologia().name(),
+            obra.getEndereco(),
+            obra.getInicioPrevisto(),
+            obra.getFimPrevisto(),
+            obra.getStatus().name(),
+            obra.getArt(),
+            obra.getResponsavelId(),
+            responsavelNome,
+            obra.getAuditavelId()
         );
     }
 }

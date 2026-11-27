@@ -57,7 +57,7 @@ public class ObraService {
         validarResponsavelAtivo(dto.responsavelId());
         Auditavel auditavel = auditoria.criar(AcaoAuditoria.CRIACAO, null);
         Obra obra = obras.save(mapper.paraEntidade(dto, auditavel));
-        return mapper.paraDto(obra);
+        return paraDto(obra);
     }
 
     @Transactional
@@ -78,7 +78,7 @@ public class ObraService {
         );
         obras.save(obra);
         auditoria.registrar(registro);
-        return mapper.paraDto(obra);
+        return paraDto(obra);
     }
 
     @Transactional
@@ -88,7 +88,7 @@ public class ObraService {
         RegistroAuditoria registro = obra.definirResponsavel(responsavelId, CurrentUser.id());
         obras.save(obra);
         auditoria.registrar(registro);
-        return mapper.paraDto(obra);
+        return paraDto(obra);
     }
 
     @Transactional(readOnly = true)
@@ -101,13 +101,13 @@ public class ObraService {
                 ModuloSistema.DETALHES_OBRA,
                 AcaoPermissao.VISUALIZAR
             ))
-            .map(ObraDto::de)
+            .map(this::paraDto)
             .toList();
     }
 
     @Transactional(readOnly = true)
     public ObraDto buscar(Long obraId) {
-        return ObraDto.de(obter(obraId));
+        return paraDto(obter(obraId));
     }
 
     @Transactional(readOnly = true)
@@ -134,6 +134,12 @@ public class ObraService {
         obter(obraId);
         if (ids.isEmpty()) return List.of();
         return alocacoes.findAtivasPorIds(obraId, ids);
+    }
+
+    private ObraDto paraDto(Obra obra) {
+        String nome = obra.getResponsavelId() == null
+            ? null : usuarios.nome(obra.getResponsavelId()).orElse(null);
+        return mapper.paraDto(obra, nome);
     }
 
     private void validarResponsavelAtivo(Long responsavelId) {

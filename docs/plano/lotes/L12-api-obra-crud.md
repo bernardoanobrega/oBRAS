@@ -1,7 +1,7 @@
 # L12 — API CRUD de Obra
 
 **Fase:** 1 · **Commit:** `feat(obra): expor crud de obra`  
-**Status:** Em andamento  
+**Status:** Em revisão  
 **Depende de:** L11 · **RF/UC:** RF-14, RF-15; UC04 · **ADR:** ADR-04, ADR-05
 
 ## 1. Objetivo

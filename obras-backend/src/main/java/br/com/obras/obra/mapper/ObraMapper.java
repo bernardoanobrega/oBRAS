@@ -13,6 +13,10 @@ public class ObraMapper {
         return ObraDto.de(obra);
     }
 
+    public ObraDto paraDto(Obra obra, String responsavelNome) {
+        return ObraDto.de(obra, responsavelNome);
+    }
+
     public Obra paraEntidade(NovaObraDto dto, Auditavel auditavel) {
         return Obra.cadastrar(
             dto.nome(),

@@ -41,7 +41,7 @@
 | L09 | Domínio Obra: transições e auditoria | 1 | Thierry | L08 | 13 | Concluído |
 | L10 | Repository, DTO e mapper de Obra | 1 | Thierry | L08, L09 | 8 | Concluído |
 | L11 | Serviço CRUD de Obra | 1 | Thierry | L10 | 11 | Concluído |
-| L12 | API CRUD de Obra | 1 | Thierry | L11 | 8 | Em andamento |
+| L12 | API CRUD de Obra | 1 | Thierry | L11 | 8 | Em revisão |
 | L13 | API de transições e responsável técnico | 1 | Thierry | L12 | 8 | Pendente |
 | L14 | Autorização e filtro de lista de obras | 1 | Thierry | L12, L13 | 9 | Pendente |
 | L15 | CRUD de canteiro | 1 | Thierry | L14 | 7 | Abandonado |

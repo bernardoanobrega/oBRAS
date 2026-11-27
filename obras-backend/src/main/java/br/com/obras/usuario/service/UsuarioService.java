@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioService implements UsuarioConsultaPort {
@@ -75,6 +76,12 @@ public class UsuarioService implements UsuarioConsultaPort {
         return usuarios.findById(usuarioId)
                 .map(Usuario::estaAtivo)
                 .orElse(false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<String> nome(Long usuarioId) {
+        return usuarios.findById(usuarioId).map(Usuario::getNome);
     }
 
     private Usuario obter(Long id) {
