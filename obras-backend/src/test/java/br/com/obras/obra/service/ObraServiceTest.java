@@ -283,6 +283,33 @@ class ObraServiceTest {
     }
 
     @Test
+    void responsavelNaoPrecisaEstarAlocado() {
+        Obra obra = obraReal(5L);
+        when(usuarios.estaAtivo(7L)).thenReturn(true);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
+
+        ObraDto resultado = service.definirResponsavel(1L, 7L);
+
+        assertEquals(7L, resultado.responsavelId());
+        verifyNoInteractions(alocacoes);
+    }
+
+    @Test
+    void mudancaDeResponsavelAudita() {
+        Obra obra = obraReal(5L);
+        when(usuarios.estaAtivo(7L)).thenReturn(true);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
+
+        service.definirResponsavel(1L, 7L);
+
+        verify(auditoria).registrar(argThat(registro ->
+                registro.getDetalhe().contains("\"responsavelAnterior\":5")
+                        && registro.getDetalhe().contains("\"responsavelNovo\":7")));
+    }
+
+    @Test
     void naoAcessaRepositoryDeUsuario() {
         Class<?>[] tipos = ObraService.class.getConstructors()[0].getParameterTypes();
 

@@ -1,7 +1,7 @@
 # L21 — Serviço: encerrar alocação e responsável técnico
 
 **Fase:** 2 · **Commit:** `feat(equipe): encerrar alocacao e definir responsavel`  
-**Status:** Pendente  
+**Status:** Em revisão  
 **Depende de:** L20 · **RF/UC:** RF-16, RF-18, RF-19; UC05 · **ADR:** ADR-05
 
 ## 1. Objetivo

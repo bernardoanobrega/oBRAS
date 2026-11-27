@@ -64,4 +64,31 @@ public class AlocacaoObraService {
         AlocacaoObra nova = AlocacaoObra.criar(obra, usuario, LocalDate.now(), new HashSet<>(encontrados));
         return mapper.paraDto(alocacoes.saveAndFlush(nova));
     }
+
+    @Transactional
+    public void encerrar(Long obraId, Long alocacaoId) {
+        obras.obterEntidade(obraId);
+        AlocacaoObra alocacao = alocacoes.buscarAtiva(obraId, alocacaoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Alocação ativa da obra", alocacaoId));
+        alocacao.encerrar(LocalDate.now());
+        alocacoes.save(alocacao);
+    }
+
+    @Transactional
+    public AlocacaoObraDto atualizarCargos(Long obraId, Long alocacaoId, Set<Long> cargoIds) {
+        obras.obterEntidade(obraId);
+        if (cargoIds == null || cargoIds.isEmpty()) {
+            throw new RegraNegocioException("A alocação exige ao menos um cargo");
+        }
+        AlocacaoObra alocacao = alocacoes.buscarAtiva(obraId, alocacaoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Alocação ativa da obra", alocacaoId));
+        List<Cargo> encontrados = cargos.buscarPorIds(cargoIds);
+        Set<Long> encontradosIds = encontrados.stream().map(Cargo::getId).collect(Collectors.toSet());
+        if (!encontradosIds.equals(cargoIds)) {
+            throw new RecursoNaoEncontradoException("Cargo", cargoIds.stream()
+                    .filter(id -> !encontradosIds.contains(id)).toList());
+        }
+        alocacao.substituirCargos(new HashSet<>(encontrados));
+        return mapper.paraDto(alocacoes.save(alocacao));
+    }
 }

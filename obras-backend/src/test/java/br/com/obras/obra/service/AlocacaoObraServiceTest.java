@@ -139,6 +139,55 @@ class AlocacaoObraServiceTest {
         assertEquals("Ana", dto.nome());
     }
 
+    @Test
+    void encerraAlocacaoAtivaComDataDeHoje() {
+        AlocacaoObra alocacao = alocacaoAtiva();
+        when(alocacoes.buscarAtiva(OBRA_ID, 100L)).thenReturn(Optional.of(alocacao));
+
+        service.encerrar(OBRA_ID, 100L);
+
+        ArgumentCaptor<AlocacaoObra> captor = ArgumentCaptor.forClass(AlocacaoObra.class);
+        org.mockito.Mockito.verify(alocacoes).save(captor.capture());
+        assertAll(
+                () -> assertEquals(LocalDate.now(), captor.getValue().getDataFim()),
+                () -> org.junit.jupiter.api.Assertions.assertFalse(captor.getValue().estaAtiva())
+        );
+    }
+
+    @Test
+    void rejeitaEncerrarAlocacaoJaEncerrada() {
+        AlocacaoObra encerrada = AlocacaoObra.criarEncerrada(obra, usuario,
+                LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 2), Set.of(cargo));
+        when(alocacoes.buscarAtiva(OBRA_ID, 100L)).thenReturn(Optional.of(encerrada));
+
+        RegraNegocioException erro = assertThrows(RegraNegocioException.class,
+                () -> service.encerrar(OBRA_ID, 100L));
+
+        assertEquals("A alocação já está encerrada", erro.getMessage());
+    }
+
+    @Test
+    void rejeitaEncerrarAlocacaoDeOutraObra() {
+        when(alocacoes.buscarAtiva(OBRA_ID, 100L)).thenReturn(Optional.empty());
+
+        assertThrows(RecursoNaoEncontradoException.class, () -> service.encerrar(OBRA_ID, 100L));
+    }
+
+    @Test
+    void novaAlocacaoAposEncerramentoEhPermitida() {
+        AlocacaoObra encerrada = alocacaoAtiva();
+        encerrada.encerrar(LocalDate.now());
+        when(alocacoes.buscarAtiva(OBRA_ID, 100L)).thenReturn(Optional.empty());
+
+        AlocacaoObraDto nova = service.alocar(OBRA_ID, nova(Set.of(CARGO_ID)));
+
+        assertEquals("Ana", nova.nome());
+    }
+
+    private AlocacaoObra alocacaoAtiva() {
+        return AlocacaoObra.criar(obra, usuario, LocalDate.of(2026, 1, 1), Set.of(cargo));
+    }
+
     private NovaAlocacaoDto nova(Set<Long> cargoIds) {
         return new NovaAlocacaoDto(USUARIO_ID, List.copyOf(cargoIds));
     }
