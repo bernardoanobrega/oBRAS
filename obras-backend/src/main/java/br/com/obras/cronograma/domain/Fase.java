@@ -1,5 +1,6 @@
 package br.com.obras.cronograma.domain;
 
+import br.com.obras.cronograma.domain.enums.SituacaoPrazo;
 import br.com.obras.cronograma.domain.enums.StatusFase;
 import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
@@ -201,6 +202,38 @@ public class Fase {
             default:
                 return 0;
         }
+    }
+
+    /**
+     * Método para classificar uma fase em relação ao prazo
+     * @param dataReferencia
+     * @return Altera a situação da fase
+     */
+    public SituacaoPrazo classificarSituacao(LocalDate dataReferencia) {
+        return switch (status) {
+            case CONCLUIDA -> SituacaoPrazo.CONCLUIDA;
+            case CANCELADA -> SituacaoPrazo.CANCELADA;
+            case NAO_INICIADA -> estaAtrasada(dataReferencia) ? SituacaoPrazo.ATRASADA : SituacaoPrazo.NAO_INICIADA;
+            case EM_ANDAMENTO -> estaAtrasada(dataReferencia) ? SituacaoPrazo.ATRASADA : SituacaoPrazo.EM_DIA;
+        };
+    }
+
+    /**
+     * Método para calcular o percentual do que deveria estar concluído na data de referência
+     * @param dataReferencia 
+     * @return Retorna um valor entre 0 e 100
+     */
+    public double calcularPercentualPlanejado(LocalDate dataReferencia) {
+        if (dataReferencia == null) {
+            throw new IllegalArgumentException("A data de referência é obrigatória");
+        }
+        if (dataReferencia.isBefore(inicioPrevisto)) {
+            return 0.0;
+        }
+        if (dataReferencia.isAfter(fimPrevisto)) {
+            return 100.0;
+        }
+        return (ChronoUnit.DAYS.between(inicioPrevisto, dataReferencia) + 1) * 100.0 / calcularDuracaoDias();
     }
 
     /**

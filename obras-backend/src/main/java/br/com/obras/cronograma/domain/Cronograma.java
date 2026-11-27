@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.ToDoubleFunction;
 
 @Entity 
 @Table(name = "cronograma")
@@ -142,22 +143,33 @@ public class Cronograma {
     }
 
     /**
-     * Método para obter o percentual já concluído do cronograma
-     * @return Retorna um valor entre 0 e 100 representando o percentual concluído do cronograma
+     * Percentual concluído do cronograma
+     * @return valor entre 0 e 100
      */
     public double calcularPercentualGeral() {
+        return mediaPonderadaPorDuracao(Fase::calcularPercentualConcluido);
+    }
+
+    /**
+     * Percentual que deveria estar concluído na data de referência
+     * @return valor entre 0 e 100
+     */
+    public double calcularPercentualPlanejado(LocalDate dataReferencia) {
+        return mediaPonderadaPorDuracao(fase -> fase.calcularPercentualPlanejado(dataReferencia));
+    }
+
+    private double mediaPonderadaPorDuracao(ToDoubleFunction<Fase> percentual) {
         double somaPonderada = 0;
         long pesoTotal = 0;
 
-        for(Fase fase : fases) {
-            if(fase.getStatus() == StatusFase.CANCELADA) {
+        for (Fase fase : fases) {
+            if (fase.getStatus() == StatusFase.CANCELADA) {
                 continue;
             }
-            long pesoFase = fase.calcularDuracaoDias();
-            somaPonderada += fase.calcularPercentualConcluido() * pesoFase;
-            pesoTotal += pesoFase;
+            long peso = fase.calcularDuracaoDias();
+            somaPonderada += percentual.applyAsDouble(fase) * peso;
+            pesoTotal += peso;
         }
-
         return pesoTotal == 0 ? 0.0 : somaPonderada / pesoTotal;
     }
 
