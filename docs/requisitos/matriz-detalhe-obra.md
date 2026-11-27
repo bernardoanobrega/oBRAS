@@ -8,7 +8,7 @@
 
 | UC | Nome | Ator(es) | RFs | Lotes principais |
 |---|---|---|---|---|
-| UC04 | Cadastrar Obras | Gestor da Obra, Administrador | RF-14, RF-15 | L07–L17, L47 |
+| UC04 | Cadastrar Obras | Gestor da Obra, Administrador | RF-14, RF-15 | L07–L14, L16, L17, L47 |
 | UC05 | Configurar Equipe da Obra | Gestor da Obra, Administrador | RF-16, RF-17, RF-18, RF-19 | L18–L25, L13, L47, L48 |
 | UC21 | Registrar Diário de Ocorrências e Imprevistos | Mestre de Obras | RF-64, RF-65, RF-66, RF-67, RF-68 | L26–L40, L46, L48 |
 | *(UC a criar no L05)* | Visualizar Painel da Obra | todos com `DETALHES_OBRA:VISUALIZAR` | RF-73 (ADR-13) | L41–L46, L49, L50 |
@@ -20,7 +20,7 @@ Os lotes de documentação e qualidade cobrem todos os RFs: L03/L04 (diagramas),
 
 | RF | Prioridade | UC | O que exige / regra do módulo | Lotes |
 |---|---|---|---|---|
-| RF-14 | Alta | UC04 | Cadastrar obra. Criação exige permissão global (ADR-11); obra nasce `PLANEJADA` e auditável (ADR-04) | L07–L12, L15, L17 |
+| RF-14 | Alta | UC04 | Cadastrar obra. Criação exige permissão global (ADR-11); obra nasce `PLANEJADA` e auditável (ADR-04) | L07–L12, L17 |
 | RF-15 | Alta | UC04 | Editar parâmetros operacionais da obra; alteração auditada | L11, L12, L17, L47 |
 | RF-16 | Alta | UC05 | Alocar membro da equipe à obra com cargos; uma alocação ativa por usuário e obra | L18–L20, L22, L25 |
 | RF-17 | Alta | UC05 | Alterar a equipe: trocar cargos e encerrar alocação; obra concluída ou cancelada encerra em cascata | L20–L23, L25 |

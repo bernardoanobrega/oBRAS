@@ -15,7 +15,7 @@ Atualizar o modelo de classes do módulo para refletir Obra auditável, foto sem
 
 ## 3. Contrato do artefato
 
-- Diagrama de classes restrito a `Obra`, `Canteiro`, `AlocacaoObra`, `RegistroDiario`, `Ocorrencia`, `Paralisacao`, `RegistroFotografico`, `RegistroAuditoria` e `Auditavel`.
+- Diagrama de classes restrito a `Obra`, `AlocacaoObra`, `RegistroDiario`, `Ocorrencia`, `Paralisacao`, `RegistroFotografico`, `RegistroAuditoria` e `Auditavel`; `Canteiro` abandonado no módulo em 2026-11-27, não incluir.
 - Legenda de cardinalidades.
 - Nota de composição `obra.auditavel_id` vs herança JOINED.
 - Nota de `ocorrencia.registro_diario_id NOT NULL` e `registro_fotografico.ocorrencia_id NOT NULL`.

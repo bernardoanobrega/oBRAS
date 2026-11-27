@@ -11,7 +11,7 @@ Expor os endpoints de criação, listagem, busca e edição de obra com validaç
 ## 2. Escopo
 
 **Inclui:** `POST /api/obras`, `GET /api/obras`, `GET /api/obras/{obraId}`, `PUT /api/obras/{obraId}`; `@PreAuthorize`; `ApiError`.  
-**Não inclui:** transições (L13), filtro por alocação (L14), canteiro (L15).
+**Não inclui:** transições (L13), filtro por alocação (L14), canteiro (L15 abandonado).
 
 ## 3. Contrato API
 

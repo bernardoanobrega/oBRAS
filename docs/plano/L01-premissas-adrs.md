@@ -46,7 +46,7 @@ O texto completo de cada ADR fica no `PLANO.md` §3. Esta tabela é o índice de
 |---|---|---|---|---|---|
 | Responsável técnico deve ser usuário ativo; não precisa estar alocado. | §11 | Responsável sem alocação pode não ver a obra, pois acesso depende de alocação ativa ou `VISUALIZAR` global. | Cenário na F2: definir responsável não alocado e testar acesso. | Thierry | 2026-11-18 |
 | Criador de obra não recebe alocação automática; acesso posterior depende de alocação ativa ou permissão global de visualização. | ADR-11 | Criador sem `VISUALIZAR` recebe `201` e depois `403`. | Teste F1 de criar sem visualizar + guarda de navegação no frontend. | Thierry | 2026-11-18 |
-| Canteiro pode ser excluído somente se não houver equipamento alocado. | §11 | Módulo de equipamentos não existe; regra não é testável na F1. | Definir port/stub ou adiar a verificação para quando o módulo existir. | Thierry | 2026-11-18 |
+| Canteiro fora do escopo do módulo (decisão de 2026-11-27). | Decisão de escopo | Tabela/IDs de canteiro permanecem só para estoque/máquinas. | N/A — lote L15 abandonado. | Thierry | 2026-11-27 |
 | `Obra` auditável por composição (`auditavel_id`). | ADR-04 | Equipe pode exigir JOINED; migração de PK mais pesada. | Teste de migration/backfill V3 em banco com dados. | Thierry | 2026-11-18 |
 | `RegistroAuditoria.detalhe` é JSONB opcional. | ADR-04 | Formato livre sem validação pode crescer sem controle. | Definir schema mínimo na V3 e testar leitura/escrita. | Thierry | 2026-11-18 |
 | Clima é único por dia; RF-67 interpretado conforme ADR-01. | ADR-01 | Stakeholder pode exigir clima por ocorrência. | Gatilho formal da seção 7. | Stakeholder / Thierry | 2026-11-18 |

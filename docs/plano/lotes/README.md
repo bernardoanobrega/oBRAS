@@ -29,7 +29,7 @@ O status de cada lote fica na linha `**Status:**` do próprio arquivo e na tabel
 | [L12](L12-api-obra-crud.md) | 1 | API CRUD Obra | `feat(obra): expor crud de obra` |
 | [L13](L13-api-obra-transicoes.md) | 1 | API transições/responsável | `feat(obra): expor transicoes e responsavel` |
 | [L14](L14-autorizacao-filtro.md) | 1 | Autorização + filtro lista | `feat(obra): autorizar e filtrar obras` |
-| [L15](L15-canteiro-crud.md) | 1 | CRUD canteiro | `feat(canteiro): implementar crud` |
+| [L15](L15-canteiro-crud.md) | 1 | CRUD canteiro (abandonado) | — |
 | [L16](L16-testes-fase1.md) | 1 | Testes backend Fase 1 | `test(obra): cobrir fase 1` |
 | [L17](L17-frontend-obras.md) | 1 | Lista/cadastro de obras | `feat(obras): integrar lista e cadastro` |
 | [L18](L18-domain-alocacao.md) | 2 | Domínio AlocacaoObra | `feat(equipe): modelar alocacao` |

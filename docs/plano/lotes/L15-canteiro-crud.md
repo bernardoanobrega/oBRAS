@@ -1,8 +1,12 @@
 # L15 — CRUD de canteiro
 
-**Fase:** 1 · **Commit:** `feat(canteiro): implementar crud`  
-**Status:** Pendente  
+**Fase:** 1 · **Commit:** —
+
+**Status:** Abandonado
+
 **Depende de:** L14 · **RF/UC:** RF-14, RF-15; UC04 · **ADR:** ADR-09, ADR-10
+
+> Decisão de 2026-11-27: `Canteiro` não integra o módulo Detalhe de Obra. Tabela `canteiro` em V2 e IDs em V8 permanecem como referência de estoque/máquinas. Não implementar este lote; contrato abaixo é histórico.
 
 ## 1. Objetivo
 

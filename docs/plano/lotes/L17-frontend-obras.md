@@ -2,7 +2,7 @@
 
 **Fase:** 1 · **Commit:** `feat(obras): integrar lista e cadastro`  
 **Status:** Em andamento  
-**Depende de:** L12–L16 · **RF/UC:** RF-14, RF-15, RF-18; UC04, UC05 · **ADR:** ADR-05, ADR-09
+**Depende de:** L12–L14, L16 · **RF/UC:** RF-14, RF-15, RF-18; UC04, UC05 · **ADR:** ADR-05, ADR-09
 
 ## 1. Objetivo
 

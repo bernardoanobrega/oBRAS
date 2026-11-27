@@ -6,9 +6,9 @@
 
 ## 0. Escopo deste conjunto
 
-**Dentro:** obra e ciclo de vida, equipe/cargos/responsável técnico, canteiros, diário de campo (ocorrências, paralisações, clima e fotos), painel da obra (RF-73), auditoria das entidades do módulo e permissões por obra.
+**Dentro:** obra e ciclo de vida, equipe/cargos/responsável técnico, diário de campo (ocorrências, paralisações, clima e fotos), painel da obra (RF-73), auditoria das entidades do módulo e permissões por obra.
 
-**Fora:** medições, revisões de projeto, avanço físico e qualquer módulo de orçamento, cronograma, documentos, estoque, compras, equipamentos ou usuários. A Fase 5 do `PLANO.md` não gera lote aqui; o painel apenas exibe KPI simulado com `fonte: SIMULADO` enquanto esses módulos não existirem.
+**Fora:** medições, revisões de projeto, avanço físico, canteiros no módulo Detalhe de Obra (decisão de 2026-11-27) e qualquer módulo de orçamento, cronograma, documentos, estoque, compras, equipamentos ou usuários. Tabela `canteiro` e IDs em V2/V8 permanecem apenas como referência de estoque/máquinas. A Fase 5 do `PLANO.md` não gera lote aqui; o painel apenas exibe KPI simulado com `fonte: SIMULADO` enquanto esses módulos não existirem.
 
 **UCs usados:** UC04, UC05 e UC21. RFs do módulo: RF-14 a RF-19, RF-64 a RF-68, RF-70 e RF-73. RNF-09 e RNF-10 quando afetarem erro ou arquivo.
 

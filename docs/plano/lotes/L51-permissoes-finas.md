@@ -15,10 +15,10 @@ Revisar e fechar a matriz de permissões por ação do módulo Detalhe de Obra.
 
 ## 3. Contrato de permissões
 
-- Visualizar obra/canteiro/equipe/diário/painel: `DETALHES_OBRA:VISUALIZAR`.
-- Criar obra/canteiro/alocação/diário/ocorrência/foto: `DETALHES_OBRA:CRIAR`.
-- Editar obra/canteiro/alocação/diário/ocorrência/status: `DETALHES_OBRA:EDITAR`.
-- Excluir canteiro/diário/ocorrência/foto: `DETALHES_OBRA:EXCLUIR`.
+- Visualizar obra/equipe/diário/painel: `DETALHES_OBRA:VISUALIZAR`.
+- Criar obra/alocação/diário/ocorrência/foto: `DETALHES_OBRA:CRIAR`.
+- Editar obra/alocação/diário/ocorrência/status: `DETALHES_OBRA:EDITAR`.
+- Excluir diário/ocorrência/foto: `DETALHES_OBRA:EXCLUIR`.
 - Nenhum endpoint sem `@PreAuthorize`.
 
 ## 4. Testes primeiro (RED)

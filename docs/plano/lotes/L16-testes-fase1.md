@@ -2,7 +2,7 @@
 
 **Fase:** 1 · **Commit:** `test(obra): cobrir fase 1`  
 **Status:** Pendente  
-**Depende de:** L06–L15 · **RF/UC:** RF-14 a RF-19, RF-70, RF-73; UC04, UC05 · **ADR:** ADR-04, ADR-05, ADR-09
+**Depende de:** L06–L14 · **RF/UC:** RF-14 a RF-19, RF-70, RF-73; UC04, UC05 · **ADR:** ADR-04, ADR-05, ADR-09
 
 ## 1. Objetivo
 

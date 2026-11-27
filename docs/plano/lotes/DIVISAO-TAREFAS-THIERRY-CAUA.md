@@ -23,7 +23,7 @@
 3. Não iniciar task com dependência aberta.
 4. Handoff explícito: quem entrega informa lote concluído, comando executado e evidência.
 5. Se o lote não couber em um commit revisável, dividir antes de começar; não aumentar escopo.
-6. Status possíveis: `Pendente` (sem código), `Em andamento` (iniciado ou parcial), `Em revisão` (feito por um, mas o lote é do outro: falta o dono auditar), `Concluído` (feito pelo dono, DoD cumprido). **Quem mexer em um lote, pessoa ou agente, atualiza o status ao começar e ao terminar, sempre nos dois lugares:** a linha `**Status:**` do arquivo do lote e a coluna Status desta tabela. Só o dono marca `Concluído`.
+6. Status possíveis: `Pendente` (sem código), `Em andamento` (iniciado ou parcial), `Em revisão` (feito por um, mas o lote é do outro: falta o dono auditar), `Abandonado` (escopo cortado por decisão; não implementar), `Concluído` (feito pelo dono, DoD cumprido). **Quem mexer em um lote, pessoa ou agente, atualiza o status ao começar e ao terminar, sempre nos dois lugares:** a linha `**Status:**` do arquivo do lote e a coluna Status desta tabela. Só o dono marca `Concluído`.
 7. Backend: `cd obras-backend && mvn test`. Frontend: `cd obras-frontend && npm test && npm run build`.
 
 ## Tabela mestra
@@ -44,9 +44,9 @@
 | L12 | API CRUD de Obra | 1 | Thierry | L11 | 8 | Em andamento |
 | L13 | API de transições e responsável técnico | 1 | Thierry | L12 | 8 | Pendente |
 | L14 | Autorização e filtro de lista de obras | 1 | Thierry | L12, L13 | 9 | Pendente |
-| L15 | CRUD de canteiro | 1 | Thierry | L14 | 7 | Pendente |
-| L16 | Testes de integração da Fase 1 | 1 | Thierry | L06–L15 | 8 | Pendente |
-| L17 | Frontend: lista e cadastro de obras | 1 | Cauã | L12–L16 | 7 | Em andamento |
+| L15 | CRUD de canteiro | 1 | Thierry | L14 | 7 | Abandonado |
+| L16 | Testes de integração da Fase 1 | 1 | Thierry | L06–L14 | 8 | Pendente |
+| L17 | Frontend: lista e cadastro de obras | 1 | Cauã | L12–L14, L16 | 7 | Em andamento |
 | L18 | Domínio AlocacaoObra e cargos | 2 | Thierry | L16 | 8 | Em andamento |
 | L19 | Repository, DTO e mapper de alocação | 2 | Thierry | L18 | 10 | Em andamento |
 | L20 | Serviço: alocar usuário com cargos | 2 | Thierry | L19 | 8 | Pendente |
