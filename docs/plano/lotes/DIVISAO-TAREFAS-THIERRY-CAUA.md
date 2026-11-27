@@ -70,7 +70,7 @@
 | L38 | Frontend: ocorrências e paralisações | 3 | Cauã | L37 | 7 | Pendente |
 | L39 | Frontend: ocorrência rápida, upload e mural | 3 | Cauã | L38 | 8 | Pendente |
 | L40 | Testes da Fase 3 | 3 | Cauã | L26–L39 | 8 | Pendente |
-| L41 | Serviço agregador do painel | 4 | Thierry | L31–L36 | 11 | Pendente |
+| L41 | Serviço agregador do painel | 4 | Thierry | L31–L36 | 11 | Concluído |
 | L42 | API do painel e contrato | 4 | Thierry | L41 | 7 | Pendente |
 | L43 | Frontend: mover DetalheObra para a feature | 4 | Cauã | L42 | 4 | Em revisão |
 | L44 | Frontend: integrar shell, router, http e permissão | 4 | Cauã | L43 | 6 | Em revisão |

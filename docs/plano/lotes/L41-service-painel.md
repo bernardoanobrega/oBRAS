@@ -1,8 +1,8 @@
 # L41 — Serviço agregador do painel
 
 **Fase:** 4 · **Commit:** `feat(painel): agregar dados da obra`  
-**Status:** Pendente  
-**Depende de:** L31–L36 · **RF/UC:** RF-73; UC04, UC05, UC21 · **ADR:** ADR-01, ADR-07, ADR-10
+**Status:** Concluído
+**Depende de:** L31–L36 · **RF/UC:** RF-73; UC04, UC05, UC21 · **ADR:** ADR-13
 
 ## 1. Objetivo
 
@@ -39,6 +39,8 @@ Agregar dados reais de obra, equipe, diário, ocorrências e fotos em um único 
 2. Reutilizar services de obra, alocação e diário.
 3. Não acessar repository de outro módulo.
 4. Montar DTO com dados reais + simulados explícitos.
+
+**Pacote (decisão 2026-11-27):** `PainelObraDto` em `br.com.obras.obra.dto`; `PainelObraService` em `br.com.obras.obra.service`. Sem subpacote `obra.painel`. Registro em `docs/adr/README.md`.
 
 ## 6. Invariantes
 

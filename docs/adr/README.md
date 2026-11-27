@@ -13,7 +13,7 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | ADR | Título | Status | Data |
 |---|---|---|---|
 | [ADR-12](./ADR-12-rf70-modulo-usuarios.md) | RF-70 pertence ao módulo Usuários; acesso por obra é RNF-03 | Proposto (Cauã), aguarda Thierry | 2026-11-23 |
-| [ADR-13](./ADR-13-painel-agrega-modulos.md) | Painel da obra (RF-73) agrega dados de outros módulos via ports | Proposto (Cauã), aguarda Thierry | 2026-11-23 |
+| [ADR-13](./ADR-13-painel-agrega-modulos.md) | Painel da obra (RF-73) agrega dados de outros módulos via ports | Aceito (Thierry e Cauã, 2026-11-27) | 2026-11-23 |
 | [ADR-14](./ADR-14-categoria-padrao-ocorrencia-rapida.md) | Ocorrência rápida: categoria opcional com padrão `OUTRO` | Proposto (Cauã), aguarda Thierry | 2026-11-24 |
 | [ADR-15](./ADR-15-v5-integridade-obra-diario.md) | V5: integridade entre obras no diário e exclusão física em cascata | Proposto (Cauã), aguarda Thierry | 2026-11-24 |
 | [ADR-16](./ADR-16-mapper-entidade-dto.md) | Conversão entidade → DTO em classe mapper | Proposto (Cauã), aguarda Thierry | 2026-11-25 |
@@ -49,6 +49,7 @@ Os ADRs a partir do 12 ficam nesta pasta, um arquivo por decisão.
 | 2026-11-26 | L34 / recurso de outra obra | **403 x 404**: sem permissão na obra da URL → 403 (`@PreAuthorize`, o service nem é chamado); com permissão, um id que é de outra obra → **404**, para não revelar que ele existe. O teste `getDiarioDeOutraObraRetorna403` do contrato foi dividido em `semPermissaoNaObraRetorna403` e `diarioDeOutraObraRetorna404` |
 | 2026-11-26 | L34 / controllers | **Um só `DiarioController`** (o contrato citava `RegistroDiarioController` e `OcorrenciaController`), coerente com o `DiarioService` único. Rota da ocorrência rápida: **`/ocorrencias-rapidas`**, uma coleção própria; `/ocorrencias/rapida` colocaria a palavra no lugar do `{ocorrenciaId}`. Texto do ADR-14 corrigido |
 | 2026-11-26 | L33 / diário automático | **Nasce sem descrição**: antes recebia o texto da ocorrência, misturando o resumo do dia com o registro pontual. Equipe presente vazia, clima do payload |
+| 2026-11-27 | L41 / pacote do painel | **Usar camadas do módulo `obra`**: `PainelObraDto` em `br.com.obras.obra.dto` e `PainelObraService` em `br.com.obras.obra.service`; sem subpacote `obra.painel`. RF-73 continua em Detalhe de Obra, distinto de `dashboard`. ADR-13 permanece inalterado; plano L41 ajustado |
 
 ## Template
 ```

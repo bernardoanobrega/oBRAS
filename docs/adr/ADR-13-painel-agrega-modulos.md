@@ -1,7 +1,7 @@
 # ADR-13 — Painel da obra (RF-73) agrega dados de outros módulos via ports
 
-Status: Proposto
-Data: 2026-11-23 · Autor: Cauã · Aprovação: Thierry [ ] Cauã [x]
+Status: Aceito
+Data: 2026-11-23 · Autor: Cauã · Aprovação: Thierry [x] Cauã [x]
 Substitui: — (detalha o L41/L42; compatível com ADR-10)
 
 ## Contexto
@@ -24,5 +24,6 @@ Nenhum caso de uso do documento de Casos de Uso cobre o painel.
 ## Consequências
 - **API:** `GET /api/obras/{obraId}/painel` (L42), com cada KPI trazendo seu campo `fonte` (`REAL` | `SIMULADO`).
 - **Backend:** criar ports em `shared` para os dados externos (ex.: avanço físico e resumo orçamentário). Os módulos Cronograma e Orçamento implementam esses ports quando estiverem prontos. Alinhar com os donos desses módulos.
+- **Pacote do painel (confirmação 2026-11-27):** `PainelObraDto` em `br.com.obras.obra.dto` e `PainelObraService` em `br.com.obras.obra.service`; sem subpacote `obra.painel`. Ver `README.md`, seção "Confirmações (sem ADR novo)".
 - **Frontend:** L45 troca as chamadas separadas pela chamada única ao `/painel`. A badge `SIMULADO` continua até a fonte ser real.
 - **Lotes afetados:** L41, L42, L45, L49, L05.
