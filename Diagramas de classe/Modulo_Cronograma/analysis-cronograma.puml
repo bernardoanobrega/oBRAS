@@ -14,22 +14,25 @@ class Usuario <<externa>>
 ' ===== NÚCLEO =====
 class Cronograma <<Entity>> {
   -id : Long
+  -obraId : Long
   -dataUltimaAtualizacao : LocalDate
   -status : StatusCronograma
   --
-  +adicionarFase(nome : String, ordem : int, inicioPrevisto : LocalDate, fimPrevisto : LocalDate) : Fase
-  +removerFase(idFase : int) : void
-  +buscarFase(idFase : int) : Fase
+  {static} +criar(obraId : Long) : Cronograma
+  +adicionarFase(nome : String, descricao : String, ordem : int, inicioPrevisto : LocalDate, fimPrevisto : LocalDate) : Fase
+  +removerFase(idFase : Long) : void
+  +buscarFase(idFase : Long) : Fase
   +validarSequenciaFases() : boolean
   +calcularPercentualGeral() : double
+  +calcularPercentualPlanejado(dataReferencia : LocalDate) : double
   +calcularDesvioPrazoDias(dataReferencia : LocalDate) : int
   +identificarFasesAtrasadas(dataReferencia : LocalDate) : Fase[]
-  +cancelar()
+  +cancelarCronograma() : void
+  ~atualizarStatus() : void
 }
 
 class Fase <<Entity>> {
   -id : Long
-  -idCronograma : Long
   -nome : String
   -descricao : String
   -ordem : int
@@ -40,17 +43,21 @@ class Fase <<Entity>> {
   -status : StatusFase
   --
   +validarPeriodo() : boolean
-  +registrarAvanco(percentualAcumulado : double, observacao : String, autor : Usuario) : AvancoFisico
+  +calcularDuracaoDias() : long
+  +registrarAvanco(percentualAcumulado : double, observacao : String, autorId : Long) : AvancoFisico
   +calcularPercentualConcluido() : double
+  +calcularPercentualPlanejado(dataReferencia : LocalDate) : double
   +concluir(dataReal : LocalDate) : void
   +estaAtrasada(dataReferencia : LocalDate) : boolean
   +calcularDesvioDias(dataReferencia : LocalDate) : int
-  +cancelar()
+  +classificarSituacao(dataReferencia : LocalDate) : SituacaoPrazo
+  +atualizarDescricao(descricao : String) : void
+  +cancelarFase() : void
 }
 
 class AvancoFisico <<Entity>> {
   -id : Long
-  -idFase : Long
+  -autorId : Long
   -dataRegistro : LocalDate
   -percentualAcumulado : double
   -observacao : String
@@ -74,10 +81,18 @@ enum StatusFase {
   CANCELADA
 }
 
+enum SituacaoPrazo {
+  NAO_INICIADA
+  EM_DIA
+  ATRASADA
+  CONCLUIDA
+  CANCELADA
+}
+
 ' ===== RELAÇÕES =====
-Cronograma "0..1" --> "1" Obra : informa
+Cronograma "0..1" ..> "1" Obra : informa (obraId)
 Cronograma "1" *-- "0..*" Fase : composto por
 Fase "1" *-- "0..*" AvancoFisico : acumula
-Usuario "1" --> "0..*" AvancoFisico : registra
+AvancoFisico "0..*" ..> "1" Usuario : registrado por (autorId)
 
 @enduml
