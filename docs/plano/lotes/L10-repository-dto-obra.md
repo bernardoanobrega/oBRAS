@@ -1,7 +1,7 @@
 # L10 — Repository, DTO e mapper de Obra
 
 **Fase:** 1 · **Commit:** `feat(obra): persistir e expor obra`  
-**Status:** Em andamento  
+**Status:** Concluído  
 **Depende de:** L08, L09 · **RF/UC:** RF-14, RF-15, RF-73; UC04 · **ADR:** ADR-04
 
 ## 1. Objetivo
@@ -53,11 +53,23 @@ Sem migration.
 
 ## 9. Critérios de aceite
 
-- [ ] Repository do módulo obra.
-- [ ] DTOs validados.
-- [ ] Mapper sem regra de negócio.
-- [ ] Entidade não exposta.
+- [x] Repository do módulo obra.
+- [x] DTOs validados.
+- [x] Mapper sem regra de negócio.
+- [x] Entidade não exposta.
 
 ## 10. Verificação e evidência
 
-`mvn test`. Evidência: teste de serialização/mapeamento.
+Comando (executado em `obras-backend`):
+
+    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 && export PATH="$JAVA_HOME/bin:$PATH" && mvn test -q
+
+Saída: `exit 0`; resumo Surefire: `Tests run: 303, Failures: 0, Errors: 0, Skipped: 10`.
+
+Testes L10:
+- mapeiaObraParaDtoSemExporEntidade
+- novaObraDtoRejeitaCamposObrigatorios
+- atualizarObraDtoNaoAceitaStatus
+- repositorySalvaEBuscaObraComAuditavel
+
+Ajuste collateral: `OrcamentoRepositoryTest` passou a inserir `auditavel_id`, exigido por V3_1.

@@ -2,6 +2,16 @@
 
 Java 21 · Spring Boot 3.3 · PostgreSQL 16 · Flyway · JWT · RBAC por Cargo/Permissão.
 
+## JDK obrigatório
+
+Sempre usar JDK 21 para build, testes e execução. JDK 25 não processa Lombok neste projeto: o build falha com `cannot find symbol` para getters gerados.
+
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+mvn test
+```
+
 ## Subir em desenvolvimento
 ```bash
 docker compose up -d db                      # Postgres

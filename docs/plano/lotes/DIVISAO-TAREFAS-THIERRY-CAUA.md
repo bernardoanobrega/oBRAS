@@ -38,8 +38,8 @@
 | L06 | Migration V3: auditável e registro de auditoria | 1 | Thierry | L01–L05 | 7 | Concluído |
 | L07 | Migration V3: obra auditável e responsável opcional | 1 | Thierry | L06 | 5 | Em andamento |
 | L08 | Domínio Obra: entidade, enums e guardas | 1 | Thierry | L07 | 8 | Em andamento |
-| L09 | Domínio Obra: transições e auditoria | 1 | Thierry | L08 | 13 | Pendente |
-| L10 | Repository, DTO e mapper de Obra | 1 | Thierry | L08, L09 | 8 | Em andamento |
+| L09 | Domínio Obra: transições e auditoria | 1 | Thierry | L08 | 13 | Concluído |
+| L10 | Repository, DTO e mapper de Obra | 1 | Thierry | L08, L09 | 8 | Concluído |
 | L11 | Serviço CRUD de Obra | 1 | Thierry | L10 | 11 | Em andamento |
 | L12 | API CRUD de Obra | 1 | Thierry | L11 | 8 | Em andamento |
 | L13 | API de transições e responsável técnico | 1 | Thierry | L12 | 8 | Pendente |

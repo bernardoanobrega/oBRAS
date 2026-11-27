@@ -23,4 +23,8 @@ public class Auditavel {
     public void excluir() {
         this.excluido = true;
     }
+
+    public RegistroAuditoria registrar(AcaoAuditoria acao, Long usuarioId, String detalhe) {
+        return RegistroAuditoria.de(this, usuarioId, acao, detalhe);
+    }
 }

@@ -1,6 +1,9 @@
 package br.com.obras.obra.repository;
 
+import br.com.obras.auditoria.domain.Auditavel;
+import br.com.obras.auditoria.repository.AuditavelRepository;
 import br.com.obras.obra.domain.Obra;
+import br.com.obras.obra.domain.Tipologia;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +15,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Obra excluída logicamente (auditável marcado) não é listada nem encontrada. */
@@ -28,6 +34,7 @@ class ObraRepositoryTest {
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16");
 
     @Autowired private ObraRepository obras;
+    @Autowired private AuditavelRepository auditaveis;
     @Autowired private JdbcTemplate jdbc;
 
     private long responsavel;
@@ -58,6 +65,26 @@ class ObraRepositoryTest {
         obra("Bloco C", true);
 
         assertEquals(List.of("Bloco A", "Bloco B"), obras.listarAtivas().stream().map(Obra::getNome).toList());
+    }
+
+    @Test
+    void repositorySalvaEBuscaObraComAuditavel() {
+        Auditavel auditavel = auditaveis.saveAndFlush(Auditavel.novo());
+        Obra nova = Obra.cadastrar("Obra repo", "desc", Tipologia.RESIDENCIAL, "Rua repo",
+                LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31), null, null, auditavel);
+
+        Obra salva = obras.saveAndFlush(nova);
+
+        Obra buscada = obras.buscarAtiva(salva.getId()).orElseThrow();
+        Long auditavelNoBanco = jdbc.queryForObject(
+                "SELECT auditavel_id FROM obra WHERE id = ?", Long.class, salva.getId());
+        assertAll(
+                () -> assertNotNull(salva.getId()),
+                () -> assertEquals(auditavel.getId(), buscada.getAuditavelId()),
+                () -> assertEquals(auditavel.getId(), auditavelNoBanco),
+                () -> assertEquals("Obra repo", buscada.getNome()),
+                () -> assertNull(buscada.getResponsavelId())
+        );
     }
 
     private long obra(String nome, boolean excluida) {

@@ -51,9 +51,11 @@ class OrcamentoRepositoryTest {
     void inserirObraEUsuario() {
         usuarioId = jdbc.queryForObject("INSERT INTO usuario (nome, situacao, login, senha_hash) "
                 + "VALUES ('Eng', 'ATIVO', 'eng', 'hash') RETURNING id", Long.class);
+        Long auditavelId = jdbc.queryForObject(
+                "INSERT INTO auditavel (excluido) VALUES (false) RETURNING id", Long.class);
         obraId = jdbc.queryForObject("INSERT INTO obra (nome, tipologia, endereco, inicio_previsto, fim_previsto, "
-                + "status, responsavel_id) VALUES ('Obra', 'RESIDENCIAL', 'Rua A', DATE '2026-01-01', "
-                + "DATE '2026-12-31', 'PLANEJADA', ?) RETURNING id", Long.class, usuarioId);
+                + "status, responsavel_id, auditavel_id) VALUES ('Obra', 'RESIDENCIAL', 'Rua A', DATE '2026-01-01', "
+                + "DATE '2026-12-31', 'PLANEJADA', ?, ?) RETURNING id", Long.class, usuarioId, auditavelId);
     }
 
     @Test
