@@ -1,7 +1,7 @@
 # L42 — API do painel e contrato
 
 **Fase:** 4 · **Commit:** `feat(painel): expor endpoint agregador`  
-**Status:** Pendente  
+**Status:** Concluído  
 **Depende de:** L41 · **RF/UC:** RF-73; UC04, UC05, UC21 · **ADR:** ADR-07, ADR-10
 
 ## 1. Objetivo
@@ -67,11 +67,16 @@ Sem migration.
 
 ## 9. Critérios de aceite
 
-- [ ] Endpoint conforme contrato.
-- [ ] 200/401/403/404.
-- [ ] Campos obrigatórios.
-- [ ] OpenAPI atualizado.
+- [x] Endpoint conforme contrato.
+- [x] 200/401/403/404.
+- [x] Campos obrigatórios.
+- [x] OpenAPI atualizado.
 
 ## 10. Verificação e evidência
 
-`mvn test` e Swagger. Evidência: JSON de exemplo e testes.
+- `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 mvn clean test -Dtest=PainelObraControllerTest` → `Tests run: 7, Failures: 0, Errors: 0, Skipped: 0`; casos: `getPainelRetorna200`, `painelDeObraInexistenteRetorna404`, `painelSemPermissaoRetorna403`, `painelDeOutraObraRetorna403`, `contratoTemCamposObrigatorios`, `kpisTemFonteSimuladoQuandoNulo`, `semTokenRetorna401`.
+- `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 mvn test` → `Tests run: 282, Failures: 0, Errors: 3, Skipped: 10`; 3 erros pré-existentes em `OrcamentoRepositoryTest.inserirObraEUsuario:54` (`INSERT INTO obra` sem `auditavel_id`, coluna `NOT NULL`), fora do escopo L42. JDK 25 default quebra Lombok; usar JDK 21.
+- Swagger real capturado via instância temporária em `:8081` (`spring-boot:run -Dspring-boot.run.profiles=dev -Dspring-boot.run.arguments="--server.port=8081 --app.bootstrap.admin.enabled=false"`): `GET /api/obras/{obraId}/painel` visível, tag `Painel da obra`, 200 com `$ref: #/components/schemas/PainelObraDto`, respostas 401/403/404 documentadas, bearer global aplicado por `OpenApiConfig`. Media type gerado para 200: `*/*`.
+- Contrato HTTP validado por `PainelObraControllerTest` (MockMvc): campos obrigatórios presentes; sem diário → `clima.data`/`clima.condicao` `null`, `maoDeObra.presentesHoje=0`, `maoDeObra.vsOntem=null`, `maoDeObra.fonte="DIARIO"`, `kpis.fonte="SIMULADO"`.
+- Divergência registrada: `L42-api-painel.md:23` mostra clima preenchido; sem diário o contrato devolve campos `null` (decisão L41).
+- Ressalva de processo: revisão cruzada com Cauã dispensada por decisão do usuário em 2026-11-27; registrada como ressalva de processo, não técnica.
