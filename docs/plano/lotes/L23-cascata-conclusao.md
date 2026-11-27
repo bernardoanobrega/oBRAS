@@ -1,7 +1,7 @@
 # L23 — Cascata de encerramento ao concluir/cancelar
 
 **Fase:** 2 · **Commit:** `feat(equipe): encerrar alocacoes em cascata`  
-**Status:** Pendente  
+**Status:** Em revisão  
 **Depende de:** L21, L22 · **RF/UC:** RF-14, RF-18, RF-19; UC04, UC05 · **ADR:** ADR-05
 
 ## 1. Objetivo

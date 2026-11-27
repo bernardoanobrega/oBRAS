@@ -343,7 +343,7 @@ class ObraServiceTest {
     }
 
     @Test
-    void paralisarNaoEncerraAlocacao() {
+    void paralisarNaoEncerraAlocacoes() {
         Obra obra = obraReal(7L);
         ReflectionTestUtils.setField(obra, "status", StatusObra.EM_ANDAMENTO);
         when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
@@ -375,6 +375,70 @@ class ObraServiceTest {
         ObraDto dto = service.concluir(1L);
 
         assertEquals(StatusObra.CONCLUIDA.name(), dto.status());
+    }
+
+    @Test
+    void concluirEncerraTodasAsAlocacoesAtivas() {
+        Obra obra = obraEmAndamento();
+        AlocacaoObra primeira = alocacaoAtiva(100L);
+        AlocacaoObra segunda = alocacaoAtiva(101L);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        when(alocacoes.findEquipeAtiva(1L)).thenReturn(List.of(primeira, segunda));
+        permitirAuditavel();
+
+        ObraDto dto = service.concluir(1L);
+
+        assertAll(
+                () -> assertEquals("CONCLUIDA", dto.status()),
+                () -> assertTrue(primeira.getDataFim() != null),
+                () -> assertTrue(segunda.getDataFim() != null),
+                () -> verify(alocacoes).saveAll(List.of(primeira, segunda))
+        );
+    }
+
+    @Test
+    void cancelarEncerraTodasAsAlocacoesAtivas() {
+        Obra obra = obraEmAndamento();
+        AlocacaoObra ativa = alocacaoAtiva(100L);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        when(alocacoes.findEquipeAtiva(1L)).thenReturn(List.of(ativa));
+        permitirAuditavel();
+
+        ObraDto dto = service.cancelar(1L);
+
+        assertAll(
+                () -> assertEquals("CANCELADA", dto.status()),
+                () -> assertTrue(ativa.getDataFim() != null),
+                () -> verify(alocacoes).saveAll(List.of(ativa))
+        );
+    }
+
+    @Test
+    void cascataUsaDataDeHoje() {
+        Obra obra = obraEmAndamento();
+        AlocacaoObra ativa = alocacaoAtiva(100L);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        when(alocacoes.findEquipeAtiva(1L)).thenReturn(List.of(ativa));
+        permitirAuditavel();
+
+        service.concluir(1L);
+
+        assertEquals(LocalDate.now(), ativa.getDataFim());
+    }
+
+    @Test
+    void cascataNaoAlteraAlocacoesJaEncerradas() {
+        Obra obra = obraEmAndamento();
+        LocalDate fim = LocalDate.of(2026, 2, 1);
+        AlocacaoObra encerrada = AlocacaoObra.criarEncerrada(obra, usuario(11L),
+                LocalDate.of(2026, 1, 1), fim, Set.of(cargo()));
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        when(alocacoes.findEquipeAtiva(1L)).thenReturn(List.of(encerrada));
+        permitirAuditavel();
+
+        service.concluir(1L);
+
+        assertEquals(fim, encerrada.getDataFim());
     }
 
     @Test
@@ -411,6 +475,31 @@ class ObraServiceTest {
     private static AtualizarObraDto atualizarObraDto(Long responsavelId) {
         return new AtualizarObraDto("Obra atualizada", "desc nova", Tipologia.COMERCIAL,
                 "Rua nova", INICIO, FIM, "ART-2", responsavelId, null);
+    }
+
+    private Obra obraEmAndamento() {
+        Obra obra =obraReal(7L);
+        ReflectionTestUtils.setField(obra, "status", StatusObra.EM_ANDAMENTO);
+        return obra;
+    }
+
+    private AlocacaoObra alocacaoAtiva(Long id) {
+        AlocacaoObra alocacao = AlocacaoObra.criar(obraEmAndamento(), usuario(10L),
+                LocalDate.of(2026, 1, 1), Set.of(cargo()));
+        ReflectionTestUtils.setField(alocacao, "id", id);
+        return alocacao;
+    }
+
+    private static Usuario usuario(Long id) {
+        Usuario usuario = Usuario.cadastrar("Ana", "ana-" + id, "hash");
+        ReflectionTestUtils.setField(usuario, "id", id);
+        return usuario;
+    }
+
+    private static Cargo cargo() {
+        Cargo cargo = new Cargo("Engenheiro", null);
+        ReflectionTestUtils.setField(cargo, "id", 20L);
+        return cargo;
     }
 
     private static Obra obraReal(Long responsavelId) {

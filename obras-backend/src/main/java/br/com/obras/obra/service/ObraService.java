@@ -25,6 +25,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -129,6 +130,7 @@ public class ObraService {
     public ObraDto concluir(Long obraId) {
         Obra obra = obter(obraId);
         RegistroAuditoria registro = obra.concluir(CurrentUser.id());
+        encerrarAlocacoesAtivas(obraId);
         obras.save(obra);
         auditoria.registrar(registro);
         return paraDto(obra);
@@ -138,9 +140,21 @@ public class ObraService {
     public ObraDto cancelar(Long obraId) {
         Obra obra = obter(obraId);
         RegistroAuditoria registro = obra.cancelar(CurrentUser.id());
+        encerrarAlocacoesAtivas(obraId);
         obras.save(obra);
         auditoria.registrar(registro);
         return paraDto(obra);
+    }
+
+    private void encerrarAlocacoesAtivas(Long obraId) {
+        LocalDate hoje = LocalDate.now();
+        List<AlocacaoObra> ativas = alocacoes.findEquipeAtiva(obraId);
+        for (AlocacaoObra alocacao : ativas) {
+            if (alocacao.estaAtiva()) {
+                alocacao.encerrar(hoje);
+            }
+        }
+        alocacoes.saveAll(ativas);
     }
 
     @Transactional(readOnly = true)
