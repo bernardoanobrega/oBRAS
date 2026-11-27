@@ -51,7 +51,7 @@
 | L19 | Repository, DTO e mapper de alocação | 2 | Thierry | L18 | 10 | Em revisão |
 | L20 | Serviço: alocar usuário com cargos | 2 | Thierry | L19 | 8 | Em revisão |
 | L21 | Serviço: encerrar alocação e responsável técnico | 2 | Thierry | L20 | 10 | Em revisão |
-| L22 | API de alocações da equipe | 2 | Thierry | L21 | 8 | Pendente |
+| L22 | API de alocações da equipe | 2 | Thierry | L21 | 8 | Em revisão |
 | L23 | Cascata de encerramento ao concluir/cancelar | 2 | Thierry | L21, L22 | 6 | Pendente |
 | L24 | Testes de integração da Fase 2 | 2 | Thierry | L18–L23 | 8 | Pendente |
 | L25 | Frontend: tela de equipe da obra | 2 | Cauã | L22–L24 | 8 | Em andamento |

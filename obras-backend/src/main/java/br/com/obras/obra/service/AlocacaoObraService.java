@@ -4,6 +4,7 @@ import br.com.obras.obra.domain.AlocacaoObra;
 import br.com.obras.obra.domain.Obra;
 import br.com.obras.obra.dto.AlocacaoObraDto;
 import br.com.obras.obra.dto.NovaAlocacaoDto;
+import br.com.obras.obra.dto.UsuarioCandidatoDto;
 import br.com.obras.obra.mapper.AlocacaoObraMapper;
 import br.com.obras.obra.repository.AlocacaoObraRepository;
 import br.com.obras.shared.exception.RecursoNaoEncontradoException;
@@ -90,5 +91,20 @@ public class AlocacaoObraService {
         }
         alocacao.substituirCargos(new HashSet<>(encontrados));
         return mapper.paraDto(alocacoes.save(alocacao));
+    }
+
+    @Transactional(readOnly = true)
+    public List<AlocacaoObraDto> listar(Long obraId) {
+        obras.obterEntidade(obraId);
+        return alocacoes.listarPorObra(obraId).stream().map(mapper::paraDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioCandidatoDto> candidatos(Long obraId) {
+        obras.obterEntidade(obraId);
+        return usuarios.listarAtivos().stream()
+                .filter(usuario -> alocacoes.findAtivaPorUsuario(obraId, usuario.getId()).isEmpty())
+                .map(usuario -> new UsuarioCandidatoDto(usuario.getId(), usuario.getNome()))
+                .toList();
     }
 }

@@ -1,7 +1,7 @@
 # L22 — API de alocações da equipe
 
 **Fase:** 2 · **Commit:** `feat(equipe): expor alocacoes`  
-**Status:** Pendente  
+**Status:** Em revisão  
 **Depende de:** L21 · **RF/UC:** RF-16 a RF-19; UC05 · **ADR:** ADR-09
 
 ## 1. Objetivo
