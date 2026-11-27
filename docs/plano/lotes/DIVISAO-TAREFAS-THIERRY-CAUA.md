@@ -35,7 +35,7 @@
 | L03 | Diagramas de classe do Detalhe de Obra | 0 | Thierry | L01, L02 | 0 | Em andamento |
 | L04 | Diagramas de estado e atividade do Detalhe de Obra | 0 | Thierry | L03 | 0 | Em andamento |
 | L05 | Casos de uso do Detalhe de Obra e rastreabilidade | 0 | Cauã | L02, L04 | 0 | Pendente |
-| L06 | Migration V3: auditável e registro de auditoria | 1 | Thierry | L01–L05 | 7 | Em andamento |
+| L06 | Migration V3: auditável e registro de auditoria | 1 | Thierry | L01–L05 | 7 | Concluído |
 | L07 | Migration V3: obra auditável e responsável opcional | 1 | Thierry | L06 | 5 | Em andamento |
 | L08 | Domínio Obra: entidade, enums e guardas | 1 | Thierry | L07 | 8 | Em andamento |
 | L09 | Domínio Obra: transições e auditoria | 1 | Thierry | L08 | 13 | Pendente |

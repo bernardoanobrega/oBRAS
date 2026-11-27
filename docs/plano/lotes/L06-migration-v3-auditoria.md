@@ -1,7 +1,7 @@
 # L06 — Migration V3: auditável e registro de auditoria
 
 **Fase:** 1 · **Commit:** `feat(auditoria): criar base de auditoria`  
-**Status:** Em andamento  
+**Status:** Concluído  
 **Depende de:** L01–L05 · **RF/UC:** RF-73; UC04, UC05, UC21 · **ADR:** ADR-04
 
 ## 1. Objetivo
@@ -52,11 +52,15 @@ Forward-only. Rollback manual: `DROP TABLE registro_auditoria; DROP TABLE audita
 
 ## 9. Critérios de aceite
 
-- [ ] V3 aplica em banco limpo.
-- [ ] V3 aplica sobre V2 com dados.
-- [ ] Constraints testadas.
-- [ ] Nenhuma alteração em V1/V2.
+- [x] V3 aplica em banco limpo.
+- [x] V3 aplica sobre V2 com dados.
+- [x] Constraints testadas.
+- [x] Nenhuma alteração em V1/V2.
 
 ## 10. Verificação e evidência
 
-`mvn test` com teste de migration. Evidência: log Flyway e schema conferido.
+- `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 mvn test -Dtest=V3AuditoriaMigrationTest` → `Tests run: 12, Failures: 0, Errors: 0, Skipped: 0`, `BUILD SUCCESS`.
+- Testes executados: `migrationV3CriaTabelasDeAuditoria`, `indiceAuditavelDataHoraExiste`, `constraintsDeAuditoriaExistem`, `auditavelIniciaNaoExcluido`, `registroAuditoriaAceitaDetalheJsonb`, `registroAuditoriaPreencheDataHoraPorDefaultQuandoOmitida`, `registroAuditoriaRejeitaAcaoInvalida`, `registroAuditoriaRejeitaAuditavelIdInvalido`, `registroAuditoriaRejeitaUsuarioIdInvalido`, `registroAuditoriaRejeitaUsuarioIdNulo`, `registroAuditoriaRejeitaAuditavelIdNulo`, `migrationV3AplicaSobreV2ComDados`.
+- Log Flyway: migrations `1` a `9` aplicadas em PostgreSQL 16 via Testcontainers; V3 cria `auditavel`/`registro_auditoria`; `migrationV3AplicaSobreV2ComDados` aplica V3 sobre V2 com dados.
+- Schema conferido: FK para `auditavel`/`usuario`, check de `acao`, `detalhe JSONB`, índice `(auditavel_id, data_hora)`; V1/V2 sem alteração neste lote.
+- Ressalva de processo: revisão cruzada dispensada por decisão do usuário neste fechamento; registrada como ressalva de processo, não técnica.
