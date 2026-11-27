@@ -2,6 +2,7 @@ package br.com.obras.usuario.service;
 
 import br.com.obras.shared.exception.RecursoNaoEncontradoException;
 import br.com.obras.shared.exception.RegraNegocioException;
+import br.com.obras.shared.port.UsuarioConsultaPort;
 import br.com.obras.usuario.domain.Permissao;
 import br.com.obras.usuario.domain.Usuario;
 import br.com.obras.usuario.dto.AtualizarUsuarioDto;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class UsuarioService {
+public class UsuarioService implements UsuarioConsultaPort {
     private final UsuarioRepository usuarios;
     private final PermissaoRepository permissoes;
     private final PasswordEncoder encoder;
@@ -66,6 +67,14 @@ public class UsuarioService {
         Permissao p = permissoes.findByModuloAndAcao(dto.modulo(), dto.acao())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Permissão", dto.modulo() + ":" + dto.acao()));
         u.definirPermissao(p, dto.concedida());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean estaAtivo(Long usuarioId) {
+        return usuarios.findById(usuarioId)
+                .map(Usuario::estaAtivo)
+                .orElse(false);
     }
 
     private Usuario obter(Long id) {

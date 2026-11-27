@@ -1,7 +1,7 @@
 # L11 — Serviço CRUD de Obra
 
 **Fase:** 1 · **Commit:** `feat(obra): implementar servico de obra`  
-**Status:** Em andamento  
+**Status:** Concluído  
 **Depende de:** L10 · **RF/UC:** RF-14, RF-15, RF-18, RF-19; UC04, UC05 · **ADR:** ADR-04, ADR-05
 
 ## 1. Objetivo
@@ -57,14 +57,14 @@ Sem migration.
 
 ## 9. Critérios de aceite
 
-- [ ] CRUD de serviço funcional.
-- [ ] Auditoria em criação/edição.
-- [ ] Responsável validado.
-- [ ] Sem acesso cruzado a repository.
+- [x] CRUD de serviço funcional.
+- [x] Auditoria em criação/edição.
+- [x] Responsável validado.
+- [x] Sem acesso cruzado a repository.
 
 ## 10. Verificação e evidência
 
-`mvn test`. Evidência: testes de serviço e auditoria.
+`export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 && export PATH="$JAVA_HOME/bin:$PATH" && mvn test -q`. Evidência: `Tests run: 309, Failures: 0, Errors: 0, Skipped: 10`. `ObraServiceTest`: 11 testes, incluindo os 6 contratos do lote. Testes de integração do diário/painel ajustados com `ObraMapper` e `UsuarioConsultaPort` mock.
 
 ## 11. Auditoria do código (Cauã, 2026-11-25)
 

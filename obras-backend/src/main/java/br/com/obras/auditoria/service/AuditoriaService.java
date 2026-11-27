@@ -30,6 +30,10 @@ public class AuditoriaService {
         registros.save(RegistroAuditoria.de(auditavel, CurrentUser.id(), acao, detalhe));
     }
 
+    public void registrar(RegistroAuditoria registro) {
+        registros.save(registro);
+    }
+
     public void excluir(Auditavel auditavel) {
         auditavel.excluir();
         registros.save(RegistroAuditoria.de(auditavel, CurrentUser.id(), AcaoAuditoria.EXCLUSAO, null));

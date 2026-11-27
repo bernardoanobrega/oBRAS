@@ -6,6 +6,8 @@ import br.com.obras.diario.dto.OcorrenciaDto;
 import br.com.obras.diario.mapper.DiarioMapper;
 import br.com.obras.diario.service.DiarioService;
 import br.com.obras.obra.dto.PainelObraDto;
+import br.com.obras.obra.mapper.ObraMapper;
+import br.com.obras.shared.port.UsuarioConsultaPort;
 import br.com.obras.shared.security.AutorizacaoPort;
 import br.com.obras.shared.storage.ArquivoStorageService;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({PainelObraService.class, DiarioService.class, DiarioMapper.class, AuditoriaService.class,
-        ObraService.class, PainelObraServiceIntegracaoTest.RelogioFixo.class})
+        ObraService.class, ObraMapper.class, PainelObraServiceIntegracaoTest.RelogioFixo.class})
 @Testcontainers
 class PainelObraServiceIntegracaoTest {
     private static final ZoneId ZONA = ZoneId.of("America/Sao_Paulo");
@@ -59,6 +61,7 @@ class PainelObraServiceIntegracaoTest {
     @Autowired private JdbcTemplate jdbc;
     @MockBean private ArquivoStorageService storage;
     @MockBean private AutorizacaoPort autorizacao;
+    @MockBean private UsuarioConsultaPort usuarios;
 
     private long obraA;
     private long obraB;

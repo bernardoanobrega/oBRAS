@@ -7,8 +7,10 @@ import br.com.obras.diario.dto.NovaOcorrenciaRapidaDto;
 import br.com.obras.diario.dto.NovoDiarioDto;
 import br.com.obras.diario.dto.OcorrenciaDto;
 import br.com.obras.diario.mapper.DiarioMapper;
+import br.com.obras.obra.mapper.ObraMapper;
 import br.com.obras.obra.service.ObraService;
 import br.com.obras.shared.exception.RegraNegocioException;
+import br.com.obras.shared.port.UsuarioConsultaPort;
 import br.com.obras.shared.security.AutorizacaoPort;
 import br.com.obras.shared.security.UsuarioAutenticado;
 import br.com.obras.shared.storage.ArquivoStorageService;
@@ -64,7 +66,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({DiarioService.class, DiarioMapper.class, AuditoriaService.class, ObraService.class})
+@Import({DiarioService.class, DiarioMapper.class, AuditoriaService.class, ObraService.class, ObraMapper.class})
 @Testcontainers
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class OcorrenciaRapidaIntegracaoTest {
@@ -80,6 +82,7 @@ class OcorrenciaRapidaIntegracaoTest {
     @Autowired private PlatformTransactionManager transacoes;
     @MockBean private ArquivoStorageService storage;
     @MockBean private AutorizacaoPort autorizacao;
+    @MockBean private UsuarioConsultaPort usuarios;
 
     private final Validator validador = Validation.buildDefaultValidatorFactory().getValidator();
 

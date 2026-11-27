@@ -7,8 +7,10 @@ import br.com.obras.diario.dto.DiarioDto;
 import br.com.obras.diario.dto.NovoDiarioDto;
 import br.com.obras.diario.mapper.DiarioMapper;
 import br.com.obras.diario.repository.RegistroDiarioRepository;
+import br.com.obras.obra.mapper.ObraMapper;
 import br.com.obras.obra.service.ObraService;
 import br.com.obras.shared.exception.RegraNegocioException;
+import br.com.obras.shared.port.UsuarioConsultaPort;
 import br.com.obras.shared.security.AutorizacaoPort;
 import br.com.obras.shared.security.UsuarioAutenticado;
 import br.com.obras.shared.storage.ArquivoStorageService;
@@ -61,7 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({DiarioService.class, DiarioMapper.class, AuditoriaService.class, ObraService.class,
-        DiarioServiceIntegracaoTest.PausaNaChecagem.class})
+        ObraMapper.class, DiarioServiceIntegracaoTest.PausaNaChecagem.class})
 @Testcontainers(disabledWithoutDocker = true)
 class DiarioServiceIntegracaoTest {
     private static final LocalDate DIA = LocalDate.of(2026, 11, 18);
@@ -76,6 +78,7 @@ class DiarioServiceIntegracaoTest {
     @Autowired private PlatformTransactionManager transacoes;
     @MockBean private ArquivoStorageService storage;
     @MockBean private AutorizacaoPort autorizacao;
+    @MockBean private UsuarioConsultaPort usuarios;
 
     private long usuario;
     private long obraA;
