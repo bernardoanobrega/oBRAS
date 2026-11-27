@@ -80,7 +80,7 @@
 | L48 | Frontend: equipe, ocorrências e mural no painel | 4 | Thierry | L47 | 6 | Pendente |
 | L49 | Frontend: KPIs simulados com fonte | 4 | Cauã | L48 | 5 | Em revisão |
 | L50 | Testes de contrato e responsividade da Fase 4 | 4 | Cauã | L41–L49 | 7 | Pendente |
-| L51 | Permissões finas por ação | 6 | Thierry | L14, L22, L34, L42 | 6 | Pendente |
+| L51 | Permissões finas por ação | 6 | Thierry | L14, L22, L34, L42 | 6 | Em revisão |
 | L52 | E2E e usabilidade do fluxo de obra | 6 | Cauã | L50, L51 | 8 | Pendente |
 | L53 | Acessibilidade e responsividade | 6 | Thierry | L52 | 7 | Pendente |
 | L54 | Documentação final do módulo | 6 | Cauã | L53 | 0 | Pendente |

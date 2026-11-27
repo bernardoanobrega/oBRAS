@@ -7,6 +7,7 @@ import br.com.obras.usuario.dto.LoginRequest;
 import br.com.obras.usuario.dto.TokenResponse;
 import br.com.obras.usuario.service.AutenticacaoService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +35,7 @@ public class AuthController {
 
     /** O front usa isto para montar menu e guards de rota. obraId opcional. */
     @GetMapping("/me/permissoes")
+    @PreAuthorize("isAuthenticated()")
     public Set<PermissaoChave> minhasPermissoes(@RequestParam(required = false) Long obraId) {
         return autorizacao.permissoesEfetivas(CurrentUser.id(), obraId);
     }

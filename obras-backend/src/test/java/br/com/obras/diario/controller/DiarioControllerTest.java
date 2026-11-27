@@ -43,6 +43,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -132,6 +133,38 @@ class DiarioControllerTest {
         when(perm.pode(OBRA_ID, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(false);
 
         mvc.perform(get(OBRA + "/diarios/1").with(usuarioLogado()))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void permissaoGlobalNaoSubstituiEscopoDeObraSemRegra() throws Exception {
+        when(perm.podeGlobal("DETALHES_OBRA", "VISUALIZAR")).thenReturn(true);
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(false);
+
+        mvc.perform(get(OBRA + "/diarios/1").with(usuarioLogado()))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void usuarioComVisualizarNaoCria() throws Exception {
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(true);
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "CRIAR")).thenReturn(false);
+        when(service.listar(OBRA_ID)).thenReturn(List.of());
+
+        mvc.perform(get(OBRA + "/diarios").with(usuarioLogado()))
+                .andExpect(status().isOk());
+        mvc.perform(json(post(OBRA + "/diarios"), DIARIO).with(usuarioLogado()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void usuarioComCriarNaoExclui() throws Exception {
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "CRIAR")).thenReturn(true);
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "EXCLUIR")).thenReturn(false);
+
+        mvc.perform(delete(OBRA + "/diarios/1").with(usuarioLogado()))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(service);
     }

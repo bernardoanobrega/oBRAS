@@ -1,7 +1,7 @@
 # L51 — Permissões finas por ação
 
 **Fase:** 6 · **Commit:** `feat(seguranca): refinar permissoes por acao`  
-**Status:** Pendente  
+**Status:** Em revisão  
 **Depende de:** L14, L22, L34, L42 · **RF/UC:** RF-70; UC04, UC05, UC21 · **ADR:** ADR-09
 
 ## 1. Objetivo
