@@ -48,7 +48,7 @@
 | L16 | Testes de integração da Fase 1 | 1 | Thierry | L06–L14 | 8 | Em revisão |
 | L17 | Frontend: lista e cadastro de obras | 1 | Cauã | L12–L14, L16 | 7 | Em andamento |
 | L18 | Domínio AlocacaoObra e cargos | 2 | Thierry | L16 | 8 | Em revisão |
-| L19 | Repository, DTO e mapper de alocação | 2 | Thierry | L18 | 10 | Em andamento |
+| L19 | Repository, DTO e mapper de alocação | 2 | Thierry | L18 | 10 | Em revisão |
 | L20 | Serviço: alocar usuário com cargos | 2 | Thierry | L19 | 8 | Pendente |
 | L21 | Serviço: encerrar alocação e responsável técnico | 2 | Thierry | L20 | 10 | Pendente |
 | L22 | API de alocações da equipe | 2 | Thierry | L21 | 8 | Pendente |

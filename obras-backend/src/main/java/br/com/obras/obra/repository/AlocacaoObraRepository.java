@@ -42,4 +42,17 @@ public interface AlocacaoObraRepository extends JpaRepository<AlocacaoObra, Long
           and a.id in :ids
     """)
     List<AlocacaoObra> findAtivasPorIds(@Param("obraId") Long obraId, @Param("ids") Set<Long> ids);
+
+    default List<AlocacaoObra> listarPorObra(Long obraId) {
+        return findEquipeAtiva(obraId);
+    }
+
+    @Query("""
+        select distinct a from AlocacaoObra a
+        join fetch a.usuario
+        left join fetch a.cargos
+        where a.obra.id = :obraId and a.id = :alocacaoId and a.dataFim is null
+    """)
+    Optional<AlocacaoObra> buscarAtiva(@Param("obraId") Long obraId,
+                                       @Param("alocacaoId") Long alocacaoId);
 }

@@ -19,6 +19,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -90,6 +91,36 @@ class AlocacaoObraRepositoryTest {
                 () -> assertTrue(Hibernate.isInitialized(autor.getUsuario())),
                 () -> assertEquals("Bruno", autor.getUsuario().getNome()),
                 () -> assertTrue(alocacoes.findAtivaPorUsuario(outraObra, bruno).isEmpty(), "outra obra")
+        );
+    }
+
+    @Test
+    void repositoryListaAlocacoesDaObra() {
+        long ativa = alocacao(obra, ana);
+        long encerrada = alocacao(obra, bruno);
+        jdbc.update("UPDATE alocacao_obra SET data_fim = DATE '2026-06-30' WHERE id = ?", encerrada);
+        long deOutraObra = alocacao(outraObra, bruno);
+        em.clear();
+
+        List<Long> ids = alocacoes.listarPorObra(obra).stream()
+                .map(AlocacaoObra::getId)
+                .toList();
+
+        assertEquals(List.of(ativa), ids);
+        assertFalse(ids.contains(deOutraObra));
+    }
+
+    @Test
+    void repositoryBuscaAlocacaoAtiva() {
+        long ativa = alocacao(obra, ana);
+        long encerrada = alocacao(obra, bruno);
+        jdbc.update("UPDATE alocacao_obra SET data_fim = DATE '2026-06-30' WHERE id = ?", encerrada);
+        em.clear();
+
+        assertAll(
+                () -> assertTrue(alocacoes.buscarAtiva(obra, ativa).isPresent()),
+                () -> assertTrue(alocacoes.buscarAtiva(obra, encerrada).isEmpty()),
+                () -> assertTrue(alocacoes.buscarAtiva(outraObra, ativa).isEmpty())
         );
     }
 

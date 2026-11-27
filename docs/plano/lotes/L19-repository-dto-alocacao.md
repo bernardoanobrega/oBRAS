@@ -1,7 +1,7 @@
 # L19 — Repository, DTO e mapper de alocação
 
 **Fase:** 2 · **Commit:** `feat(equipe): persistir alocacao`  
-**Status:** Em andamento  
+**Status:** Em revisão  
 **Depende de:** L18 · **RF/UC:** RF-16 a RF-19; UC05 · **ADR:** ADR-09
 
 ## 1. Objetivo
