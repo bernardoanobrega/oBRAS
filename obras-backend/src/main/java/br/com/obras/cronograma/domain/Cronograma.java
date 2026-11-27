@@ -2,39 +2,55 @@ package br.com.obras.cronograma.domain;
 
 import br.com.obras.cronograma.domain.enums.StatusCronograma;
 import br.com.obras.cronograma.domain.enums.StatusFase;
-import br.com.obras.obra.domain.Obra;
+import br.com.obras.shared.exception.RecursoNaoEncontradoException;
+import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 @Entity 
+@Table(name = "cronograma")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED) 
 public class Cronograma {
     // ===== ATTRIBUTES =====
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "obra_id", nullable = false, updatable = false, unique = true)
+    private Long obraId;
+
+    @Column(name = "data_ultima_atualizacao", nullable = false)
     private LocalDate dataUltimaAtualizacao;
-    
+
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 15)
     private StatusCronograma status;
 
     @OneToMany(mappedBy = "cronograma", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
     private List<Fase> fases = new ArrayList<>();
 
-    @OneToOne
-    private Obra obra;
-
     // ===== CONSTRUCTORS =====
-    public Cronograma(Obra obra) {
-        this.obra = obra;
-        this.dataUltimaAtualizacao = LocalDate.now();
-        this.status = StatusCronograma.VAZIO;
+    public static Cronograma criar(Long obraId) {
+        if(obraId == null) {
+            throw new RegraNegocioException("A obra do cronograma é obrigatória.");
+        }
+        Cronograma cronograma = new Cronograma();
+        cronograma.obraId = obraId;
+        cronograma.dataUltimaAtualizacao = LocalDate.now();
+        cronograma.status = StatusCronograma.VAZIO;
+
+        return cronograma;
     }
 
     // ===== METHODS =====
@@ -52,21 +68,21 @@ public class Cronograma {
         checarEditabilidade();
 
         if(nome == null || nome.isBlank()) {
-            throw new IllegalArgumentException("O nome da fase é obrigatório.");
+            throw new RegraNegocioException("O nome da fase é obrigatório.");
         }
 
         if(ordem < 1) {
-            throw new IllegalArgumentException("A ordem deve ser maior ou igual a 1.");
+            throw new RegraNegocioException("A ordem deve ser maior ou igual a 1.");
         }
 
         boolean ordemJaUsada = fases.stream().anyMatch(f -> f.getOrdem() == ordem);
         if(ordemJaUsada) {
-            throw new IllegalArgumentException("Já existe uma fase de ordem " + ordem);
+            throw new RegraNegocioException("Já existe uma fase de ordem " + ordem);
         }
 
-        Fase fase = new Fase(this, nome, ordem, inicioPrevisto, fimPrevisto);
+        Fase fase = new Fase(this, nome, descricao, ordem, inicioPrevisto, fimPrevisto);
         if(!fase.validarPeriodo()) {
-            throw new IllegalArgumentException("Período inválido: o início previsto deve ser anterior ou igual ao fim previsto");
+            throw new RegraNegocioException("Período inválido: o início previsto deve ser anterior ou igual ao fim previsto");
         }
 
         fases.add(fase);
@@ -84,11 +100,8 @@ public class Cronograma {
         checarEditabilidade();
 
         Fase fase = buscarFase(idFase);
-        if(fase == null) {
-            throw new IllegalArgumentException("Fase com id " + idFase + " não encontrada.");
-        }
         if(fase.getStatus() != StatusFase.NAO_INICIADA) {
-            throw new IllegalStateException("Não é permitido remover fases já iniciadas.");
+            throw new RegraNegocioException("Não é permitido remover fases já iniciadas.");
         }
 
         fases.remove(fase);
@@ -98,7 +111,7 @@ public class Cronograma {
     /**
      * Método para buscar uma fase no cronograma a partir do Id
      * @param idFase
-     * @return Retorna a fase com o id informado ou null se não existir
+     * @return Retorna a fase com o id informado
      */
     public Fase buscarFase(Long idFase) {
         if(idFase == null) {
@@ -107,7 +120,7 @@ public class Cronograma {
         return fases.stream()
                 .filter(f -> idFase.equals(f.getId()))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Fase", idFase));
     }
 
     /**
@@ -130,7 +143,7 @@ public class Cronograma {
 
     /**
      * Método para obter o percentual já concluído do cronograma
-     * @return Retorna um valor entre 0 e 1 representando o percentual concluído do cronograma
+     * @return Retorna um valor entre 0 e 100 representando o percentual concluído do cronograma
      */
     public double calcularPercentualGeral() {
         double somaPonderada = 0;
@@ -140,7 +153,7 @@ public class Cronograma {
             if(fase.getStatus() == StatusFase.CANCELADA) {
                 continue;
             }
-            long pesoFase = Math.max(1, ChronoUnit.DAYS.between(fase.getInicioPrevisto(), fase.getFimPrevisto()) + 1);
+            long pesoFase = fase.calcularDuracaoDias();
             somaPonderada += fase.calcularPercentualConcluido() * pesoFase;
             pesoTotal += pesoFase;
         }
@@ -179,7 +192,7 @@ public class Cronograma {
      */
     public void cancelarCronograma() {
         if(status == StatusCronograma.CONCLUIDO) {
-            throw new IllegalStateException("Um cronograma concluído não pode ser cancelado.");
+            throw new RegraNegocioException("Um cronograma concluído não pode ser cancelado.");
         }
         if(status == StatusCronograma.CANCELADO) {
             return;
@@ -238,7 +251,7 @@ public class Cronograma {
      */
     private void checarEditabilidade() {
         if(status == StatusCronograma.CONCLUIDO || status == StatusCronograma.CANCELADO) {
-            throw new IllegalStateException("Um cronograma " + status + " não pode ser alterado.");
+            throw new RegraNegocioException("Um cronograma " + status + " não pode ser alterado.");
         }
     }
 
@@ -260,7 +273,7 @@ public class Cronograma {
         return Collections.unmodifiableList(fases);
     }
 
-    public Obra getObra() {
-        return obra;
+    public Long getObraId() {
+        return obraId;
     }    
 }

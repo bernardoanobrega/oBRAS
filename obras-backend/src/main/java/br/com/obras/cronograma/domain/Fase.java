@@ -1,8 +1,13 @@
 package br.com.obras.cronograma.domain;
 
 import br.com.obras.cronograma.domain.enums.StatusFase;
-import br.com.obras.usuario.domain.Usuario;
+import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -10,37 +15,67 @@ import java.util.Collections;
 import java.util.List;
 
 @Entity 
+@Table(name = "fase")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Fase {
+    private static final int TAMANHO_LOTE_AVANCOS = 50;
+    private static final int TAMANHO_MAXIMO_NOME = 150;
+    private static final int TAMANHO_MAXIMO_DESCRICAO = 500;
+    
     // ===== ATTRIBUTES =====
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;
 
-    @ManyToOne(optional = false) 
-    @JoinColumn(name = "id_cronograma")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) 
+    @JoinColumn(name = "id_cronograma", nullable = false, updatable = false)
     private Cronograma cronograma;
 
+    @Column(nullable = false, length = TAMANHO_MAXIMO_NOME)
     private String nome;
+
+    @Column(length = TAMANHO_MAXIMO_DESCRICAO)
     private String descricao;
+
+    @Column(nullable = false)
     private int ordem;
+
+    @Column(name = "inicio_previsto", nullable = false)
     private LocalDate inicioPrevisto;
+
+    @Column(name = "fim_previsto", nullable = false)
     private LocalDate fimPrevisto;
+
+    @Column(name = "inicio_real")
     private LocalDate inicioReal;
+
+    @Column(name = "fim_real")
     private LocalDate fimReal;
-    
+
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 15)
     private StatusFase status;
 
     @OneToMany(mappedBy = "fase", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("dataRegistro ASC, id ASC")
+    @BatchSize(size = TAMANHO_LOTE_AVANCOS)
     private List<AvancoFisico> avancos = new ArrayList<>();
 
     // ===== CONSTRUCTORS =====
 
-    public Fase(Cronograma cronograma, String nome, int ordem, LocalDate inicioPrevisto, LocalDate fimPrevisto) {
+    public Fase(Cronograma cronograma, String nome, String descricao, int ordem, LocalDate inicioPrevisto, LocalDate fimPrevisto) {
+        if (nome != null && nome.trim().length() > TAMANHO_MAXIMO_NOME) {
+            throw new RegraNegocioException("O nome da fase deve ter no máximo " + TAMANHO_MAXIMO_NOME + " caracteres");
+        }
+        if (descricao != null && descricao.length() > TAMANHO_MAXIMO_DESCRICAO) {
+            throw new RegraNegocioException(
+                    "A descrição da fase deve ter no máximo " + TAMANHO_MAXIMO_DESCRICAO + " caracteres");
+        }
         this.cronograma = cronograma;
-        this.nome = nome;
+        this.nome = nome == null ? null : nome.trim();
+        this.descricao = descricao == null || descricao.isBlank() ? null : descricao.trim();
         this.ordem = ordem;
         this.inicioPrevisto = inicioPrevisto;
         this.fimPrevisto = fimPrevisto;
@@ -58,22 +93,28 @@ public class Fase {
     }
 
     /**
+     * Método para calcular a quantidade de dias de duração da fase
+     * @return Retorna o número de dias calculado
+     */
+    public long calcularDuracaoDias() {
+        return Math.max(1, ChronoUnit.DAYS.between(inicioPrevisto, fimPrevisto) + 1);
+    }
+
+    /**
      * Método para adicionar um avanço físico a uma fase
      * @param percentualAcumulado
      * @param observacao
      * @param autor
      * @return Insere o novo avanço na lista de avanços da fase, e retorna o avanço adicionado
      */
-    public AvancoFisico registrarAvanco(double percentualAcumulado, String observacao, Usuario autor) {
+    public AvancoFisico registrarAvanco(double percentualAcumulado, String observacao, Long autorId) {
         if(status == StatusFase.CONCLUIDA || status == StatusFase.CANCELADA) {
-            throw new IllegalStateException("Não é possível registrar avanço em uma fase " + status + ".");
+            throw new RegraNegocioException("Não é possível registrar avanço em uma fase " + status + ".");
         }
-        if(autor == null) {
-            throw new IllegalArgumentException("O autor do avanço físico é obrigatório.");
-        }
-        AvancoFisico avanco = new AvancoFisico(this, percentualAcumulado, observacao, autor);
-        if(!avanco.validar(calcularPercentualConcluido())) {
-            throw new IllegalArgumentException("Percentual inválido: deve estar entre 0 e 100 ou igual ao último avanço (" + calcularPercentualConcluido() + "%).");
+        AvancoFisico avanco = new AvancoFisico(this, percentualAcumulado, observacao, autorId);
+        double percentualAtual = calcularPercentualConcluido();
+        if(!avanco.validar(percentualAtual)) {
+            throw new RegraNegocioException("Percentual inválido: deve estar entre 0 e 100 ou igual ao último avanço (" + percentualAtual + "%).");
         }
         avancos.add(avanco);
         if(status == StatusFase.NAO_INICIADA && percentualAcumulado > 0) {
@@ -105,16 +146,16 @@ public class Fase {
      */
     public void concluir(LocalDate dataReal) {
         if(status != StatusFase.EM_ANDAMENTO) {
-            throw new IllegalStateException("Só é possível concluir uma fase que já está em andamento (status atual: " + status + ").");
+            throw new RegraNegocioException("Só é possível concluir uma fase que já está em andamento (status atual: " + status + ").");
         }
         if(calcularPercentualConcluido() < 100.0) {
-            throw new IllegalStateException("A fase só pode ser concluída com 100% de avanço registrado.");
+            throw new RegraNegocioException("A fase só pode ser concluída com 100% de avanço registrado.");
         }
         if(dataReal == null) {
-            throw new IllegalArgumentException("A data de conclusão é obrigatória.");
+            throw new RegraNegocioException("A data de conclusão é obrigatória.");
         }
         if(inicioReal != null && dataReal.isBefore(inicioReal)) {
-            throw new IllegalArgumentException("A data de conclusão não pode ser anterior ao início real.");
+            throw new RegraNegocioException("A data de conclusão não pode ser anterior ao início real.");
         }
 
         fimReal = dataReal;
@@ -128,6 +169,9 @@ public class Fase {
      * @return Retorna um valor booleano representando o atraso da fase
      */
     public boolean estaAtrasada(LocalDate dataReferencia) {
+        if(dataReferencia == null) {
+            throw new IllegalArgumentException("A data de referência é obrigatória.");
+        }
         if(status == StatusFase.CONCLUIDA || status == StatusFase.CANCELADA) {
             return false;
         }
@@ -144,6 +188,9 @@ public class Fase {
      * positivo = atrasada, negativo = adiantada, 0 = em dia
      */
     public int calcularDesvioDias(LocalDate dataReferencia) {
+        if(dataReferencia == null) {
+            throw new IllegalArgumentException("A data de referência é obrigatória.");
+        }
         switch (status) {
             case CONCLUIDA:
                 return (int) ChronoUnit.DAYS.between(fimPrevisto, fimReal);
@@ -161,13 +208,24 @@ public class Fase {
      */
     public void cancelarFase() {
         if (status == StatusFase.CONCLUIDA) {
-            throw new IllegalStateException("Fase concluída não pode ser cancelada.");
+            throw new RegraNegocioException("Fase concluída não pode ser cancelada.");
         }
         if (status == StatusFase.CANCELADA) {
             return;
         }
         status = StatusFase.CANCELADA;
         cronograma.atualizarStatus();
+    }
+
+    /**
+     * Método para alterar a descrição da fase
+     * @param descricao
+     */
+    public void atualizarDescricao(String descricao) {
+        if (descricao != null && descricao.length() > TAMANHO_MAXIMO_DESCRICAO) {
+            throw new RegraNegocioException("A descrição da fase deve ter no máximo " + TAMANHO_MAXIMO_DESCRICAO + " caracteres");
+        }
+        this.descricao = descricao == null || descricao.isBlank() ? null : descricao.trim();
     }
 
     
@@ -187,10 +245,6 @@ public class Fase {
 
     public String getDescricao() {
         return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
     }
 
     public int getOrdem() {

@@ -1,35 +1,57 @@
 package br.com.obras.cronograma.domain;
 
-import java.time.LocalDate;
-import br.com.obras.usuario.domain.Usuario;
+import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 
 @Entity 
+@Table(name = "avanco_fisico")
+@Getter 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AvancoFisico {
+    private static final int TAMANHO_MAXIMO_OBSERVACAO = 500;
+
     // ===== ATTRIBUTES =====
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long id;
     
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "fase_id", nullable = false, updatable = false)
     private Fase fase;
 
-    @ManyToOne(optional = false)
-    private Usuario autor;
+    @Column(name = "autor_id", nullable = false, updatable = false)
+    private Long autorId;
 
+    @Column(name = "data_registro", nullable = false, updatable = false)
     private LocalDate dataRegistro;
+
+    @Column(name = "percentual_acumulado", nullable = false)
     private double percentualAcumulado;
+
+    @Column(length = TAMANHO_MAXIMO_OBSERVACAO)
     private String observacao;
 
     // ===== CONSTRUCTORS =====
 
-    public AvancoFisico(Fase fase, double percentualAcumulado, String observacao, Usuario autor) {
+    public AvancoFisico(Fase fase, double percentualAcumulado, String observacao, Long autorId) {
+        if (autorId == null) {
+            throw new RegraNegocioException("O autor do avanço físico é obrigatório");
+        }
+        if (observacao != null && observacao.length() > TAMANHO_MAXIMO_OBSERVACAO) {
+            throw new RegraNegocioException(
+                    "A observação deve ter no máximo " + TAMANHO_MAXIMO_OBSERVACAO + " caracteres");
+        }
         this.fase = fase;
         this.dataRegistro = LocalDate.now();
         this.percentualAcumulado = percentualAcumulado;
-        this.observacao = observacao;
-        this.autor = autor;
+        this.observacao = observacao == null || observacao.isBlank() ? null : observacao.trim();
+        this.autorId = autorId;
     }
 
     // ===== METHODS =====
@@ -53,8 +75,8 @@ public class AvancoFisico {
         return fase;
     }
 
-    public Usuario getAutor() {
-        return autor;
+    public Long getAutorId() {
+        return autorId;
     }
 
     public LocalDate getDataRegistro() {
