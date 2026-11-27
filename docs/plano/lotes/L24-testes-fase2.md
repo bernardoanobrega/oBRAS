@@ -1,7 +1,7 @@
 # L24 — Testes de integração da Fase 2
 
 **Fase:** 2 · **Commit:** `test(equipe): cobrir fase 2`  
-**Status:** Pendente  
+**Status:** Em revisão  
 **Depende de:** L18–L23 · **RF/UC:** RF-16 a RF-19; UC05 · **ADR:** ADR-05, ADR-09
 
 ## 1. Objetivo

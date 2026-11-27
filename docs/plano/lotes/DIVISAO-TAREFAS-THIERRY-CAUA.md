@@ -53,7 +53,7 @@
 | L21 | Serviço: encerrar alocação e responsável técnico | 2 | Thierry | L20 | 10 | Em revisão |
 | L22 | API de alocações da equipe | 2 | Thierry | L21 | 8 | Em revisão |
 | L23 | Cascata de encerramento ao concluir/cancelar | 2 | Thierry | L21, L22 | 6 | Em revisão |
-| L24 | Testes de integração da Fase 2 | 2 | Thierry | L18–L23 | 8 | Pendente |
+| L24 | Testes de integração da Fase 2 | 2 | Thierry | L18–L23 | 8 | Em revisão |
 | L25 | Frontend: tela de equipe da obra | 2 | Cauã | L22–L24 | 8 | Em andamento |
 | L26 | Migration V4: diário, equipe presente e RN-07 | 3 | Cauã | L06, L07 | 10 | Concluído |
 | L27 | Migration V4: ocorrências, paralisações e fotos | 3 | Cauã | L26 | 11 | Concluído |

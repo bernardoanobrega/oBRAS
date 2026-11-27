@@ -67,6 +67,13 @@ class AlocacaoObraControllerTest {
     }
 
     @Test
+    void semPermissaoRetorna403() throws Exception {
+        mvc.perform(get(BASE).with(usuarioLogado()))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(service);
+    }
+
+    @Test
     void getCandidatosRetornaUsuariosAtivos() throws Exception {
         when(perm.pode(OBRA_ID, "DETALHES_OBRA", "CRIAR")).thenReturn(true);
         when(service.candidatos(OBRA_ID)).thenReturn(List.of(new UsuarioCandidatoDto(10L, "Ana")));
