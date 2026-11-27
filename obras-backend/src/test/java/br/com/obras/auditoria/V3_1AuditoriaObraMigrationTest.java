@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -84,6 +85,52 @@ class V3_1AuditoriaObraMigrationTest {
         }
         try (Connection conexao = connection()) {
             assertTrue(responsavelNulo(conexao, obraId));
+        }
+    }
+
+    @Test
+    void obraNaoAceitaAuditavelDuplicado() throws SQLException {
+        setup(null);
+        try (Connection conexao = connection()) {
+            long auditavelId = insertAuditavel(conexao);
+            long obraA = insertObraComAuditavel(conexao, "Obra A", auditavelId);
+
+            SQLException violacao = assertThrows(SQLException.class,
+                    () -> insertObraComAuditavel(conexao, "Obra B", auditavelId));
+
+            String mensagem = violacao.getMessage() == null ? "" : violacao.getMessage();
+            assertAll(
+                    () -> assertTrue(obraA > 0),
+                    () -> assertTrue(
+                            "23505".equals(violacao.getSQLState()) || mensagem.contains("uk_obra_auditavel"),
+                            "esperava violação de UNIQUE em uk_obra_auditavel, veio: "
+                                    + violacao.getSQLState() + " / " + mensagem),
+                    () -> assertEquals(1L, contarObrasPorAuditavel(conexao, auditavelId))
+            );
+        }
+    }
+
+    @Test
+    void obraExistenteMantemResponsavel() throws SQLException {
+        setup("2");
+        long usuarioId;
+        long obraId;
+        try (Connection conexao = connection()) {
+            usuarioId = insertUsuario(conexao);
+            obraId = insertObraV2(conexao, usuarioId, "Obra existente");
+        }
+
+        migrate(null);
+
+        try (Connection conexao = connection()) {
+            long responsavel = responsavelDaObra(conexao, obraId);
+            long auditavelId = auditavelDaObra(conexao, obraId);
+            assertAll(
+                    () -> assertEquals(usuarioId, responsavel),
+                    () -> assertFalse(responsavelNulo(conexao, obraId)),
+                    () -> assertTrue(auditavelId > 0),
+                    () -> assertFalse(excluido(conexao, auditavelId))
+            );
         }
     }
 
@@ -173,6 +220,44 @@ class V3_1AuditoriaObraMigrationTest {
             ps.setLong(3, auditavelId);
             try (ResultSet rs = ps.executeQuery()) {
                 assertTrue(rs.next());
+                return rs.getLong(1);
+            }
+        }
+    }
+
+    private long insertObraComAuditavel(Connection conexao, String nome, long auditavelId) throws SQLException {
+        try (PreparedStatement ps = conexao.prepareStatement("""
+                INSERT INTO obra (nome, tipologia, endereco, inicio_previsto, fim_previsto, status,
+                                  responsavel_id, auditavel_id)
+                VALUES (?, 'RESIDENCIAL', 'Rua X', DATE '2026-01-01', DATE '2026-12-31', 'PLANEJADA', NULL, ?)
+                RETURNING id
+                """)) {
+            ps.setString(1, nome);
+            ps.setLong(2, auditavelId);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getLong(1);
+            }
+        }
+    }
+
+    private long contarObrasPorAuditavel(Connection conexao, long auditavelId) throws SQLException {
+        try (PreparedStatement ps = conexao.prepareStatement(
+                "SELECT count(*) FROM obra WHERE auditavel_id = ?")) {
+            ps.setLong(1, auditavelId);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getLong(1);
+            }
+        }
+    }
+
+    private long responsavelDaObra(Connection conexao, long obraId) throws SQLException {
+        try (PreparedStatement ps = conexao.prepareStatement(
+                "SELECT responsavel_id FROM obra WHERE id = ?")) {
+            ps.setLong(1, obraId);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
                 return rs.getLong(1);
             }
         }
