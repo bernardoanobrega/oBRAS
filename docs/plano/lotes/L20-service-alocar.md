@@ -1,7 +1,7 @@
 # L20 — Serviço: alocar usuário com cargos
 
 **Fase:** 2 · **Commit:** `feat(equipe): alocar usuario com cargos`  
-**Status:** Pendente  
+**Status:** Em revisão  
 **Depende de:** L19 · **RF/UC:** RF-16, RF-17; UC05 · **ADR:** ADR-09
 
 ## 1. Objetivo

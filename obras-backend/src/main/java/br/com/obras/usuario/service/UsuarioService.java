@@ -84,6 +84,18 @@ public class UsuarioService implements UsuarioConsultaPort {
         return usuarios.findById(usuarioId).map(Usuario::getNome);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Usuario> buscarEntidade(Long usuarioId) {
+        return usuarios.findById(usuarioId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Usuario> listarAtivos() {
+        return usuarios.findAll().stream().filter(Usuario::estaAtivo).toList();
+    }
+
     private Usuario obter(Long id) {
         return usuarios.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Usuário", id));
     }
