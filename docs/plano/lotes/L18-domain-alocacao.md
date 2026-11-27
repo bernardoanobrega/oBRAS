@@ -1,7 +1,7 @@
 # L18 — Domínio AlocacaoObra e cargos
 
 **Fase:** 2 · **Commit:** `feat(equipe): modelar alocacao`  
-**Status:** Em andamento  
+**Status:** Em revisão  
 **Depende de:** L16 · **RF/UC:** RF-16 a RF-19; UC05 · **ADR:** ADR-09, ADR-10
 
 ## 1. Objetivo

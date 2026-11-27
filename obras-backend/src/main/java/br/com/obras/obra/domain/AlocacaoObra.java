@@ -1,5 +1,6 @@
 package br.com.obras.obra.domain;
 
+import br.com.obras.shared.exception.RegraNegocioException;
 import br.com.obras.usuario.domain.Cargo;
 import br.com.obras.usuario.domain.Usuario;
 import jakarta.persistence.*;
@@ -9,6 +10,7 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -42,8 +44,63 @@ public class AlocacaoObra {
     )
     private Set<Cargo> cargos = new HashSet<>();
 
+    public static AlocacaoObra criar(Obra obra, Usuario usuario, LocalDate dataInicio, Set<Cargo> cargos) {
+        validar(obra, usuario, dataInicio, null, cargos);
+        AlocacaoObra alocacao = new AlocacaoObra();
+        alocacao.obra = obra;
+        alocacao.usuario = usuario;
+        alocacao.dataInicio = dataInicio;
+        alocacao.cargos.addAll(cargos);
+        return alocacao;
+    }
+
+    public static AlocacaoObra criarEncerrada(Obra obra, Usuario usuario, LocalDate dataInicio,
+                                              LocalDate dataFim, Set<Cargo> cargos) {
+        validar(obra, usuario, dataInicio, dataFim, cargos);
+        AlocacaoObra alocacao = criar(obra, usuario, dataInicio, cargos);
+        alocacao.dataFim = dataFim;
+        return alocacao;
+    }
+
     public boolean estaAtiva() {
         return dataFim == null;
+    }
+
+    public void encerrar(LocalDate dataFim) {
+        if (!estaAtiva()) {
+            throw new RegraNegocioException("A alocação já está encerrada");
+        }
+        if (dataFim == null || dataFim.isBefore(dataInicio)) {
+            throw new RegraNegocioException("A data de encerramento não pode ser anterior ao início");
+        }
+        this.dataFim = dataFim;
+    }
+
+    public void substituirCargos(Set<Cargo> cargos) {
+        if (cargos == null || cargos.isEmpty()) {
+            throw new RegraNegocioException("A alocação exige ao menos um cargo");
+        }
+        this.cargos.clear();
+        this.cargos.addAll(cargos);
+    }
+
+    private static void validar(Obra obra, Usuario usuario, LocalDate inicio,
+                                LocalDate fim, Set<Cargo> cargos) {
+        if (obra == null || usuario == null) {
+            throw new RegraNegocioException("A alocação exige obra e usuário");
+        }
+        if (inicio == null) {
+            throw new RegraNegocioException("A data de início é obrigatória");
+        }
+        if (fim != null && fim.isBefore(inicio)) {
+            throw new RegraNegocioException("A data de fim não pode ser anterior à data de início");
+        }
+        if (cargos == null || cargos.isEmpty()) {
+            throw new RegraNegocioException("A alocação exige ao menos um cargo");
+        }
+        if (cargos.stream().anyMatch(Objects::isNull)) {
+            throw new RegraNegocioException("A alocação contém cargo inválido");
+        }
     }
 
     /**
