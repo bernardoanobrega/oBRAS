@@ -1,7 +1,7 @@
 # L13 — API de transições e responsável técnico
 
 **Fase:** 1 · **Commit:** `feat(obra): expor transicoes e responsavel`  
-**Status:** Pendente  
+**Status:** Em revisão  
 **Depende de:** L12 · **RF/UC:** RF-14, RF-18, RF-19; UC04, UC05 · **ADR:** ADR-05, ADR-08
 
 ## 1. Objetivo

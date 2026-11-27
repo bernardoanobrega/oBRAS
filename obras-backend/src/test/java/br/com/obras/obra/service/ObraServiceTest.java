@@ -17,6 +17,7 @@ import br.com.obras.obra.repository.AlocacaoObraRepository;
 import br.com.obras.obra.repository.ObraRepository;
 import br.com.obras.shared.exception.RecursoNaoEncontradoException;
 import br.com.obras.shared.exception.RegraNegocioException;
+import br.com.obras.shared.port.AuditavelConsultaPort;
 import br.com.obras.shared.port.UsuarioConsultaPort;
 import br.com.obras.shared.security.AcaoPermissao;
 import br.com.obras.shared.security.AutorizacaoPort;
@@ -28,7 +29,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -48,6 +48,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ObraServiceTest {
     private static final Long USUARIO_ID = 10L;
+    private static final Long AUDITAVEL_ID = 91L;
     private static final LocalDate INICIO = LocalDate.of(2026, 1, 1);
     private static final LocalDate FIM = LocalDate.of(2026, 12, 31);
     
@@ -57,12 +58,20 @@ class ObraServiceTest {
     @Spy private ObraMapper mapper = new ObraMapper();
     @Mock private AuditoriaService auditoria;
     @Mock private UsuarioConsultaPort usuarios;
-    @InjectMocks private ObraService service;
+    @Mock private AuditavelConsultaPort auditaveis;
+    private ObraService service;
 
     @BeforeEach
     void autenticar() {
         var auth = new UsernamePasswordAuthenticationToken( new UsuarioAutenticado(USUARIO_ID, "ana"), null, List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
+        service = new ObraService(obras, alocacoes, autorizacao, mapper, auditoria, usuarios, auditaveis);
+    }
+
+    private void permitirAuditavel() {
+        Auditavel auditavel = Auditavel.novo();
+        ReflectionTestUtils.setField(auditavel, "id", AUDITAVEL_ID);
+        when(auditaveis.buscar(AUDITAVEL_ID)).thenReturn(Optional.of(auditavel));
     }
 
     @AfterEach
@@ -91,6 +100,7 @@ class ObraServiceTest {
     void buscarRetornaDetalhe() {
         Obra obra = obraMock(1L);
         when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
 
         ObraDto dto = service.buscar(1L);
 
@@ -110,7 +120,9 @@ class ObraServiceTest {
     @Test
     void equipeRetornaMembrosAtivos() {
         Obra obra = mock(Obra.class);
+        when(obra.getAuditavelId()).thenReturn(AUDITAVEL_ID);
         when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
 
         Usuario usuario = mock(Usuario.class);
         when(usuario.getId()).thenReturn(5L);
@@ -166,6 +178,7 @@ class ObraServiceTest {
     void atualizaParametrosEAudita() {
         Obra obra = obraReal(5L);
         when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
 
         ObraDto resultado = service.atualizar(1L, atualizarObraDto(null));
 
@@ -193,6 +206,7 @@ class ObraServiceTest {
         Obra obra = obraReal(5L);
         when(usuarios.estaAtivo(7L)).thenReturn(true);
         when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
 
         ObraDto resultado = service.definirResponsavel(1L, 7L);
 
@@ -224,6 +238,90 @@ class ObraServiceTest {
         assertFalse(temUsuarioRepository);
     }
 
+    @Test
+    void iniciarSemResponsavelRetorna422() {
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obraReal(null)));
+        permitirAuditavel();
+
+        RegraNegocioException ex = assertThrows(RegraNegocioException.class, () -> service.iniciar(1L));
+
+        assertEquals("A obra exige um responsável para ser iniciada", ex.getMessage());
+        verify(auditoria, never()).registrar(any(RegistroAuditoria.class));
+    }
+
+    @Test
+    void iniciarComResponsavelRetorna200() {
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obraReal(7L)));
+        when(usuarios.estaAtivo(7L)).thenReturn(true);
+        permitirAuditavel();
+
+        ObraDto dto = service.iniciar(1L);
+
+        assertEquals(StatusObra.EM_ANDAMENTO.name(), dto.status());
+        verify(auditoria).registrar(argThat(r -> r.getDetalhe().contains("\"statusNovo\":\"EM_ANDAMENTO\"")));
+    }
+
+    @Test
+    void paralisarNaoEncerraAlocacao() {
+        Obra obra = obraReal(7L);
+        ReflectionTestUtils.setField(obra, "status", StatusObra.EM_ANDAMENTO);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
+
+        ObraDto dto = service.paralisar(1L);
+
+        assertEquals(StatusObra.PARALISADA.name(), dto.status());
+        verifyNoInteractions(alocacoes);
+    }
+
+    @Test
+    void retomarDePlanejadaRetorna422() {
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obraReal(7L)));
+        permitirAuditavel();
+
+        RegraNegocioException ex = assertThrows(RegraNegocioException.class, () -> service.retomar(1L));
+
+        assertEquals("Somente obra paralisada pode ser retomada", ex.getMessage());
+    }
+
+    @Test
+    void concluirDeEmAndamentoRetorna200() {
+        Obra obra = obraReal(7L);
+        ReflectionTestUtils.setField(obra, "status", StatusObra.EM_ANDAMENTO);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
+
+        ObraDto dto = service.concluir(1L);
+
+        assertEquals(StatusObra.CONCLUIDA.name(), dto.status());
+    }
+
+    @Test
+    void cancelarDeConcluidaRetorna422() {
+        Obra obra = obraReal(7L);
+        ReflectionTestUtils.setField(obra, "status", StatusObra.CONCLUIDA);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
+
+        RegraNegocioException ex = assertThrows(RegraNegocioException.class, () -> service.cancelar(1L));
+
+        assertEquals("Obra concluída ou cancelada não pode ser alterada", ex.getMessage());
+    }
+
+    @Test
+    void transicaoGeraAuditoria() {
+        Obra obra = obraReal(7L);
+        ReflectionTestUtils.setField(obra, "status", StatusObra.EM_ANDAMENTO);
+        when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
+        permitirAuditavel();
+
+        service.concluir(1L);
+
+        verify(auditoria).registrar(argThat(r -> r.getDetalhe().contains("\"statusAnterior\":\"EM_ANDAMENTO\"")
+                && r.getDetalhe().contains("\"statusNovo\":\"CONCLUIDA\"")));
+        verify(obras).save(obra);
+    }
+
     private static NovaObraDto novaObraDto(Long responsavelId) {
         return new NovaObraDto("Obra nova", "desc", Tipologia.RESIDENCIAL, "Rua nova",
                 INICIO, FIM, null, responsavelId);
@@ -235,8 +333,10 @@ class ObraServiceTest {
     }
 
     private static Obra obraReal(Long responsavelId) {
+        Auditavel auditavel = Auditavel.novo();
+        ReflectionTestUtils.setField(auditavel, "id", AUDITAVEL_ID);
         Obra obra = Obra.cadastrar("Obra antiga", null, Tipologia.RESIDENCIAL, "Rua antiga",
-                INICIO, FIM, null, responsavelId, Auditavel.novo());
+                INICIO, FIM, null, responsavelId, auditavel);
         ReflectionTestUtils.setField(obra, "id", 1L);
         return obra;
     }
@@ -244,6 +344,7 @@ class ObraServiceTest {
     private Obra obraMock(Long id) {
         Obra o = mock(Obra.class);
         when(o.getId()).thenReturn(id);
+        when(o.getAuditavelId()).thenReturn(AUDITAVEL_ID);
         when(o.getNome()).thenReturn("Obra " + id);
         when(o.getDescricao()).thenReturn("Descrição " + id);
         when(o.getTipologia()).thenReturn(Tipologia.RESIDENCIAL);

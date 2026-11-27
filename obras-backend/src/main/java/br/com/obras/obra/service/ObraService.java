@@ -15,6 +15,7 @@ import br.com.obras.obra.repository.AlocacaoObraRepository;
 import br.com.obras.obra.repository.ObraRepository;
 import br.com.obras.shared.exception.RecursoNaoEncontradoException;
 import br.com.obras.shared.exception.RegraNegocioException;
+import br.com.obras.shared.port.AuditavelConsultaPort;
 import br.com.obras.shared.port.UsuarioConsultaPort;
 import br.com.obras.shared.security.AcaoPermissao;
 import br.com.obras.shared.security.AutorizacaoPort;
@@ -35,6 +36,7 @@ public class ObraService {
     private final ObraMapper mapper;
     private final AuditoriaService auditoria;
     private final UsuarioConsultaPort usuarios;
+    private final AuditavelConsultaPort auditaveis;
 
     public ObraService(
         ObraRepository obras,
@@ -42,7 +44,8 @@ public class ObraService {
         AutorizacaoPort autorizacao,
         ObraMapper mapper,
         AuditoriaService auditoria,
-        UsuarioConsultaPort usuarios
+        UsuarioConsultaPort usuarios,
+        AuditavelConsultaPort auditaveis
     ) {
         this.obras = obras;
         this.alocacoes = alocacoes;
@@ -50,6 +53,7 @@ public class ObraService {
         this.mapper = mapper;
         this.auditoria = auditoria;
         this.usuarios = usuarios;
+        this.auditaveis = auditaveis;
     }
 
     @Transactional
@@ -86,6 +90,53 @@ public class ObraService {
         validarResponsavelAtivo(responsavelId);
         Obra obra = obterEntidade(obraId);
         RegistroAuditoria registro = obra.definirResponsavel(responsavelId, CurrentUser.id());
+        obras.save(obra);
+        auditoria.registrar(registro);
+        return paraDto(obra);
+    }
+
+    @Transactional
+    public ObraDto iniciar(Long obraId) {
+        Obra obra = obter(obraId);
+        boolean responsavelAtivo = obra.getResponsavelId() != null
+            && usuarios.estaAtivo(obra.getResponsavelId());
+        RegistroAuditoria registro = obra.iniciar(responsavelAtivo, CurrentUser.id());
+        obras.save(obra);
+        auditoria.registrar(registro);
+        return paraDto(obra);
+    }
+
+    @Transactional
+    public ObraDto paralisar(Long obraId) {
+        Obra obra = obter(obraId);
+        RegistroAuditoria registro = obra.paralisar(CurrentUser.id());
+        obras.save(obra);
+        auditoria.registrar(registro);
+        return paraDto(obra);
+    }
+
+    @Transactional
+    public ObraDto retomar(Long obraId) {
+        Obra obra = obter(obraId);
+        RegistroAuditoria registro = obra.retomar(CurrentUser.id());
+        obras.save(obra);
+        auditoria.registrar(registro);
+        return paraDto(obra);
+    }
+
+    @Transactional
+    public ObraDto concluir(Long obraId) {
+        Obra obra = obter(obraId);
+        RegistroAuditoria registro = obra.concluir(CurrentUser.id());
+        obras.save(obra);
+        auditoria.registrar(registro);
+        return paraDto(obra);
+    }
+
+    @Transactional
+    public ObraDto cancelar(Long obraId) {
+        Obra obra = obter(obraId);
+        RegistroAuditoria registro = obra.cancelar(CurrentUser.id());
         obras.save(obra);
         auditoria.registrar(registro);
         return paraDto(obra);
@@ -149,7 +200,11 @@ public class ObraService {
     }
 
     private Obra obter(Long obraId) {
-        return obras.buscarAtiva(obraId)
+        Obra obra = obras.buscarAtiva(obraId)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Obra", obraId));
+        Auditavel auditavel = auditaveis.buscar(obra.getAuditavelId())
+            .orElseThrow(() -> new RegraNegocioException("A obra exige um registro auditável ativo"));
+        obra.hidratarAuditavel(auditavel);
+        return obra;
     }
 }

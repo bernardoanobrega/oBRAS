@@ -97,6 +97,16 @@ public class Obra {
                 art, responsavelId, auditavel);
     }
 
+    public void hidratarAuditavel(Auditavel auditavel) {
+        if (auditavel == null || auditavel.isExcluido()) {
+            throw new RegraNegocioException("A obra exige um registro auditável ativo");
+        }
+        if (auditavelId == null || !auditavelId.equals(auditavel.getId())) {
+            throw new RegraNegocioException("O registro auditável não pertence à obra");
+        }
+        this.auditavel = auditavel;
+    }
+
     public RegistroAuditoria iniciar(boolean responsavelAtivo, Long usuarioId) {
         exigirAlteravel();
         if (status != StatusObra.PLANEJADA) {

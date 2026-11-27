@@ -134,6 +134,14 @@ class ObraControllerTest {
     }
 
     @Test
+    void transicaoSemPermissaoRetorna403() throws Exception {
+        mvc.perform(post(BASE + "/" + OBRA_ID + "/iniciar").with(usuarioLogado()))
+            .andExpect(status().isForbidden());
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
     void erroSegueFormatoApiError() throws Exception {
         when(perm.pode(OBRA_ID, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(true);
         when(service.buscar(OBRA_ID)).thenThrow(new RecursoNaoEncontradoException("Obra", OBRA_ID));
