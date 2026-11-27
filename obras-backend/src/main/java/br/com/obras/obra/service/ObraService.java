@@ -21,6 +21,7 @@ import br.com.obras.shared.security.AcaoPermissao;
 import br.com.obras.shared.security.AutorizacaoPort;
 import br.com.obras.shared.security.CurrentUser;
 import br.com.obras.shared.security.ModuloSistema;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -145,15 +146,20 @@ public class ObraService {
     @Transactional(readOnly = true)
     public List<ObraDto> listar() {
         Long usuarioId = CurrentUser.id();
-        return obras.listarAtivas().stream()
-            .filter(o -> autorizacao.possuiPermissao(
-                usuarioId,
-                o.getId(),
-                ModuloSistema.DETALHES_OBRA,
-                AcaoPermissao.VISUALIZAR
-            ))
-            .map(this::paraDto)
-            .toList();
+        if (!usuarios.estaAtivo(usuarioId)) {
+            throw new AccessDeniedException("Usuário inativo");
+        }
+
+        boolean global = autorizacao.possuiPermissao(usuarioId, null,
+            ModuloSistema.DETALHES_OBRA, AcaoPermissao.VISUALIZAR);
+        List<Obra> permitidas = global
+            ? obras.listarAtivas()
+            : obras.obrasPorAlocacaoAtiva(usuarioId).stream()
+                .filter(o -> autorizacao.possuiPermissao(usuarioId, o.getId(),
+                    ModuloSistema.DETALHES_OBRA, AcaoPermissao.VISUALIZAR))
+                .toList();
+
+        return permitidas.stream().map(this::paraDto).toList();
     }
 
     @Transactional(readOnly = true)

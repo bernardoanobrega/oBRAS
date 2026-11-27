@@ -1,7 +1,7 @@
 # L14 — Autorização e filtro de lista de obras
 
 **Fase:** 1 · **Commit:** `feat(obra): autorizar e filtrar obras`  
-**Status:** Pendente  
+**Status:** Em revisão  
 **Depende de:** L12, L13 · **RF/UC:** RF-70, RF-73; UC04, UC05 · **ADR:** ADR-09
 
 ## 1. Objetivo

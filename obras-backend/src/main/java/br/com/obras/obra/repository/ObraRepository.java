@@ -28,4 +28,15 @@ public interface ObraRepository extends JpaRepository<Obra, Long> {
           and a.excluido = false
     """)
     Optional<Obra> buscarAtiva(@Param("obraId") Long obraId);
+
+    @Query("""
+        select distinct o from Obra o
+        join Auditavel auditavel on auditavel.id = o.auditavelId
+        join AlocacaoObra alocacao on alocacao.obra.id = o.id
+        where auditavel.excluido = false
+          and alocacao.usuario.id = :usuarioId
+          and alocacao.dataFim is null
+        order by o.nome asc
+    """)
+    List<Obra> obrasPorAlocacaoAtiva(@Param("usuarioId") Long usuarioId);
 }

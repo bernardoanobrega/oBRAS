@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -85,7 +86,9 @@ class ObraServiceTest {
         Obra negada = mock(Obra.class);
         when(negada.getId()).thenReturn(2L);
 
-        when(obras.listarAtivas()).thenReturn(List.of(permitida, negada));
+        when(obras.obrasPorAlocacaoAtiva(USUARIO_ID)).thenReturn(List.of(permitida, negada));
+        when(usuarios.estaAtivo(USUARIO_ID)).thenReturn(true);
+        when(autorizacao.possuiPermissao(USUARIO_ID, null, ModuloSistema.DETALHES_OBRA, AcaoPermissao.VISUALIZAR)).thenReturn(false);
         when(autorizacao.possuiPermissao(USUARIO_ID, 1L, ModuloSistema.DETALHES_OBRA, AcaoPermissao.VISUALIZAR)).thenReturn(true);
         when(autorizacao.possuiPermissao(USUARIO_ID, 2L, ModuloSistema.DETALHES_OBRA, AcaoPermissao.VISUALIZAR)).thenReturn(false);
 
@@ -97,8 +100,59 @@ class ObraServiceTest {
     }
 
     @Test
+    void usuarioComPermissaoGlobalVeTodasAsObras() {
+        when(usuarios.estaAtivo(USUARIO_ID)).thenReturn(true);
+        when(autorizacao.possuiPermissao(USUARIO_ID, null, ModuloSistema.DETALHES_OBRA,
+                AcaoPermissao.VISUALIZAR)).thenReturn(true);
+        List<Obra> obrasAtivas = List.of(obraMock(1L), obraMock(2L));
+        when(obras.listarAtivas()).thenReturn(obrasAtivas);
+
+        List<ObraDto> result = service.listar();
+
+        assertEquals(2, result.size());
+        verify(obras, never()).obrasPorAlocacaoAtiva(any());
+    }
+
+    @Test
+    void usuarioAlocadoVeSomenteSuaObra() {
+        when(usuarios.estaAtivo(USUARIO_ID)).thenReturn(true);
+        when(autorizacao.possuiPermissao(USUARIO_ID, null, ModuloSistema.DETALHES_OBRA,
+                AcaoPermissao.VISUALIZAR)).thenReturn(false);
+        Obra negada = mock(Obra.class);
+        when(negada.getId()).thenReturn(2L);
+        List<Obra> alocadas = List.of(obraMock(1L), negada);
+        when(obras.obrasPorAlocacaoAtiva(USUARIO_ID)).thenReturn(alocadas);
+        when(autorizacao.possuiPermissao(USUARIO_ID, 1L, ModuloSistema.DETALHES_OBRA,
+                AcaoPermissao.VISUALIZAR)).thenReturn(true);
+
+        List<ObraDto> result = service.listar();
+
+        assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).id());
+    }
+
+    @Test
+    void usuarioSemAlocacaoVeListaVazia() {
+        when(usuarios.estaAtivo(USUARIO_ID)).thenReturn(true);
+        when(autorizacao.possuiPermissao(USUARIO_ID, null, ModuloSistema.DETALHES_OBRA,
+                AcaoPermissao.VISUALIZAR)).thenReturn(false);
+        when(obras.obrasPorAlocacaoAtiva(USUARIO_ID)).thenReturn(List.of());
+
+        assertTrue(service.listar().isEmpty());
+    }
+
+    @Test
+    void usuarioInativoRecebe403() {
+        when(usuarios.estaAtivo(USUARIO_ID)).thenReturn(false);
+
+        assertThrows(AccessDeniedException.class, () -> service.listar());
+        verifyNoInteractions(obras);
+    }
+
+    @Test
     void buscarRetornaDetalhe() {
         Obra obra = obraMock(1L);
+        when(obra.getAuditavelId()).thenReturn(AUDITAVEL_ID);
         when(obras.buscarAtiva(1L)).thenReturn(Optional.of(obra));
         permitirAuditavel();
 
@@ -344,7 +398,6 @@ class ObraServiceTest {
     private Obra obraMock(Long id) {
         Obra o = mock(Obra.class);
         when(o.getId()).thenReturn(id);
-        when(o.getAuditavelId()).thenReturn(AUDITAVEL_ID);
         when(o.getNome()).thenReturn("Obra " + id);
         when(o.getDescricao()).thenReturn("Descrição " + id);
         when(o.getTipologia()).thenReturn(Tipologia.RESIDENCIAL);

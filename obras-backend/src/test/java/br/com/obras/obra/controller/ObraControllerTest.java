@@ -115,7 +115,7 @@ class ObraControllerTest {
     }
 
     @Test
-    void semTokenRetorna401() throws Exception {
+    void semTokenRecebe401() throws Exception {
         mvc.perform(get(BASE)).andExpect(status().isUnauthorized());
         verifyNoInteractions(service);
     }
@@ -130,6 +130,27 @@ class ObraControllerTest {
                      "inicioPrevisto":"2026-01-01","fimPrevisto":"2026-12-31"}
                     """))
             .andExpect(status().isForbidden());
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void usuarioSemPermissaoRecebe403() throws Exception {
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(false);
+
+        mvc.perform(get(BASE + "/" + OBRA_ID).with(usuarioLogado()))
+            .andExpect(status().isForbidden());
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void usuarioAlocadoNaoAcessaOutraObra() throws Exception {
+        when(perm.pode(8L, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(true);
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(false);
+
+        mvc.perform(get(BASE + "/" + OBRA_ID).with(usuarioLogado()))
+            .andExpect(status().isForbidden());
+
         verifyNoInteractions(service);
     }
 
