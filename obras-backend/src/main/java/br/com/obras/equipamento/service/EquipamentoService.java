@@ -1,5 +1,8 @@
 package br.com.obras.equipamento.service;
 
+import br.com.obras.auditoria.domain.AcaoAuditoria;
+import br.com.obras.auditoria.domain.Auditavel;
+import br.com.obras.auditoria.service.AuditoriaService;
 import br.com.obras.equipamento.domain.Equipamento;
 import br.com.obras.equipamento.domain.StatusEquipamento;
 import br.com.obras.equipamento.domain.TipoEquipamento;
@@ -15,12 +18,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Cadastro global de equipamentos (não depende de obra). */
+/** Cadastro global de equipamentos (não depende de obra). Toda mudança gera registro de auditoria. */
 @Service
 @RequiredArgsConstructor
 public class EquipamentoService {
 
     private final EquipamentoRepository equipamentoRepository;
+    private final AuditoriaService auditoriaService;
 
     @Transactional(readOnly = true)
     public Page<EquipamentoDto> listar(StatusEquipamento status, TipoEquipamento tipo, String busca,
@@ -36,10 +40,13 @@ public class EquipamentoService {
 
     @Transactional
     public EquipamentoDto cadastrar(EquipamentoCriacaoDto dto) {
-        var equipamento = new Equipamento(dto.codigoPatrimonio(), dto.descricao(), dto.tipo());
-        if (equipamentoRepository.existsByCodigoPatrimonio(equipamento.getCodigoPatrimonio())) {
+        if (dto.codigoPatrimonio() != null
+                && equipamentoRepository.existsByCodigoPatrimonio(dto.codigoPatrimonio().strip())) {
             throw new RegraNegocioException("Já existe um equipamento com este código de patrimônio.");
         }
+        Auditavel auditavel = auditoriaService.criar(
+                AcaoAuditoria.CRIACAO, DetalhesAuditoriaEquipamento.cadastro(dto.tipo()));
+        var equipamento = new Equipamento(auditavel, dto.codigoPatrimonio(), dto.descricao(), dto.tipo());
         return EquipamentoDto.de(equipamentoRepository.save(equipamento));
     }
 
@@ -47,25 +54,36 @@ public class EquipamentoService {
     public EquipamentoDto editar(Long id, EquipamentoEdicaoDto dto) {
         Equipamento equipamento = buscarEntidade(id);
         equipamento.editar(dto.descricao(), dto.tipo());
+        auditoriaService.registrar(equipamento.getAuditavel(), AcaoAuditoria.EDICAO,
+                DetalhesAuditoriaEquipamento.edicao());
         return EquipamentoDto.de(equipamento);
     }
 
     @Transactional
     public EquipamentoDto desativar(Long id) {
         Equipamento equipamento = buscarEntidade(id);
+        StatusEquipamento anterior = equipamento.getStatus();
         equipamento.desativar();
+        registrarMudancaDeStatus(equipamento, anterior);
         return EquipamentoDto.de(equipamento);
     }
 
     @Transactional
     public EquipamentoDto reativar(Long id) {
         Equipamento equipamento = buscarEntidade(id);
+        StatusEquipamento anterior = equipamento.getStatus();
         equipamento.reativar();
+        registrarMudancaDeStatus(equipamento, anterior);
         return EquipamentoDto.de(equipamento);
+    }
+
+    private void registrarMudancaDeStatus(Equipamento equipamento, StatusEquipamento anterior) {
+        auditoriaService.registrar(equipamento.getAuditavel(), AcaoAuditoria.EDICAO,
+                DetalhesAuditoriaEquipamento.mudancaDeStatus(anterior, equipamento.getStatus()));
     }
 
     private Equipamento buscarEntidade(Long id) {
         return equipamentoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Equipamento não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Equipamento", id));
     }
 }

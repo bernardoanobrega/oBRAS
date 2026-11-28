@@ -3,11 +3,17 @@ package br.com.obras.equipamento.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.obras.auditoria.domain.AcaoAuditoria;
+import br.com.obras.auditoria.domain.Auditavel;
+import br.com.obras.auditoria.service.AuditoriaService;
 import br.com.obras.equipamento.domain.AlocacaoEquipamento;
 import br.com.obras.equipamento.domain.Equipamento;
 import br.com.obras.equipamento.domain.StatusEquipamento;
@@ -57,16 +63,19 @@ class AlocacaoEquipamentoServiceTest {
     @Mock
     private UsuarioPort usuarioPort;
 
+    @Mock
+    private AuditoriaService auditoriaService;
+
     @InjectMocks
     private AlocacaoEquipamentoService service;
 
     private Equipamento novoEquipamento() {
-        return new Equipamento("PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
+        return new Equipamento(Auditavel.novo(), "PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
     }
 
     private Equipamento novoEquipamentoAlocadoNaObra() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(OBRA, daquiADias(7), RESPONSAVEL, null);
+        equipamento.alocar(Auditavel.novo(), OBRA, daquiADias(7), RESPONSAVEL, null);
         return equipamento;
     }
 
@@ -91,6 +100,10 @@ class AlocacaoEquipamentoServiceTest {
         when(equipamentoRepository.findById(EQUIPAMENTO_ID)).thenReturn(Optional.of(equipamento));
     }
 
+    private void auditoriaCriaAuditavel() {
+        when(auditoriaService.criar(eq(AcaoAuditoria.CRIACAO), anyString())).thenReturn(Auditavel.novo());
+    }
+
     private AlocarEquipamentoDto dtoAlocar() {
         return new AlocarEquipamentoDto(RESPONSAVEL, daquiADias(7), null);
     }
@@ -102,12 +115,13 @@ class AlocacaoEquipamentoServiceTest {
     // ---------- alocar ----------
 
     @Test
-    @DisplayName("Aloca equipamento disponível na obra")
-    void alocaEquipamentoDisponivelNaObra() {
+    @DisplayName("Aloca equipamento disponível na obra e registra a auditoria")
+    void alocaEquipamentoDisponivelNaObraERegistraAuditoria() {
         Equipamento equipamento = novoEquipamento();
         equipamentoExiste(equipamento);
         obraExiste(OBRA);
         responsavelAtivo();
+        auditoriaCriaAuditavel();
         when(alocacaoRepository.save(any(AlocacaoEquipamento.class))).thenAnswer(chamada -> chamada.getArgument(0));
 
         AlocacaoEquipamentoDto resultado = service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar());
@@ -115,6 +129,8 @@ class AlocacaoEquipamentoServiceTest {
         assertThat(resultado.estaAtiva()).isTrue();
         assertThat(resultado.obraId()).isEqualTo(OBRA);
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
+        verify(auditoriaService).criar(eq(AcaoAuditoria.CRIACAO), anyString());
+        verify(auditoriaService).registrar(eq(equipamento.getAuditavel()), eq(AcaoAuditoria.EDICAO), anyString());
     }
 
     @Test
@@ -158,6 +174,7 @@ class AlocacaoEquipamentoServiceTest {
         equipamentoExiste(novoEquipamentoAlocadoNaObra());
         obraExiste(OUTRA_OBRA);
         responsavelAtivo();
+        auditoriaCriaAuditavel();
 
         assertThatThrownBy(() -> service.alocar(OUTRA_OBRA, EQUIPAMENTO_ID, dtoAlocar()))
                 .isInstanceOf(RegraNegocioException.class);
@@ -167,9 +184,10 @@ class AlocacaoEquipamentoServiceTest {
     // ---------- devolver ----------
 
     @Test
-    @DisplayName("Devolve equipamento alocado na obra")
-    void devolveEquipamentoAlocadoNaObra() {
+    @DisplayName("Devolve equipamento alocado na obra e registra a auditoria")
+    void devolveEquipamentoAlocadoNaObraERegistraAuditoria() {
         Equipamento equipamento = novoEquipamentoAlocadoNaObra();
+        AlocacaoEquipamento alocacao = equipamento.alocacaoAtiva().orElseThrow();
         equipamentoExiste(equipamento);
 
         AlocacaoEquipamentoDto resultado =
@@ -178,6 +196,8 @@ class AlocacaoEquipamentoServiceTest {
         assertThat(resultado.estaAtiva()).isFalse();
         assertThat(resultado.observacaoDevolucao()).isEqualTo("Sem avarias");
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.DISPONIVEL);
+        verify(auditoriaService).registrar(eq(alocacao.getAuditavel()), eq(AcaoAuditoria.EDICAO), anyString());
+        verify(auditoriaService).registrar(eq(equipamento.getAuditavel()), eq(AcaoAuditoria.EDICAO), anyString());
     }
 
     @Test
@@ -198,6 +218,7 @@ class AlocacaoEquipamentoServiceTest {
 
         assertThatThrownBy(() -> service.devolver(OBRA, EQUIPAMENTO_ID, new DevolverEquipamentoDto(null)))
                 .isInstanceOf(RegraNegocioException.class);
+        verify(auditoriaService, never()).registrar(any(Auditavel.class), any(AcaoAuditoria.class), anyString());
     }
 
     // ---------- transferir ----------
@@ -206,9 +227,11 @@ class AlocacaoEquipamentoServiceTest {
     @DisplayName("Transfere para outra obra gravando o encerramento antes da nova alocação")
     void transfereParaOutraObraGravandoEncerramentoAntes() {
         Equipamento equipamento = novoEquipamentoAlocadoNaObra();
+        AlocacaoEquipamento anterior = equipamento.alocacaoAtiva().orElseThrow();
         equipamentoExiste(equipamento);
         obraExiste(OUTRA_OBRA);
         responsavelAtivo();
+        auditoriaCriaAuditavel();
         when(alocacaoRepository.save(any(AlocacaoEquipamento.class))).thenAnswer(chamada -> chamada.getArgument(0));
 
         AlocacaoEquipamentoDto resultado = service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(OUTRA_OBRA));
@@ -219,6 +242,8 @@ class AlocacaoEquipamentoServiceTest {
         ordem.verify(alocacaoRepository).save(nova);
         assertThat(resultado.obraId()).isEqualTo(OUTRA_OBRA);
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
+        verify(auditoriaService).criar(eq(AcaoAuditoria.CRIACAO), anyString());
+        verify(auditoriaService).registrar(eq(anterior.getAuditavel()), eq(AcaoAuditoria.EDICAO), anyString());
     }
 
     @Test
@@ -251,6 +276,7 @@ class AlocacaoEquipamentoServiceTest {
         equipamentoExiste(novoEquipamentoAlocadoNaObra());
         obraExiste(OBRA);
         responsavelAtivo();
+        auditoriaCriaAuditavel();
 
         assertThatThrownBy(() -> service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(OBRA)))
                 .isInstanceOf(RegraNegocioException.class);
@@ -271,8 +297,8 @@ class AlocacaoEquipamentoServiceTest {
     // ---------- prorrogar ----------
 
     @Test
-    @DisplayName("Prorroga alocação da obra")
-    void prorrogaAlocacaoDaObra() {
+    @DisplayName("Prorroga alocação da obra e registra a auditoria")
+    void prorrogaAlocacaoDaObraERegistraAuditoria() {
         AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNaObra().alocacaoAtiva().orElseThrow();
         when(alocacaoRepository.findById(ALOCACAO_ID)).thenReturn(Optional.of(alocacao));
         LocalDate novaData = daquiADias(30);
@@ -280,6 +306,8 @@ class AlocacaoEquipamentoServiceTest {
         AlocacaoEquipamentoDto resultado = service.prorrogar(OBRA, ALOCACAO_ID, new ProrrogarAlocacaoDto(novaData));
 
         assertThat(resultado.dataPrevistaDevolucao()).isEqualTo(novaData);
+        verify(auditoriaService, times(1))
+                .registrar(eq(alocacao.getAuditavel()), eq(AcaoAuditoria.EDICAO), anyString());
     }
 
     @Test
@@ -290,6 +318,7 @@ class AlocacaoEquipamentoServiceTest {
 
         assertThatThrownBy(() -> service.prorrogar(OUTRA_OBRA, ALOCACAO_ID, new ProrrogarAlocacaoDto(daquiADias(30))))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
+        verify(auditoriaService, never()).registrar(any(Auditavel.class), any(AcaoAuditoria.class), anyString());
     }
 
     // ---------- consultas ----------

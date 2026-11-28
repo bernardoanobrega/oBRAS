@@ -1,7 +1,11 @@
 package br.com.obras.equipamento.service;
 
+import br.com.obras.auditoria.domain.AcaoAuditoria;
+import br.com.obras.auditoria.domain.Auditavel;
+import br.com.obras.auditoria.service.AuditoriaService;
 import br.com.obras.equipamento.domain.AlocacaoEquipamento;
 import br.com.obras.equipamento.domain.Equipamento;
+import br.com.obras.equipamento.domain.StatusEquipamento;
 import br.com.obras.equipamento.dto.AlocacaoEquipamentoDto;
 import br.com.obras.equipamento.dto.AlocarEquipamentoDto;
 import br.com.obras.equipamento.dto.DevolverEquipamentoDto;
@@ -24,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Alocação, devolução, transferência e prorrogação de equipamentos em obras.
  * A obra da rota é quem autoriza a operação: a alocação envolvida precisa ser dela.
+ * Cada mudança gera registro de auditoria na alocação e, quando muda o status, no equipamento.
  */
 @Service
 @RequiredArgsConstructor
@@ -33,6 +38,7 @@ public class AlocacaoEquipamentoService {
     private final AlocacaoEquipamentoRepository alocacaoRepository;
     private final ObraPort obraPort;
     private final UsuarioPort usuarioPort;
+    private final AuditoriaService auditoriaService;
 
     @Transactional(readOnly = true)
     public List<AlocacaoEquipamentoDto> listarAtivasDaObra(Long obraId) {
@@ -57,9 +63,14 @@ public class AlocacaoEquipamentoService {
         exigirObraAberta(obraId);
         exigirResponsavelAtivo(dto.responsavelId());
 
+        StatusEquipamento statusAnterior = equipamento.getStatus();
+        Auditavel auditavel = auditoriaService.criar(
+                AcaoAuditoria.CRIACAO, DetalhesAuditoriaEquipamento.alocacao(equipamentoId, obraId));
         AlocacaoEquipamento alocacao = equipamento.alocar(
-                obraId, dto.dataPrevistaDevolucao(), dto.responsavelId(), dto.observacao());
-        return AlocacaoEquipamentoDto.de(alocacaoRepository.save(alocacao));
+                auditavel, obraId, dto.dataPrevistaDevolucao(), dto.responsavelId(), dto.observacao());
+        alocacaoRepository.save(alocacao);
+        registrarMudancaDeStatus(equipamento, statusAnterior);
+        return AlocacaoEquipamentoDto.de(alocacao);
     }
 
     @Transactional
@@ -68,8 +79,13 @@ public class AlocacaoEquipamentoService {
         Optional<AlocacaoEquipamento> alocacaoAtiva = equipamento.alocacaoAtiva();
         alocacaoAtiva.ifPresent(alocacao -> exigirAlocacaoDaObra(obraId, alocacao));
 
+        StatusEquipamento statusAnterior = equipamento.getStatus();
         equipamento.devolver(dto.observacao());
-        return AlocacaoEquipamentoDto.de(alocacaoAtiva.orElseThrow());
+        AlocacaoEquipamento encerrada = alocacaoAtiva.orElseThrow();
+        auditoriaService.registrar(encerrada.getAuditavel(), AcaoAuditoria.EDICAO,
+                DetalhesAuditoriaEquipamento.devolucao());
+        registrarMudancaDeStatus(equipamento, statusAnterior);
+        return AlocacaoEquipamentoDto.de(encerrada);
     }
 
     /**
@@ -79,12 +95,17 @@ public class AlocacaoEquipamentoService {
     @Transactional
     public AlocacaoEquipamentoDto transferir(Long obraId, Long equipamentoId, TransferirEquipamentoDto dto) {
         Equipamento equipamento = buscarEquipamento(equipamentoId);
-        equipamento.alocacaoAtiva().ifPresent(alocacao -> exigirAlocacaoDaObra(obraId, alocacao));
+        Optional<AlocacaoEquipamento> alocacaoAnterior = equipamento.alocacaoAtiva();
+        alocacaoAnterior.ifPresent(alocacao -> exigirAlocacaoDaObra(obraId, alocacao));
         exigirObraAberta(dto.obraDestinoId());
         exigirResponsavelAtivo(dto.responsavelId());
 
-        AlocacaoEquipamento nova = equipamento.transferir(
-                dto.obraDestinoId(), dto.dataPrevistaDevolucao(), dto.responsavelId(), dto.observacao());
+        Auditavel auditavelDaNova = auditoriaService.criar(
+                AcaoAuditoria.CRIACAO, DetalhesAuditoriaEquipamento.alocacao(equipamentoId, dto.obraDestinoId()));
+        AlocacaoEquipamento nova = equipamento.transferir(auditavelDaNova, dto.obraDestinoId(),
+                dto.dataPrevistaDevolucao(), dto.responsavelId(), dto.observacao());
+        auditoriaService.registrar(alocacaoAnterior.orElseThrow().getAuditavel(), AcaoAuditoria.EDICAO,
+                DetalhesAuditoriaEquipamento.transferencia(dto.obraDestinoId()));
         alocacaoRepository.flush();
         return AlocacaoEquipamentoDto.de(alocacaoRepository.save(nova));
     }
@@ -96,7 +117,16 @@ public class AlocacaoEquipamentoService {
         exigirAlocacaoDaObra(obraId, alocacao);
 
         alocacao.prorrogar(dto.novaDataPrevista());
+        auditoriaService.registrar(alocacao.getAuditavel(), AcaoAuditoria.EDICAO,
+                DetalhesAuditoriaEquipamento.prorrogacao(dto.novaDataPrevista()));
         return AlocacaoEquipamentoDto.de(alocacao);
+    }
+
+    private void registrarMudancaDeStatus(Equipamento equipamento, StatusEquipamento anterior) {
+        if (anterior != equipamento.getStatus()) {
+            auditoriaService.registrar(equipamento.getAuditavel(), AcaoAuditoria.EDICAO,
+                    DetalhesAuditoriaEquipamento.mudancaDeStatus(anterior, equipamento.getStatus()));
+        }
     }
 
     private Equipamento buscarEquipamento(Long equipamentoId) {

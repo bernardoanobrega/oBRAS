@@ -3,10 +3,16 @@ package br.com.obras.equipamento.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.obras.auditoria.domain.AcaoAuditoria;
+import br.com.obras.auditoria.domain.Auditavel;
+import br.com.obras.auditoria.service.AuditoriaService;
 import br.com.obras.equipamento.domain.Equipamento;
 import br.com.obras.equipamento.domain.StatusEquipamento;
 import br.com.obras.equipamento.domain.TipoEquipamento;
@@ -38,17 +44,21 @@ class EquipamentoServiceTest {
     @Mock
     private EquipamentoRepository equipamentoRepository;
 
+    @Mock
+    private AuditoriaService auditoriaService;
+
     @InjectMocks
     private EquipamentoService service;
 
     private Equipamento novoEquipamento() {
-        return new Equipamento("PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
+        return new Equipamento(Auditavel.novo(), "PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
     }
 
     @Test
-    @DisplayName("Cadastra equipamento disponível quando o código de patrimônio é inédito")
-    void cadastraEquipamentoDisponivelQuandoCodigoInedito() {
+    @DisplayName("Cadastra equipamento disponível e registra a criação na auditoria")
+    void cadastraEquipamentoDisponivelERegistraCriacao() {
         when(equipamentoRepository.existsByCodigoPatrimonio("PAT-001")).thenReturn(false);
+        when(auditoriaService.criar(eq(AcaoAuditoria.CRIACAO), anyString())).thenReturn(Auditavel.novo());
         when(equipamentoRepository.save(any(Equipamento.class))).thenAnswer(chamada -> chamada.getArgument(0));
 
         EquipamentoDto resultado = service.cadastrar(
@@ -56,6 +66,7 @@ class EquipamentoServiceTest {
 
         assertThat(resultado.codigoPatrimonio()).isEqualTo("PAT-001");
         assertThat(resultado.status()).isEqualTo(StatusEquipamento.DISPONIVEL);
+        verify(auditoriaService).criar(eq(AcaoAuditoria.CRIACAO), anyString());
     }
 
     @Test
@@ -67,18 +78,21 @@ class EquipamentoServiceTest {
                 new EquipamentoCriacaoDto("PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA)))
                 .isInstanceOf(RegraNegocioException.class);
         verify(equipamentoRepository, never()).save(any(Equipamento.class));
+        verify(auditoriaService, never()).criar(any(AcaoAuditoria.class), anyString());
     }
 
     @Test
-    @DisplayName("Edita descrição e tipo do equipamento")
-    void editaDescricaoETipo() {
-        when(equipamentoRepository.findById(ID)).thenReturn(Optional.of(novoEquipamento()));
+    @DisplayName("Edita descrição e tipo e registra a edição na auditoria")
+    void editaDescricaoETipoERegistraEdicao() {
+        Equipamento equipamento = novoEquipamento();
+        when(equipamentoRepository.findById(ID)).thenReturn(Optional.of(equipamento));
 
         EquipamentoDto resultado = service.editar(ID,
                 new EquipamentoEdicaoDto("Furadeira de impacto", TipoEquipamento.FERRAMENTA));
 
         assertThat(resultado.descricao()).isEqualTo("Furadeira de impacto");
         assertThat(resultado.tipo()).isEqualTo(TipoEquipamento.FERRAMENTA);
+        verify(auditoriaService).registrar(eq(equipamento.getAuditavel()), eq(AcaoAuditoria.EDICAO), anyString());
     }
 
     @Test
@@ -90,25 +104,29 @@ class EquipamentoServiceTest {
     }
 
     @Test
-    @DisplayName("Desativa e reativa o equipamento")
-    void desativaEReativaEquipamento() {
-        when(equipamentoRepository.findById(ID)).thenReturn(Optional.of(novoEquipamento()));
+    @DisplayName("Desativa e reativa o equipamento registrando cada mudança de status")
+    void desativaEReativaEquipamentoRegistrandoCadaMudanca() {
+        Equipamento equipamento = novoEquipamento();
+        when(equipamentoRepository.findById(ID)).thenReturn(Optional.of(equipamento));
 
         EquipamentoDto desativado = service.desativar(ID);
         EquipamentoDto reativado = service.reativar(ID);
 
         assertThat(desativado.status()).isEqualTo(StatusEquipamento.INATIVO);
         assertThat(reativado.status()).isEqualTo(StatusEquipamento.DISPONIVEL);
+        verify(auditoriaService, times(2))
+                .registrar(eq(equipamento.getAuditavel()), eq(AcaoAuditoria.EDICAO), anyString());
     }
 
     @Test
-    @DisplayName("Lança exceção ao desativar equipamento alocado")
+    @DisplayName("Lança exceção ao desativar equipamento alocado sem registrar auditoria")
     void lancaExcecaoQuandoDesativarEquipamentoAlocado() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(10L, LocalDate.now().plusDays(7), 5L, null);
+        equipamento.alocar(Auditavel.novo(), 10L, LocalDate.now().plusDays(7), 5L, null);
         when(equipamentoRepository.findById(ID)).thenReturn(Optional.of(equipamento));
 
         assertThatThrownBy(() -> service.desativar(ID)).isInstanceOf(RegraNegocioException.class);
+        verify(auditoriaService, never()).registrar(any(Auditavel.class), any(AcaoAuditoria.class), anyString());
     }
 
     @Test
