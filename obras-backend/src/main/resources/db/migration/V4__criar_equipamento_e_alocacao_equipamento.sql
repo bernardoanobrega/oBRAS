@@ -1,6 +1,7 @@
 -- Módulo de Máquinas e Equipamentos (Diagrama de Classes de Projeto).
 -- Depende da V3 (tabela auditavel).
 -- Equipamento e alocação nunca são excluídos fisicamente: a desativação usa o status INATIVO.
+-- O equipamento é alocado diretamente em uma obra (o canteiro foi abstraído e equivale à obra).
 
 CREATE TABLE equipamento (
     id                 BIGINT PRIMARY KEY REFERENCES auditavel(id),
@@ -17,7 +18,7 @@ CREATE INDEX ix_equipamento_status ON equipamento(status);
 CREATE TABLE alocacao_equipamento (
     id                       BIGINT PRIMARY KEY REFERENCES auditavel(id),
     equipamento_id           BIGINT NOT NULL REFERENCES equipamento(id),
-    canteiro_id              BIGINT NOT NULL REFERENCES canteiro(id),
+    obra_id                  BIGINT NOT NULL REFERENCES obra(id),
     responsavel_id           BIGINT NOT NULL REFERENCES usuario(id),
     data_inicio              DATE NOT NULL,
     data_prevista_devolucao  DATE NOT NULL,
@@ -32,7 +33,7 @@ CREATE TABLE alocacao_equipamento (
         CHECK (observacao_devolucao IS NULL OR data_fim IS NOT NULL)
 );
 CREATE INDEX ix_alocacao_equipamento_equipamento ON alocacao_equipamento(equipamento_id, data_inicio);
-CREATE INDEX ix_alocacao_equipamento_canteiro    ON alocacao_equipamento(canteiro_id);
+CREATE INDEX ix_alocacao_equipamento_obra        ON alocacao_equipamento(obra_id);
 CREATE INDEX ix_alocacao_equipamento_responsavel ON alocacao_equipamento(responsavel_id);
 
 -- Invariante: no máximo uma alocação ativa (data_fim vazia) por equipamento.
