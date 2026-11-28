@@ -2,6 +2,7 @@ package br.com.obras.equipamento.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.obras.auditoria.domain.Auditavel;
 import br.com.obras.equipamento.domain.Equipamento;
 import br.com.obras.equipamento.domain.StatusEquipamento;
 import br.com.obras.equipamento.domain.TipoEquipamento;
@@ -42,7 +43,8 @@ class EquipamentoRepositoryTest {
     }
 
     private Equipamento persistir(String codigo, String descricao, TipoEquipamento tipo) {
-        return entityManager.persistAndFlush(new Equipamento(codigo, descricao, tipo));
+        Auditavel auditavel = entityManager.persistAndFlush(Auditavel.novo());
+        return entityManager.persistAndFlush(new Equipamento(auditavel, codigo, descricao, tipo));
     }
 
     @Test

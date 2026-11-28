@@ -2,6 +2,7 @@ package br.com.obras.equipamento.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.obras.auditoria.domain.Auditavel;
 import br.com.obras.equipamento.domain.AlocacaoEquipamento;
 import br.com.obras.equipamento.domain.Equipamento;
 import br.com.obras.equipamento.domain.TipoEquipamento;
@@ -53,13 +54,19 @@ class AlocacaoEquipamentoRepositoryTest {
                 .executeUpdate();
     }
 
+    private Auditavel novoAuditavel() {
+        return entityManager.persistAndFlush(Auditavel.novo());
+    }
+
     private Equipamento persistirEquipamento(String codigo) {
-        return entityManager.persistAndFlush(new Equipamento(codigo, "Equipamento " + codigo, TipoEquipamento.MAQUINA));
+        return entityManager.persistAndFlush(
+                new Equipamento(novoAuditavel(), codigo, "Equipamento " + codigo, TipoEquipamento.MAQUINA));
     }
 
     private AlocacaoEquipamento alocar(Equipamento equipamento, Long obraId, long diasAteDevolucao) {
         LocalDate dataPrevista = LocalDate.now().plusDays(diasAteDevolucao);
-        return entityManager.persistAndFlush(equipamento.alocar(obraId, dataPrevista, RESPONSAVEL, null));
+        return entityManager.persistAndFlush(
+                equipamento.alocar(novoAuditavel(), obraId, dataPrevista, RESPONSAVEL, null));
     }
 
     @Test
@@ -119,7 +126,7 @@ class AlocacaoEquipamentoRepositoryTest {
         alocar(equipamento, OBRA_A, 5);
 
         AlocacaoEquipamento nova = equipamento.transferir(
-                OBRA_B, LocalDate.now().plusDays(14), RESPONSAVEL, null);
+                novoAuditavel(), OBRA_B, LocalDate.now().plusDays(14), RESPONSAVEL, null);
         entityManager.flush();
         entityManager.persistAndFlush(nova);
         entityManager.clear();
