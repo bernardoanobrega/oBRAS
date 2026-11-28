@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public record TransferirEquipamentoDto(
-        @NotNull(message = "Informe o canteiro de destino.")
-        Long canteiroDestinoId,
+        @NotNull(message = "Informe a obra de destino.")
+        Long obraDestinoId,
 
         @NotNull(message = "Informe o responsável.")
         Long responsavelId,

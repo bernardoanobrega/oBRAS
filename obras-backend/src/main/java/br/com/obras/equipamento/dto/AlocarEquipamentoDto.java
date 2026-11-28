@@ -4,10 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
+/** A obra de destino é a da rota; aqui vão apenas os dados da alocação. */
 public record AlocarEquipamentoDto(
-        @NotNull(message = "Informe o canteiro.")
-        Long canteiroId,
-
         @NotNull(message = "Informe o responsável.")
         Long responsavelId,
 
