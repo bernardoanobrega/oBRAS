@@ -2,6 +2,7 @@ package br.com.obras.equipamento.controller;
 
 import static br.com.obras.equipamento.controller.PermissoesEquipamento.CRIAR_NA_OBRA;
 import static br.com.obras.equipamento.controller.PermissoesEquipamento.EDITAR_NA_OBRA;
+import static br.com.obras.equipamento.controller.PermissoesEquipamento.TRANSFERIR_ENTRE_OBRAS;
 import static br.com.obras.equipamento.controller.PermissoesEquipamento.VISUALIZAR_GLOBAL;
 import static br.com.obras.equipamento.controller.PermissoesEquipamento.VISUALIZAR_NA_OBRA;
 
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Alocação de equipamentos nos canteiros de uma obra. A obra da rota define a autorização. */
+/** Alocação de equipamentos em obras. A obra da rota define a autorização. */
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -57,7 +58,7 @@ public class AlocacaoEquipamentoController {
     }
 
     @PatchMapping("/obras/{obraId}/equipamentos/{equipamentoId}/transferir")
-    @PreAuthorize(EDITAR_NA_OBRA)
+    @PreAuthorize(TRANSFERIR_ENTRE_OBRAS)
     public AlocacaoEquipamentoDto transferir(@PathVariable Long obraId, @PathVariable Long equipamentoId,
             @Valid @RequestBody TransferirEquipamentoDto dto) {
         return alocacaoService.transferir(obraId, equipamentoId, dto);
