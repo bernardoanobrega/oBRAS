@@ -21,8 +21,8 @@ import br.com.obras.equipamento.repository.AlocacaoEquipamentoRepository;
 import br.com.obras.equipamento.repository.EquipamentoRepository;
 import br.com.obras.shared.exception.RecursoNaoEncontradoException;
 import br.com.obras.shared.exception.RegraNegocioException;
-import br.com.obras.shared.port.CanteiroPort;
-import br.com.obras.shared.port.CanteiroResumo;
+import br.com.obras.shared.port.ObraPort;
+import br.com.obras.shared.port.ObraResumo;
 import br.com.obras.shared.port.UsuarioPort;
 import br.com.obras.shared.port.UsuarioResumo;
 import java.time.LocalDate;
@@ -43,8 +43,6 @@ class AlocacaoEquipamentoServiceTest {
     private static final Long OUTRA_OBRA = 2L;
     private static final Long EQUIPAMENTO_ID = 7L;
     private static final Long ALOCACAO_ID = 9L;
-    private static final Long CANTEIRO_ORIGEM = 10L;
-    private static final Long CANTEIRO_DESTINO = 20L;
     private static final Long RESPONSAVEL = 5L;
 
     @Mock
@@ -54,7 +52,7 @@ class AlocacaoEquipamentoServiceTest {
     private AlocacaoEquipamentoRepository alocacaoRepository;
 
     @Mock
-    private CanteiroPort canteiroPort;
+    private ObraPort obraPort;
 
     @Mock
     private UsuarioPort usuarioPort;
@@ -66,9 +64,9 @@ class AlocacaoEquipamentoServiceTest {
         return new Equipamento("PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
     }
 
-    private Equipamento novoEquipamentoAlocadoNoCanteiroOrigem() {
+    private Equipamento novoEquipamentoAlocadoNaObra() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(CANTEIRO_ORIGEM, daquiADias(7), RESPONSAVEL, null);
+        equipamento.alocar(OBRA, daquiADias(7), RESPONSAVEL, null);
         return equipamento;
     }
 
@@ -76,9 +74,8 @@ class AlocacaoEquipamentoServiceTest {
         return LocalDate.now().plusDays(dias);
     }
 
-    private void canteiroExisteNaObra(Long canteiroId, Long obraId) {
-        when(canteiroPort.buscarResumo(canteiroId))
-                .thenReturn(Optional.of(new CanteiroResumo(canteiroId, obraId, "Canteiro " + canteiroId)));
+    private void obraExiste(Long obraId) {
+        when(obraPort.buscarResumo(obraId)).thenReturn(Optional.of(new ObraResumo(obraId, "Obra " + obraId)));
     }
 
     private void responsavelAtivo() {
@@ -90,62 +87,52 @@ class AlocacaoEquipamentoServiceTest {
         when(equipamentoRepository.findById(EQUIPAMENTO_ID)).thenReturn(Optional.of(equipamento));
     }
 
-    private AlocarEquipamentoDto dtoAlocar(Long canteiroId) {
-        return new AlocarEquipamentoDto(canteiroId, RESPONSAVEL, daquiADias(7), null);
+    private AlocarEquipamentoDto dtoAlocar() {
+        return new AlocarEquipamentoDto(RESPONSAVEL, daquiADias(7), null);
     }
 
-    private TransferirEquipamentoDto dtoTransferir(Long canteiroDestinoId) {
-        return new TransferirEquipamentoDto(canteiroDestinoId, RESPONSAVEL, daquiADias(14), null);
+    private TransferirEquipamentoDto dtoTransferir(Long obraDestinoId) {
+        return new TransferirEquipamentoDto(obraDestinoId, RESPONSAVEL, daquiADias(14), null);
     }
 
     // ---------- alocar ----------
 
     @Test
-    @DisplayName("Aloca equipamento disponível em canteiro da obra")
-    void alocaEquipamentoEmCanteiroDaObra() {
+    @DisplayName("Aloca equipamento disponível na obra")
+    void alocaEquipamentoDisponivelNaObra() {
         Equipamento equipamento = novoEquipamento();
         equipamentoExiste(equipamento);
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OBRA);
+        obraExiste(OBRA);
         responsavelAtivo();
         when(alocacaoRepository.save(any(AlocacaoEquipamento.class))).thenAnswer(chamada -> chamada.getArgument(0));
 
-        AlocacaoEquipamentoDto resultado = service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar(CANTEIRO_ORIGEM));
+        AlocacaoEquipamentoDto resultado = service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar());
 
         assertThat(resultado.estaAtiva()).isTrue();
-        assertThat(resultado.canteiroId()).isEqualTo(CANTEIRO_ORIGEM);
+        assertThat(resultado.obraId()).isEqualTo(OBRA);
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
     }
 
     @Test
-    @DisplayName("Lança exceção quando o canteiro pertence a outra obra")
-    void lancaExcecaoQuandoCanteiroDeOutraObra() {
+    @DisplayName("Lança exceção quando a obra não existe")
+    void lancaExcecaoQuandoObraNaoExiste() {
         equipamentoExiste(novoEquipamento());
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OUTRA_OBRA);
+        when(obraPort.buscarResumo(OBRA)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar(CANTEIRO_ORIGEM)))
-                .isInstanceOf(RegraNegocioException.class);
-        verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
-    }
-
-    @Test
-    @DisplayName("Lança exceção quando o canteiro não existe")
-    void lancaExcecaoQuandoCanteiroInexistente() {
-        equipamentoExiste(novoEquipamento());
-        when(canteiroPort.buscarResumo(CANTEIRO_ORIGEM)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar(CANTEIRO_ORIGEM)))
+        assertThatThrownBy(() -> service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar()))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
+        verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
     }
 
     @Test
     @DisplayName("Lança exceção quando o responsável está inativo")
     void lancaExcecaoQuandoResponsavelInativo() {
         equipamentoExiste(novoEquipamento());
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OBRA);
+        obraExiste(OBRA);
         when(usuarioPort.buscarResumo(RESPONSAVEL))
                 .thenReturn(Optional.of(new UsuarioResumo(RESPONSAVEL, "Maria", false)));
 
-        assertThatThrownBy(() -> service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar(CANTEIRO_ORIGEM)))
+        assertThatThrownBy(() -> service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar()))
                 .isInstanceOf(RegraNegocioException.class);
         verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
     }
@@ -153,11 +140,11 @@ class AlocacaoEquipamentoServiceTest {
     @Test
     @DisplayName("Lança exceção quando equipamento já alocado")
     void lancaExcecaoQuandoEquipamentoJaAlocado() {
-        equipamentoExiste(novoEquipamentoAlocadoNoCanteiroOrigem());
-        canteiroExisteNaObra(CANTEIRO_DESTINO, OBRA);
+        equipamentoExiste(novoEquipamentoAlocadoNaObra());
+        obraExiste(OUTRA_OBRA);
         responsavelAtivo();
 
-        assertThatThrownBy(() -> service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar(CANTEIRO_DESTINO)))
+        assertThatThrownBy(() -> service.alocar(OUTRA_OBRA, EQUIPAMENTO_ID, dtoAlocar()))
                 .isInstanceOf(RegraNegocioException.class);
         verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
     }
@@ -165,11 +152,10 @@ class AlocacaoEquipamentoServiceTest {
     // ---------- devolver ----------
 
     @Test
-    @DisplayName("Devolve equipamento alocado em canteiro da obra")
+    @DisplayName("Devolve equipamento alocado na obra")
     void devolveEquipamentoAlocadoNaObra() {
-        Equipamento equipamento = novoEquipamentoAlocadoNoCanteiroOrigem();
+        Equipamento equipamento = novoEquipamentoAlocadoNaObra();
         equipamentoExiste(equipamento);
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OBRA);
 
         AlocacaoEquipamentoDto resultado =
                 service.devolver(OBRA, EQUIPAMENTO_ID, new DevolverEquipamentoDto("Sem avarias"));
@@ -182,11 +168,10 @@ class AlocacaoEquipamentoServiceTest {
     @Test
     @DisplayName("Lança exceção ao devolver equipamento alocado em outra obra")
     void lancaExcecaoQuandoDevolverEquipamentoAlocadoEmOutraObra() {
-        Equipamento equipamento = novoEquipamentoAlocadoNoCanteiroOrigem();
+        Equipamento equipamento = novoEquipamentoAlocadoNaObra();
         equipamentoExiste(equipamento);
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OUTRA_OBRA);
 
-        assertThatThrownBy(() -> service.devolver(OBRA, EQUIPAMENTO_ID, new DevolverEquipamentoDto(null)))
+        assertThatThrownBy(() -> service.devolver(OUTRA_OBRA, EQUIPAMENTO_ID, new DevolverEquipamentoDto(null)))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
     }
@@ -203,46 +188,66 @@ class AlocacaoEquipamentoServiceTest {
     // ---------- transferir ----------
 
     @Test
-    @DisplayName("Transfere para outro canteiro da obra gravando o encerramento antes da nova alocação")
-    void transfereParaOutroCanteiroDaObraGravandoEncerramentoAntes() {
-        Equipamento equipamento = novoEquipamentoAlocadoNoCanteiroOrigem();
+    @DisplayName("Transfere para outra obra gravando o encerramento antes da nova alocação")
+    void transfereParaOutraObraGravandoEncerramentoAntes() {
+        Equipamento equipamento = novoEquipamentoAlocadoNaObra();
         equipamentoExiste(equipamento);
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OBRA);
-        canteiroExisteNaObra(CANTEIRO_DESTINO, OBRA);
+        obraExiste(OUTRA_OBRA);
         responsavelAtivo();
         when(alocacaoRepository.save(any(AlocacaoEquipamento.class))).thenAnswer(chamada -> chamada.getArgument(0));
 
-        AlocacaoEquipamentoDto resultado = service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(CANTEIRO_DESTINO));
+        AlocacaoEquipamentoDto resultado = service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(OUTRA_OBRA));
 
         AlocacaoEquipamento nova = equipamento.alocacaoAtiva().orElseThrow();
         InOrder ordem = inOrder(alocacaoRepository);
         ordem.verify(alocacaoRepository).flush();
         ordem.verify(alocacaoRepository).save(nova);
-        assertThat(resultado.canteiroId()).isEqualTo(CANTEIRO_DESTINO);
+        assertThat(resultado.obraId()).isEqualTo(OUTRA_OBRA);
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
     }
 
     @Test
-    @DisplayName("Lança exceção ao transferir para canteiro de outra obra")
-    void lancaExcecaoQuandoTransferirParaCanteiroDeOutraObra() {
-        equipamentoExiste(novoEquipamentoAlocadoNoCanteiroOrigem());
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OBRA);
-        canteiroExisteNaObra(CANTEIRO_DESTINO, OUTRA_OBRA);
+    @DisplayName("Lança exceção ao transferir para obra inexistente")
+    void lancaExcecaoQuandoTransferirParaObraInexistente() {
+        equipamentoExiste(novoEquipamentoAlocadoNaObra());
+        when(obraPort.buscarResumo(OUTRA_OBRA)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(CANTEIRO_DESTINO)))
+        assertThatThrownBy(() -> service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(OUTRA_OBRA)))
+                .isInstanceOf(RecursoNaoEncontradoException.class);
+        verify(alocacaoRepository, never()).flush();
+        verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
+    }
+
+    @Test
+    @DisplayName("Lança exceção ao transferir para a mesma obra")
+    void lancaExcecaoQuandoTransferirParaAMesmaObra() {
+        equipamentoExiste(novoEquipamentoAlocadoNaObra());
+        obraExiste(OBRA);
+        responsavelAtivo();
+
+        assertThatThrownBy(() -> service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(OBRA)))
                 .isInstanceOf(RegraNegocioException.class);
         verify(alocacaoRepository, never()).flush();
+        verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
+    }
+
+    @Test
+    @DisplayName("Lança exceção ao transferir equipamento alocado em outra obra")
+    void lancaExcecaoQuandoTransferirEquipamentoAlocadoEmOutraObra() {
+        equipamentoExiste(novoEquipamentoAlocadoNaObra());
+
+        assertThatThrownBy(() -> service.transferir(OUTRA_OBRA, EQUIPAMENTO_ID, dtoTransferir(3L)))
+                .isInstanceOf(RecursoNaoEncontradoException.class);
         verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
     }
 
     // ---------- prorrogar ----------
 
     @Test
-    @DisplayName("Prorroga alocação de canteiro da obra")
+    @DisplayName("Prorroga alocação da obra")
     void prorrogaAlocacaoDaObra() {
-        AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNoCanteiroOrigem().alocacaoAtiva().orElseThrow();
+        AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNaObra().alocacaoAtiva().orElseThrow();
         when(alocacaoRepository.findById(ALOCACAO_ID)).thenReturn(Optional.of(alocacao));
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OBRA);
         LocalDate novaData = daquiADias(30);
 
         AlocacaoEquipamentoDto resultado = service.prorrogar(OBRA, ALOCACAO_ID, new ProrrogarAlocacaoDto(novaData));
@@ -253,22 +258,20 @@ class AlocacaoEquipamentoServiceTest {
     @Test
     @DisplayName("Lança exceção ao prorrogar alocação de outra obra")
     void lancaExcecaoQuandoProrrogarAlocacaoDeOutraObra() {
-        AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNoCanteiroOrigem().alocacaoAtiva().orElseThrow();
+        AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNaObra().alocacaoAtiva().orElseThrow();
         when(alocacaoRepository.findById(ALOCACAO_ID)).thenReturn(Optional.of(alocacao));
-        canteiroExisteNaObra(CANTEIRO_ORIGEM, OUTRA_OBRA);
 
-        assertThatThrownBy(() -> service.prorrogar(OBRA, ALOCACAO_ID, new ProrrogarAlocacaoDto(daquiADias(30))))
+        assertThatThrownBy(() -> service.prorrogar(OUTRA_OBRA, ALOCACAO_ID, new ProrrogarAlocacaoDto(daquiADias(30))))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
     }
 
     // ---------- consultas ----------
 
     @Test
-    @DisplayName("Lista as alocações ativas dos canteiros da obra")
-    void listaAlocacoesAtivasDosCanteirosDaObra() {
-        AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNoCanteiroOrigem().alocacaoAtiva().orElseThrow();
-        when(canteiroPort.listarIdsPorObra(OBRA)).thenReturn(List.of(CANTEIRO_ORIGEM));
-        when(alocacaoRepository.listarAtivasPorCanteiros(List.of(CANTEIRO_ORIGEM))).thenReturn(List.of(alocacao));
+    @DisplayName("Lista as alocações ativas da obra")
+    void listaAlocacoesAtivasDaObra() {
+        AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNaObra().alocacaoAtiva().orElseThrow();
+        when(alocacaoRepository.listarAtivasPorObra(OBRA)).thenReturn(List.of(alocacao));
 
         List<AlocacaoEquipamentoDto> resultado = service.listarAtivasDaObra(OBRA);
 
@@ -277,20 +280,9 @@ class AlocacaoEquipamentoServiceTest {
     }
 
     @Test
-    @DisplayName("Não consulta alocações quando a obra não tem canteiros")
-    void naoConsultaAlocacoesQuandoObraNaoTemCanteiros() {
-        when(canteiroPort.listarIdsPorObra(OBRA)).thenReturn(List.of());
-
-        List<AlocacaoEquipamentoDto> resultado = service.listarAtivasDaObra(OBRA);
-
-        assertThat(resultado).isEmpty();
-        verify(alocacaoRepository, never()).listarAtivasPorCanteiros(any());
-    }
-
-    @Test
     @DisplayName("Lista o histórico do equipamento")
     void listaHistoricoDoEquipamento() {
-        AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNoCanteiroOrigem().alocacaoAtiva().orElseThrow();
+        AlocacaoEquipamento alocacao = novoEquipamentoAlocadoNaObra().alocacaoAtiva().orElseThrow();
         when(equipamentoRepository.existsById(EQUIPAMENTO_ID)).thenReturn(true);
         when(alocacaoRepository.findByEquipamentoIdOrderByDataInicioDescIdDesc(EQUIPAMENTO_ID))
                 .thenReturn(List.of(alocacao));
