@@ -25,7 +25,7 @@ public class Equipamento extends Auditavel {
 
     private static final int TAMANHO_MAXIMO_CODIGO = 50;
     private static final int TAMANHO_MAXIMO_DESCRICAO = 300;
-    private static final String OBSERVACAO_TRANSFERENCIA = "Transferido para outro canteiro.";
+    private static final String OBSERVACAO_TRANSFERENCIA = "Transferido para outra obra.";
 
     @Column(name = "codigo_patrimonio", nullable = false, updatable = false, length = TAMANHO_MAXIMO_CODIGO)
     private String codigoPatrimonio;
@@ -77,7 +77,7 @@ public class Equipamento extends Auditavel {
         status = StatusEquipamento.DISPONIVEL;
     }
 
-    public AlocacaoEquipamento alocar(Long canteiroId, LocalDate dataPrevistaDevolucao, Long responsavelId,
+    public AlocacaoEquipamento alocar(Long obraId, LocalDate dataPrevistaDevolucao, Long responsavelId,
             String observacao) {
         if (status == StatusEquipamento.ALOCADO) {
             throw new RegraNegocioException("Equipamento já está alocado.");
@@ -85,7 +85,7 @@ public class Equipamento extends Auditavel {
         if (status == StatusEquipamento.INATIVO) {
             throw new RegraNegocioException("Equipamento inativo não pode ser alocado.");
         }
-        var alocacao = new AlocacaoEquipamento(this, canteiroId, responsavelId, LocalDate.now(),
+        var alocacao = new AlocacaoEquipamento(this, obraId, responsavelId, LocalDate.now(),
                 dataPrevistaDevolucao, observacao);
         alocacoes.add(alocacao);
         status = StatusEquipamento.ALOCADO;
@@ -98,14 +98,14 @@ public class Equipamento extends Auditavel {
         status = StatusEquipamento.DISPONIVEL;
     }
 
-    public AlocacaoEquipamento transferir(Long destinoCanteiroId, LocalDate dataPrevistaDevolucao,
+    public AlocacaoEquipamento transferir(Long obraDestinoId, LocalDate dataPrevistaDevolucao,
             Long responsavelId, String observacao) {
         AlocacaoEquipamento alocacaoAtual = exigirAlocacaoAtiva("Apenas equipamentos alocados podem ser transferidos.");
-        if (alocacaoAtual.getCanteiroId().equals(destinoCanteiroId)) {
-            throw new RegraNegocioException("O equipamento já está no canteiro de destino.");
+        if (alocacaoAtual.getObraId().equals(obraDestinoId)) {
+            throw new RegraNegocioException("O equipamento já está alocado na obra de destino.");
         }
         LocalDate hoje = LocalDate.now();
-        var novaAlocacao = new AlocacaoEquipamento(this, destinoCanteiroId, responsavelId, hoje,
+        var novaAlocacao = new AlocacaoEquipamento(this, obraDestinoId, responsavelId, hoje,
                 dataPrevistaDevolucao, observacao);
         alocacaoAtual.encerrar(hoje, OBSERVACAO_TRANSFERENCIA);
         alocacoes.add(novaAlocacao);
@@ -117,7 +117,7 @@ public class Equipamento extends Auditavel {
     }
 
     public Optional<Long> localizacaoAtual() {
-        return alocacaoAtiva().map(AlocacaoEquipamento::getCanteiroId);
+        return alocacaoAtiva().map(AlocacaoEquipamento::getObraId);
     }
 
     public boolean estaAtrasado() {

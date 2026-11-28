@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 
 class EquipamentoTest {
 
-    private static final Long CANTEIRO_A = 10L;
-    private static final Long CANTEIRO_B = 20L;
+    private static final Long OBRA_A = 10L;
+    private static final Long OBRA_B = 20L;
     private static final Long RESPONSAVEL = 5L;
 
     private Equipamento novoEquipamento() {
@@ -78,7 +78,7 @@ class EquipamentoTest {
     @DisplayName("Lança exceção ao desativar equipamento alocado")
     void lancaExcecaoQuandoDesativarEquipamentoAlocado() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(CANTEIRO_A, daquiADias(7), RESPONSAVEL, null);
+        equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
         assertThatThrownBy(equipamento::desativar).isInstanceOf(RegraNegocioException.class);
     }
@@ -118,11 +118,11 @@ class EquipamentoTest {
     void alocaEquipamentoDisponivel() {
         Equipamento equipamento = novoEquipamento();
 
-        AlocacaoEquipamento alocacao = equipamento.alocar(CANTEIRO_A, daquiADias(7), RESPONSAVEL, "Fundação");
+        AlocacaoEquipamento alocacao = equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, "Fundação");
 
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
         assertThat(equipamento.alocacaoAtiva()).contains(alocacao);
-        assertThat(equipamento.localizacaoAtual()).contains(CANTEIRO_A);
+        assertThat(equipamento.localizacaoAtual()).contains(OBRA_A);
         assertThat(alocacao.getResponsavelId()).isEqualTo(RESPONSAVEL);
     }
 
@@ -130,9 +130,9 @@ class EquipamentoTest {
     @DisplayName("Lança exceção quando equipamento já alocado")
     void lancaExcecaoQuandoEquipamentoJaAlocado() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(CANTEIRO_A, daquiADias(7), RESPONSAVEL, null);
+        equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
-        assertThatThrownBy(() -> equipamento.alocar(CANTEIRO_B, daquiADias(7), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.alocar(OBRA_B, daquiADias(7), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -142,7 +142,7 @@ class EquipamentoTest {
         Equipamento equipamento = novoEquipamento();
         equipamento.desativar();
 
-        assertThatThrownBy(() -> equipamento.alocar(CANTEIRO_A, daquiADias(7), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -151,7 +151,7 @@ class EquipamentoTest {
     void lancaExcecaoQuandoPrevisaoAnteriorAoInicio() {
         Equipamento equipamento = novoEquipamento();
 
-        assertThatThrownBy(() -> equipamento.alocar(CANTEIRO_A, daquiADias(-1), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.alocar(OBRA_A, daquiADias(-1), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.DISPONIVEL);
     }
@@ -162,7 +162,7 @@ class EquipamentoTest {
     @DisplayName("Devolve equipamento alocado e volta para disponível")
     void devolveEquipamentoAlocado() {
         Equipamento equipamento = novoEquipamento();
-        AlocacaoEquipamento alocacao = equipamento.alocar(CANTEIRO_A, daquiADias(7), RESPONSAVEL, null);
+        AlocacaoEquipamento alocacao = equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
         equipamento.devolver("Sem avarias");
 
@@ -186,23 +186,23 @@ class EquipamentoTest {
     @DisplayName("Transfere mantendo o equipamento alocado com uma única alocação ativa")
     void transfereMantendoEquipamentoAlocado() {
         Equipamento equipamento = novoEquipamento();
-        AlocacaoEquipamento anterior = equipamento.alocar(CANTEIRO_A, daquiADias(7), RESPONSAVEL, null);
+        AlocacaoEquipamento anterior = equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
-        AlocacaoEquipamento nova = equipamento.transferir(CANTEIRO_B, daquiADias(14), RESPONSAVEL, "Nova frente");
+        AlocacaoEquipamento nova = equipamento.transferir(OBRA_B, daquiADias(14), RESPONSAVEL, "Nova frente");
 
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
         assertThat(anterior.estaAtiva()).isFalse();
         assertThat(equipamento.alocacaoAtiva()).contains(nova);
-        assertThat(equipamento.localizacaoAtual()).contains(CANTEIRO_B);
+        assertThat(equipamento.localizacaoAtual()).contains(OBRA_B);
     }
 
     @Test
-    @DisplayName("Lança exceção ao transferir para o mesmo canteiro")
-    void lancaExcecaoQuandoTransferirParaMesmoCanteiro() {
+    @DisplayName("Lança exceção ao transferir para o mesma obra")
+    void lancaExcecaoQuandoTransferirParaMesmaObra() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(CANTEIRO_A, daquiADias(7), RESPONSAVEL, null);
+        equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
-        assertThatThrownBy(() -> equipamento.transferir(CANTEIRO_A, daquiADias(14), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.transferir(OBRA_A, daquiADias(14), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -211,7 +211,7 @@ class EquipamentoTest {
     void lancaExcecaoQuandoTransferirEquipamentoDisponivel() {
         Equipamento equipamento = novoEquipamento();
 
-        assertThatThrownBy(() -> equipamento.transferir(CANTEIRO_B, daquiADias(14), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.transferir(OBRA_B, daquiADias(14), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -221,7 +221,7 @@ class EquipamentoTest {
     @DisplayName("Está atrasado quando a data prevista já passou")
     void estaAtrasadoQuandoPrevisaoVencida() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(CANTEIRO_A, daquiADias(3), RESPONSAVEL, null);
+        equipamento.alocar(OBRA_A, daquiADias(3), RESPONSAVEL, null);
 
         assertThat(equipamento.estaAtrasado(daquiADias(4))).isTrue();
         assertThat(equipamento.estaAtrasado(daquiADias(3))).isFalse();

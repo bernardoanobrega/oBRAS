@@ -10,12 +10,12 @@ import org.junit.jupiter.api.Test;
 
 class AlocacaoEquipamentoTest {
 
-    private static final Long CANTEIRO = 10L;
+    private static final Long OBRA = 10L;
     private static final Long RESPONSAVEL = 5L;
 
     private AlocacaoEquipamento novaAlocacaoAtiva(LocalDate dataPrevista) {
         var equipamento = new Equipamento("PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
-        return equipamento.alocar(CANTEIRO, dataPrevista, RESPONSAVEL, null);
+        return equipamento.alocar(OBRA, dataPrevista, RESPONSAVEL, null);
     }
 
     @Test

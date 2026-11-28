@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Período em que um equipamento esteve (ou está) em um canteiro. Está ativa enquanto {@code dataFim} é vazia.
+ * Período em que um equipamento esteve (ou está) alocado em uma obra. Está ativa enquanto {@code dataFim} é vazia.
  * Criada apenas por {@link Equipamento}, que garante a invariante de uma única alocação ativa.
  */
 @Entity
@@ -24,8 +24,8 @@ public class AlocacaoEquipamento extends Auditavel {
     @JoinColumn(name = "equipamento_id", nullable = false, updatable = false)
     private Equipamento equipamento;
 
-    @Column(name = "canteiro_id", nullable = false, updatable = false)
-    private Long canteiroId;
+    @Column(name = "obra_id", nullable = false, updatable = false)
+    private Long obraId;
 
     @Column(name = "responsavel_id", nullable = false, updatable = false)
     private Long responsavelId;
@@ -45,17 +45,17 @@ public class AlocacaoEquipamento extends Auditavel {
     @Column(name = "observacao_devolucao", length = TAMANHO_MAXIMO_OBSERVACAO)
     private String observacaoDevolucao;
 
-    AlocacaoEquipamento(Equipamento equipamento, Long canteiroId, Long responsavelId, LocalDate dataInicio,
+    AlocacaoEquipamento(Equipamento equipamento, Long obraId, Long responsavelId, LocalDate dataInicio,
             LocalDate dataPrevistaDevolucao, String observacao) {
-        if (canteiroId == null) {
-            throw new RegraNegocioException("O canteiro de destino é obrigatório.");
+        if (obraId == null) {
+            throw new RegraNegocioException("A obra é obrigatória.");
         }
         if (responsavelId == null) {
             throw new RegraNegocioException("O responsável é obrigatório.");
         }
         exigirPrevisaoValida(dataInicio, dataPrevistaDevolucao);
         this.equipamento = equipamento;
-        this.canteiroId = canteiroId;
+        this.obraId = obraId;
         this.responsavelId = responsavelId;
         this.dataInicio = dataInicio;
         this.dataPrevistaDevolucao = dataPrevistaDevolucao;
