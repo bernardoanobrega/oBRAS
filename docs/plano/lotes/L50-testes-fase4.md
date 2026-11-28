@@ -1,7 +1,7 @@
 # L50 — Testes de contrato e responsividade da Fase 4
 
 **Fase:** 4 · **Commit:** `test(painel): cobrir contrato e responsividade`  
-**Status:** Pendente  
+**Status:** Em revisão<br>
 **Depende de:** L41–L49 · **RF/UC:** RF-73; UC04, UC05, UC21 · **ADR:** ADR-09, ADR-10
 
 ## 1. Objetivo
@@ -57,11 +57,11 @@ Sem migration.
 
 ## 9. Critérios de aceite
 
-- [ ] Contrato coberto.
-- [ ] Responsividade coberta.
-- [ ] Permissões cobertas.
-- [ ] `mvn test`, `npm test`, `npm run build` verdes.
+- [x] Contrato coberto.
+- [ ] Responsividade coberta — pendente de execução E2E com `E2E_LOGIN`/`E2E_SENHA` e screenshots.
+- [x] Permissões cobertas.
+- [x] `mvn test`, `npm test`, `npm run build` verdes.
 
 ## 10. Verificação e evidência
 
-Comandos dos três gates. Evidência: relatórios e screenshots mobile/tablet.
+Comandos dos três gates: `mvn test`, `npm test -- --run`, `npm run build`. Contagens: backend 477 testes, frontend 271 testes, build OK. Espec responsiva: `obras-frontend/e2e/l50-responsividade.spec.js`. Evidência responsiva pendente: screenshots em `docs/evidencias/l50/` após execução real com `E2E_LOGIN`/`E2E_SENHA`.

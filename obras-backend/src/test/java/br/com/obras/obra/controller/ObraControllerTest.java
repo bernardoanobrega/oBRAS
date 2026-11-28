@@ -11,6 +11,9 @@ import br.com.obras.shared.security.PermissaoEvaluator;
 import br.com.obras.shared.security.SecurityConfig;
 import br.com.obras.shared.security.UsuarioAutenticado;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -19,10 +22,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
@@ -41,6 +46,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ObraControllerTest {
     private static final String BASE = "/api/obras";
     private static final Long OBRA_ID = 7L;
+    private static final String ATUALIZAR = """
+            {"nome":"Residencial Aurora","descricao":"Atualizada",
+             "tipologia":"RESIDENCIAL","endereco":"Rua Central, 10",
+             "inicioPrevisto":"2026-01-01","fimPrevisto":"2026-12-31",
+             "art":"ART-10","responsavelId":null,"status":null}
+            """;
+    private static final String RESPONSAVEL = "{\"usuarioId\":10}";
 
     @Autowired private MockMvc mvc;
     @MockBean private ObraService service;
@@ -160,6 +172,38 @@ class ObraControllerTest {
             .andExpect(status().isForbidden());
 
         verifyNoInteractions(service);
+    }
+
+    @ParameterizedTest(name = "{0} sem EDITAR → 403")
+    @MethodSource("rotasDeEdicao")
+    void edicaoSemPermissaoRetorna403(String nome, MockHttpServletRequestBuilder requisicao) throws Exception {
+        mvc.perform(requisicao.with(usuarioLogado()))
+            .andExpect(status().isForbidden());
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void equipeSemPermissaoRetorna403() throws Exception {
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(false);
+
+        mvc.perform(get(BASE + "/" + OBRA_ID + "/equipe").with(usuarioLogado()))
+            .andExpect(status().isForbidden());
+
+        verifyNoInteractions(service);
+    }
+
+    static Stream<Arguments> rotasDeEdicao() {
+        return Stream.of(
+            Arguments.of("PUT /obras/{obraId}",
+                put(BASE + "/" + OBRA_ID).contentType(MediaType.APPLICATION_JSON).content(ATUALIZAR)),
+            Arguments.of("PUT /responsavel",
+                put(BASE + "/" + OBRA_ID + "/responsavel").contentType(MediaType.APPLICATION_JSON).content(RESPONSAVEL)),
+            Arguments.of("POST /paralisar", post(BASE + "/" + OBRA_ID + "/paralisar")),
+            Arguments.of("POST /retomar", post(BASE + "/" + OBRA_ID + "/retomar")),
+            Arguments.of("POST /concluir", post(BASE + "/" + OBRA_ID + "/concluir")),
+            Arguments.of("POST /cancelar", post(BASE + "/" + OBRA_ID + "/cancelar"))
+        );
     }
 
     @Test

@@ -8,6 +8,9 @@ import br.com.obras.shared.security.SecurityConfig;
 import br.com.obras.shared.security.UsuarioAutenticado;
 import br.com.obras.usuario.domain.Cargo;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -17,9 +20,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -110,6 +115,22 @@ class CargoControllerTest {
     void deleteCargoBloqueiaSemPermissao() throws Exception {
         mvc.perform(delete(BASE + "/20").with(usuarioLogado()))
                 .andExpect(status().isForbidden());
+    }
+
+    @ParameterizedTest(name = "{0} sem token → 401")
+    @MethodSource("rotas")
+    void semTokenRetorna401EmTodasAsRotas(String nome, MockHttpServletRequestBuilder requisicao) throws Exception {
+        mvc.perform(requisicao).andExpect(status().isUnauthorized());
+        verifyNoInteractions(cargos);
+    }
+
+    static Stream<Arguments> rotas() {
+        return Stream.of(
+            Arguments.of("GET /cargos", get(BASE)),
+            Arguments.of("POST /cargos", post(BASE).contentType(MediaType.APPLICATION_JSON).content("{}")),
+            Arguments.of("PUT /cargos/{id}", put(BASE + "/20").contentType(MediaType.APPLICATION_JSON).content("{}")),
+            Arguments.of("DELETE /cargos/{id}", delete(BASE + "/20"))
+        );
     }
 
     private void permissao() {

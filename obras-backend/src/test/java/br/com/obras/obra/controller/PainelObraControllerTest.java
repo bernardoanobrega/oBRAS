@@ -1,5 +1,10 @@
 package br.com.obras.obra.controller;
 
+import br.com.obras.diario.dto.FotoDto;
+import br.com.obras.diario.dto.MembroDiarioDto;
+import br.com.obras.diario.dto.OcorrenciaDto;
+import br.com.obras.diario.dto.ParalisacaoDto;
+import br.com.obras.obra.dto.EquipeMembroDto;
 import br.com.obras.obra.dto.ObraDto;
 import br.com.obras.obra.dto.PainelObraDto;
 import br.com.obras.obra.service.PainelObraService;
@@ -22,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -132,6 +138,44 @@ class PainelObraControllerTest {
     }
 
     @Test
+    void contratoPainelPopuladoTemChavesExatas() throws Exception {
+        permitir();
+        when(service.painel(OBRA_ID)).thenReturn(painelPopulado());
+
+        String corpo = mvc.perform(get(PAINEL).with(usuarioLogado()))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        JsonNode n = new ObjectMapper().readTree(corpo);
+        JsonNode ocorrencia = n.get("ocorrencias").get(0);
+        JsonNode ocorrenciaSemExtras = n.get("ocorrencias").get(1);
+
+        assertAll(
+            () -> assertEquals(Set.of("id", "nome", "descricao", "tipologia", "endereco", "inicioPrevisto",
+                    "fimPrevisto", "status", "art", "responsavelId", "responsavelNome", "auditavelId"),
+                nomes(n.get("obra"))),
+            () -> assertEquals(Set.of("usuarioId", "nome", "cargos", "dataInicio"),
+                nomes(n.get("equipe").get(0))),
+            () -> assertEquals(Set.of("id", "diarioId", "categoria", "descricao", "dataHora", "autor",
+                    "paralisacao", "fotos"), nomes(ocorrencia)),
+            () -> assertEquals(Set.of("alocacaoId", "usuarioId", "nome"),
+                nomes(ocorrencia.get("autor"))),
+            () -> assertEquals(Set.of("inicio", "fim"), nomes(ocorrencia.get("paralisacao"))),
+            () -> assertEquals(Set.of("id", "ocorrenciaId", "nomeArquivo", "legenda", "dataEnvio"),
+                nomes(ocorrencia.get("fotos").get(0))),
+            () -> assertEquals(Set.of("id", "ocorrenciaId", "nomeArquivo", "legenda", "dataEnvio"),
+                nomes(n.get("fotos").get(0))),
+            () -> assertEquals(2, n.get("ocorrencias").size()),
+            () -> assertEquals(Set.of("id", "diarioId", "categoria", "descricao", "dataHora", "autor",
+                    "paralisacao", "fotos"), nomes(ocorrenciaSemExtras)),
+            () -> assertTrue(ocorrenciaSemExtras.get("paralisacao").isNull()),
+            () -> assertTrue(ocorrenciaSemExtras.get("fotos").isArray()),
+            () -> assertEquals(0, ocorrenciaSemExtras.get("fotos").size()),
+            () -> assertEquals("SEGURANCA", ocorrencia.get("categoria").asText()),
+            () -> assertEquals("Ana", ocorrencia.get("autor").get("nome").asText())
+        );
+    }
+
+    @Test
     void kpisTemFonteSimuladoQuandoNulo() throws Exception {
         permitir();
         when(service.painel(OBRA_ID)).thenReturn(painelComDiario());
@@ -169,7 +213,8 @@ class PainelObraControllerTest {
 
     private static ObraDto obra() {
         return new ObraDto(5L, "Obra A", "desc", "RESIDENCIAL", "Rua X",
-            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 10, 1), "EM_ANDAMENTO", "ART-1", 1L);
+            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 10, 1), "EM_ANDAMENTO", "ART-1", 1L,
+            "Responsável A", 77L);
     }
 
     private static PainelObraDto painelComDiario() {
@@ -193,6 +238,34 @@ class PainelObraControllerTest {
             PainelObraDto.MaoDeObraDto.de(4, 0, null),
             List.of(),
             List.of()
+        );
+    }
+
+    private static PainelObraDto painelPopulado() {
+        FotoDto foto = new FotoDto(12L, 9L, "foto.png", "Foto da obra",
+            LocalDateTime.of(2026, 11, 11, 10, 31));
+        OcorrenciaDto ocorrencia = new OcorrenciaDto(
+            9L, 8L, "SEGURANCA", "Ocorrência da obra",
+            LocalDateTime.of(2026, 11, 11, 10, 30),
+            new MembroDiarioDto(11L, 10L, "Ana"),
+            new ParalisacaoDto(
+                LocalDateTime.of(2026, 11, 11, 10, 30),
+                LocalDateTime.of(2026, 11, 11, 11, 15)),
+            List.of(foto));
+        OcorrenciaDto ocorrenciaSemExtras = new OcorrenciaDto(
+            10L, 8L, "OUTRO", "Ocorrência sem paralisação",
+            LocalDateTime.of(2026, 11, 11, 11, 30),
+            new MembroDiarioDto(11L, 10L, "Ana"),
+            null,
+            List.of());
+        return new PainelObraDto(
+            obra(),
+            new PainelObraDto.ClimaDto(LocalDate.of(2026, 11, 11), "ENSOLARADO"),
+            PainelObraDto.KpisDto.simulados(),
+            List.of(new EquipeMembroDto(10L, "Ana", List.of("ENGENHEIRO"), LocalDate.of(2026, 1, 1))),
+            PainelObraDto.MaoDeObraDto.de(4, 3, 1),
+            List.of(ocorrencia, ocorrenciaSemExtras),
+            List.of(foto)
         );
     }
 }

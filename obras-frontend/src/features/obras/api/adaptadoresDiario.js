@@ -91,7 +91,9 @@ export function paraOcorrencia(dto) {
     tom: categoria?.tom ?? 'neutral',
     icone: categoria?.icone ?? 'clipboard',
     texto: texto(dto.descricao),
-    autorUsuarioId: dto.autorUsuarioId,
+    autorUsuarioId: dto.autor?.usuarioId ?? dto.autorUsuarioId ?? undefined,
+    autorNome: dto.autor?.nome ?? dto.autorNome ?? undefined,
+    autorAlocacaoId: dto.autor?.alocacaoId ?? dto.autorAlocacaoId ?? undefined,
     paralisacao: dto.paralisacao
       ? {
           inicio: formatarDataHoraIso(dto.paralisacao.inicio),

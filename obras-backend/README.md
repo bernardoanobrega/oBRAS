@@ -40,7 +40,7 @@ A numeração segue a ordem em que os módulos entram na develop.
 - Download de foto: `GET /api/obras/{obraId}/fotos/{id}`, resposta `inline` com `Content-Type` da imagem.
 - `GET /api/obras/{obraId}/painel`: agrega obra, clima do dia, KPIs simulados, equipe, mão de obra, ocorrências e fotos; KPI indisponível permanece nulo.
 - Contratos completos: [`docs/api/contratos-detalhe-obra.md`](docs/api/contratos-detalhe-obra.md).
-- Permissões por rota: [`docs/seguranca/permissoes-detalhe-obra.md`](docs/seguranca/permissoes-detalhe-obra.md).
+- Permissões por rota: [`docs/seguranca/permissoes-detalhe-obra.md`](../docs/seguranca/permissoes-detalhe-obra.md).
 
 ## Orçamento (UC10 · RF-30 a RF-34, RF-74)
 - `GET /api/orcamentos`: orçamentos das obras em que o usuário tem `ORCAMENTO:VISUALIZAR`.

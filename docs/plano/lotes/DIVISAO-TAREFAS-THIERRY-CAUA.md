@@ -4,7 +4,7 @@
 **Escopo:** módulo Detalhe de Obra.  
 **Regra:** cada lote é uma task e deve virar um commit revisável.  
 **Balanceamento:** 27 tasks por pessoa; proxy de esforço = quantidade de testes listados no lote.  
-**Próxima fatia recomendada:** L43 + L44 juntos, com mock e cortes de L46 antecipados. Ver [`CONTEXTO-PROXIMA-SESSAO.md`](CONTEXTO-PROXIMA-SESSAO.md).
+**Próxima fatia recomendada:** revisão cruzada de L50/L51 antes do commit; L52/L53 seguem em revisão.
 
 ## Balanceamento
 
@@ -66,24 +66,23 @@
 | L34 | API de diário e ocorrências | 3 | Cauã | L31–L33 | 7 | Concluído |
 | L35 | Upload e download de fotos | 3 | Cauã | L34 | 10 | Em revisão |
 | L36 | Exclusão lógica e auditoria do diário | 3 | Cauã | L31–L35 | 7 | Em revisão |
-| L37 | Frontend: DiarioPage mobile-first | 3 | Cauã | L34, L36 | 7 | Em andamento |
-| L38 | Frontend: ocorrências e paralisações | 3 | Cauã | L37 | 7 | Pendente |
-| L39 | Frontend: ocorrência rápida, upload e mural | 3 | Cauã | L38 | 8 | Pendente |
-| L40 | Testes da Fase 3 | 3 | Cauã | L26–L39 | 8 | Pendente |
+| L37 | Frontend: DiarioPage mobile-first | 3 | Cauã | L34, L36 | 7 | Em revisão |
+| L38 | Frontend: ocorrências e paralisações | 3 | Cauã | L37 | 7 | Em revisão |
+| L39 | Frontend: ocorrência rápida, upload e mural | 3 | Cauã | L38 | 8 | Em revisão |
+| L40 | Testes da Fase 3 | 3 | Cauã | L26–L39 | 8 | Em revisão |
 | L41 | Serviço agregador do painel | 4 | Thierry | L31–L36 | 11 | Concluído |
 | L42 | API do painel e contrato | 4 | Thierry | L41 | 7 | Concluído |
 | L43 | Frontend: mover DetalheObra para a feature | 4 | Cauã | L42 | 4 | Em revisão |
 | L44 | Frontend: integrar shell, router, http e permissão | 4 | Cauã | L43 | 6 | Em revisão |
-| L45 | Frontend: substituir mock por dados reais | 4 | Cauã | L44 | 8 | Em andamento |
+| L45 | Frontend: substituir mock por dados reais | 4 | Cauã | L44 | 8 | Em revisão |
 | L46 | Frontend: aplicar cortes de escopo do mockup | 4 | Cauã | L45 | 8 | Em revisão |
-| L47 | Frontend: ações de status e edição de parâmetros | 4 | Thierry | L46 | 9 | Pendente |
-| L48 | Frontend: equipe, ocorrências e mural no painel | 4 | Thierry | L47 | 6 | Pendente |
+| L47 | Frontend: ações de status e edição de parâmetros | 4 | Thierry | L46 | 9 | Em revisão |
+| L48 | Frontend: equipe, ocorrências e mural no painel | 4 | Thierry | L47 | 6 | Em revisão |
 | L49 | Frontend: KPIs simulados com fonte | 4 | Cauã | L48 | 5 | Em revisão |
-| L50 | Testes de contrato e responsividade da Fase 4 | 4 | Cauã | L41–L49 | 7 | Pendente |
+| L50 | Testes de contrato e responsividade da Fase 4 | 4 | Cauã | L41–L49 | 7 | Em revisão |
 | L51 | Permissões finas por ação | 6 | Thierry | L14, L22, L34, L42 | 6 | Em revisão |
 | L52 | E2E e usabilidade do fluxo de obra | 6 | Cauã | L50, L51 | 8 | Em revisão |
 | L53 | Acessibilidade e responsividade | 6 | Thierry | L52 | 7 | Em revisão |
-
 | L54 | Documentação final do módulo | 6 | Cauã | L53 | 0 | Em revisão |
 ## Ordem de execução e paralelismo
 

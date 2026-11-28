@@ -13,7 +13,10 @@ export default defineConfig(({ mode }) => {
     test: {
       include: ['src/**/*.test.{js,jsx}'],
       environment: 'node',
-      environmentMatchGlobs: [['**/src/test/l53AcessibilidadeDom.test.jsx', 'jsdom']],
+      environmentMatchGlobs: [
+        ['**/src/test/l53AcessibilidadeDom.test.jsx', 'jsdom'],
+        ['**/src/test/l50*.test.jsx', 'jsdom'],
+      ],
     },
   };
 });

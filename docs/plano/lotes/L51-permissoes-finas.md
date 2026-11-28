@@ -56,11 +56,11 @@ Sem migration. Permissões já existem em V1.
 
 ## 9. Critérios de aceite
 
-- [ ] Matriz completa.
-- [ ] Todos os endpoints protegidos.
-- [ ] 403 por ação testado.
-- [ ] Documentação publicada.
+- [x] Matriz completa.
+- [x] Todos os endpoints protegidos.
+- [x] 403 por ação testado.
+- [x] Documentação publicada.
 
 ## 10. Verificação e evidência
 
-`mvn test` + revisão da matriz. Evidência: matriz e relatório de testes.
+`mvn test` + revisão da matriz. Matriz canônica: `docs/seguranca/permissoes-detalhe-obra.md`. Auditoria: `PreAuthorizeCoberturaTest` compara matriz, `@PreAuthorize`, rotas, escopo e presença de testes 401/403 por arquivo auditado; `GET /api/obras` é a única rota da matriz sem par módulo/ação, e `GET /api/me/permissoes` fica na allowlist fora da matriz. Evidência: matriz e relatório de testes.

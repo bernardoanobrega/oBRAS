@@ -2,12 +2,16 @@ export const painelComDados = {
   obra: {
     id: 5,
     nome: 'Obra de teste',
+    descricao: 'Descrição completa da obra',
     status: 'EM_ANDAMENTO',
     art: '2026/8941',
     tipologia: 'RESIDENCIAL',
     endereco: 'Av. Beira Mar, 1040',
     inicioPrevisto: '2026-01-01',
     fimPrevisto: '2027-11-30',
+    responsavelId: 10,
+    responsavelNome: 'Usuária de teste',
+    auditavelId: 77,
   },
   clima: { data: '2026-11-18', condicao: 'ENSOLARADO' },
   kpis: {
@@ -27,23 +31,27 @@ export const painelComDados = {
     categoria: 'OUTRO',
     descricao: 'Verificação',
     dataHora: '2026-11-18T10:30:00',
-    autor: { usuarioId: 10, nome: 'Usuária de teste' },
-    paralisacao: null,
-    fotos: [{ id: 8, ocorrenciaId: 3, nomeArquivo: 'teste.jpg', legenda: 'Foto de teste', dataEnvio: null }],
+    autor: { alocacaoId: 11, usuarioId: 10, nome: 'Usuária de teste' },
+    paralisacao: { inicio: '2026-11-18T10:30:00', fim: '2026-11-18T11:15:00' },
+    fotos: [{ id: 8, ocorrenciaId: 3, nomeArquivo: 'teste.jpg', legenda: 'Foto de teste', dataEnvio: '2026-11-18T10:31:00' }],
   }],
-  fotos: [{ id: 8, ocorrenciaId: 3, nomeArquivo: 'teste.jpg', legenda: 'Foto de teste', dataEnvio: null }],
+  fotos: [{ id: 8, ocorrenciaId: 3, nomeArquivo: 'teste.jpg', legenda: 'Foto de teste', dataEnvio: '2026-11-18T10:31:00' }],
 };
 
 export const painelComNulos = {
   obra: {
     id: 6,
     nome: 'Obra sem diário',
+    descricao: null,
     status: 'PLANEJADA',
     art: null,
     tipologia: 'RESIDENCIAL',
     endereco: '—',
     inicioPrevisto: '2026-01-01',
     fimPrevisto: '2027-11-30',
+    responsavelId: null,
+    responsavelNome: null,
+    auditavelId: null,
   },
   clima: { data: null, condicao: null },
   kpis: {

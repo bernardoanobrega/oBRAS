@@ -70,7 +70,7 @@ Revisão final + execução dos comandos documentados. Evidência: links e diff.
 - `obras-backend/README.md`: módulos, `V4`/`V4_1`, rotas de diário/foto/painel e links internos atualizados.
 - `obras-frontend/README.md`: rotas e features do painel/diário, modais com `useFocusTrap`, KPI nulo, validação de upload e execução do E2E atualizados.
 - `obras-backend/docs/api/contratos-detalhe-obra.md`: contratos F3/F4 publicados, incluindo `arquivo`/`legenda`, mapeamento de erros e painel nulo.
-- `obras-backend/docs/seguranca/permissoes-detalhe-obra.md`: matriz revisada nas rotas de diário/ocorrência/foto.
+- `docs/seguranca/permissoes-detalhe-obra.md`: matriz canônica revisada nas rotas de diário/ocorrência/foto.
 - `docs/plano/lotes/L52-e2e-usabilidade.md`: suíte real com 8 testes verdes, dependências instaladas com aprovação e evidência registrada; status `Em revisão`.
 - `docs/plano/lotes/L53-acessibilidade.md`: testes SSR e DOM de labels/aria/foco/teclado verdes; status `Em revisão`.
 - `PLANO.md` não existe neste repositório; item de atualização fica como pendência registrada.

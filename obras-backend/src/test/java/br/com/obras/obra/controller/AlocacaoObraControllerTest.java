@@ -9,6 +9,9 @@ import br.com.obras.shared.security.PermissaoEvaluator;
 import br.com.obras.shared.security.SecurityConfig;
 import br.com.obras.shared.security.UsuarioAutenticado;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -17,10 +20,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -181,6 +186,27 @@ class AlocacaoObraControllerTest {
                             """))
                 .andExpect(status().isForbidden());
         verifyNoInteractions(service);
+    }
+
+    @ParameterizedTest(name = "{0} sem token → 401")
+    @MethodSource("rotas")
+    void semTokenRetorna401EmTodasAsRotas(String nome, MockHttpServletRequestBuilder requisicao) throws Exception {
+        mvc.perform(requisicao).andExpect(status().isUnauthorized());
+        verifyNoInteractions(service);
+    }
+
+    static Stream<Arguments> rotas() {
+        return Stream.of(
+            Arguments.of("GET /alocacoes", get(BASE)),
+            Arguments.of("GET /candidatos", get(BASE + "/candidatos")),
+            Arguments.of("POST /alocacoes", post(BASE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"usuarioId\":10,\"cargoIds\":[20]}")),
+            Arguments.of("PATCH /encerrar", patch(BASE + "/" + ALOCACAO_ID + "/encerrar")),
+            Arguments.of("PUT /cargos", put(BASE + "/" + ALOCACAO_ID + "/cargos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cargoIds\":[20]}"))
+        );
     }
 
     private static AlocacaoObraDto dto() {
