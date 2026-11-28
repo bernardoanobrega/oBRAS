@@ -3,6 +3,7 @@ package br.com.obras.equipamento.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.com.obras.auditoria.domain.Auditavel;
 import br.com.obras.shared.exception.RegraNegocioException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +16,7 @@ class EquipamentoTest {
     private static final Long RESPONSAVEL = 5L;
 
     private Equipamento novoEquipamento() {
-        return new Equipamento("PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
+        return new Equipamento(Auditavel.novo(), "PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
     }
 
     private LocalDate daquiADias(long dias) {
@@ -37,7 +38,24 @@ class EquipamentoTest {
     @Test
     @DisplayName("Lança exceção quando o código de patrimônio está vazio")
     void lancaExcecaoQuandoCodigoPatrimonioVazio() {
-        assertThatThrownBy(() -> new Equipamento(" ", "Betoneira", TipoEquipamento.MAQUINA))
+        assertThatThrownBy(() -> new Equipamento(Auditavel.novo(), " ", "Betoneira", TipoEquipamento.MAQUINA))
+                .isInstanceOf(RegraNegocioException.class);
+    }
+
+    @Test
+    @DisplayName("Lança exceção quando o registro auditável não é informado")
+    void lancaExcecaoQuandoAuditavelNaoInformado() {
+        assertThatThrownBy(() -> new Equipamento(null, "PAT-001", "Betoneira", TipoEquipamento.MAQUINA))
+                .isInstanceOf(RegraNegocioException.class);
+    }
+
+    @Test
+    @DisplayName("Lança exceção quando o registro auditável está excluído")
+    void lancaExcecaoQuandoAuditavelExcluido() {
+        Auditavel excluido = Auditavel.novo();
+        excluido.excluir();
+
+        assertThatThrownBy(() -> new Equipamento(excluido, "PAT-001", "Betoneira", TipoEquipamento.MAQUINA))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -78,7 +96,7 @@ class EquipamentoTest {
     @DisplayName("Lança exceção ao desativar equipamento alocado")
     void lancaExcecaoQuandoDesativarEquipamentoAlocado() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
+        equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
         assertThatThrownBy(equipamento::desativar).isInstanceOf(RegraNegocioException.class);
     }
@@ -118,7 +136,8 @@ class EquipamentoTest {
     void alocaEquipamentoDisponivel() {
         Equipamento equipamento = novoEquipamento();
 
-        AlocacaoEquipamento alocacao = equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, "Fundação");
+        AlocacaoEquipamento alocacao =
+                equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(7), RESPONSAVEL, "Fundação");
 
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
         assertThat(equipamento.alocacaoAtiva()).contains(alocacao);
@@ -130,9 +149,9 @@ class EquipamentoTest {
     @DisplayName("Lança exceção quando equipamento já alocado")
     void lancaExcecaoQuandoEquipamentoJaAlocado() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
+        equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
-        assertThatThrownBy(() -> equipamento.alocar(OBRA_B, daquiADias(7), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.alocar(Auditavel.novo(), OBRA_B, daquiADias(7), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -142,7 +161,7 @@ class EquipamentoTest {
         Equipamento equipamento = novoEquipamento();
         equipamento.desativar();
 
-        assertThatThrownBy(() -> equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(7), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -151,7 +170,7 @@ class EquipamentoTest {
     void lancaExcecaoQuandoPrevisaoAnteriorAoInicio() {
         Equipamento equipamento = novoEquipamento();
 
-        assertThatThrownBy(() -> equipamento.alocar(OBRA_A, daquiADias(-1), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(-1), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.DISPONIVEL);
     }
@@ -162,7 +181,7 @@ class EquipamentoTest {
     @DisplayName("Devolve equipamento alocado e volta para disponível")
     void devolveEquipamentoAlocado() {
         Equipamento equipamento = novoEquipamento();
-        AlocacaoEquipamento alocacao = equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
+        AlocacaoEquipamento alocacao = equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
         equipamento.devolver("Sem avarias");
 
@@ -186,9 +205,10 @@ class EquipamentoTest {
     @DisplayName("Transfere mantendo o equipamento alocado com uma única alocação ativa")
     void transfereMantendoEquipamentoAlocado() {
         Equipamento equipamento = novoEquipamento();
-        AlocacaoEquipamento anterior = equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
+        AlocacaoEquipamento anterior = equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
-        AlocacaoEquipamento nova = equipamento.transferir(OBRA_B, daquiADias(14), RESPONSAVEL, "Nova frente");
+        AlocacaoEquipamento nova =
+                equipamento.transferir(Auditavel.novo(), OBRA_B, daquiADias(14), RESPONSAVEL, "Nova frente");
 
         assertThat(equipamento.getStatus()).isEqualTo(StatusEquipamento.ALOCADO);
         assertThat(anterior.estaAtiva()).isFalse();
@@ -200,9 +220,9 @@ class EquipamentoTest {
     @DisplayName("Lança exceção ao transferir para o mesma obra")
     void lancaExcecaoQuandoTransferirParaMesmaObra() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(OBRA_A, daquiADias(7), RESPONSAVEL, null);
+        equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(7), RESPONSAVEL, null);
 
-        assertThatThrownBy(() -> equipamento.transferir(OBRA_A, daquiADias(14), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.transferir(Auditavel.novo(), OBRA_A, daquiADias(14), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -211,7 +231,7 @@ class EquipamentoTest {
     void lancaExcecaoQuandoTransferirEquipamentoDisponivel() {
         Equipamento equipamento = novoEquipamento();
 
-        assertThatThrownBy(() -> equipamento.transferir(OBRA_B, daquiADias(14), RESPONSAVEL, null))
+        assertThatThrownBy(() -> equipamento.transferir(Auditavel.novo(), OBRA_B, daquiADias(14), RESPONSAVEL, null))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
@@ -221,7 +241,7 @@ class EquipamentoTest {
     @DisplayName("Está atrasado quando a data prevista já passou")
     void estaAtrasadoQuandoPrevisaoVencida() {
         Equipamento equipamento = novoEquipamento();
-        equipamento.alocar(OBRA_A, daquiADias(3), RESPONSAVEL, null);
+        equipamento.alocar(Auditavel.novo(), OBRA_A, daquiADias(3), RESPONSAVEL, null);
 
         assertThat(equipamento.estaAtrasado(daquiADias(4))).isTrue();
         assertThat(equipamento.estaAtrasado(daquiADias(3))).isFalse();

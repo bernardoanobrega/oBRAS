@@ -3,6 +3,7 @@ package br.com.obras.equipamento.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.com.obras.auditoria.domain.Auditavel;
 import br.com.obras.shared.exception.RegraNegocioException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
@@ -14,8 +15,8 @@ class AlocacaoEquipamentoTest {
     private static final Long RESPONSAVEL = 5L;
 
     private AlocacaoEquipamento novaAlocacaoAtiva(LocalDate dataPrevista) {
-        var equipamento = new Equipamento("PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
-        return equipamento.alocar(OBRA, dataPrevista, RESPONSAVEL, null);
+        var equipamento = new Equipamento(Auditavel.novo(), "PAT-001", "Betoneira 400L", TipoEquipamento.MAQUINA);
+        return equipamento.alocar(Auditavel.novo(), OBRA, dataPrevista, RESPONSAVEL, null);
     }
 
     @Test

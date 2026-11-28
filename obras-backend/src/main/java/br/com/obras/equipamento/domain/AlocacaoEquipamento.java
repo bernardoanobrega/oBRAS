@@ -1,6 +1,6 @@
 package br.com.obras.equipamento.domain;
 
-import br.com.obras.shared.domain.Auditavel;
+import br.com.obras.auditoria.domain.Auditavel;
 import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -16,9 +16,17 @@ import lombok.NoArgsConstructor;
 @Table(name = "alocacao_equipamento")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AlocacaoEquipamento extends Auditavel {
+public class AlocacaoEquipamento {
 
     private static final int TAMANHO_MAXIMO_OBSERVACAO = 1000;
+
+    @Id
+    private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId
+    @JoinColumn(name = "id")
+    private Auditavel auditavel;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "equipamento_id", nullable = false, updatable = false)
@@ -45,8 +53,11 @@ public class AlocacaoEquipamento extends Auditavel {
     @Column(name = "observacao_devolucao", length = TAMANHO_MAXIMO_OBSERVACAO)
     private String observacaoDevolucao;
 
-    AlocacaoEquipamento(Equipamento equipamento, Long obraId, Long responsavelId, LocalDate dataInicio,
-            LocalDate dataPrevistaDevolucao, String observacao) {
+    AlocacaoEquipamento(Auditavel auditavel, Equipamento equipamento, Long obraId, Long responsavelId,
+            LocalDate dataInicio, LocalDate dataPrevistaDevolucao, String observacao) {
+        if (auditavel == null || auditavel.isExcluido()) {
+            throw new RegraNegocioException("A alocação exige um registro auditável ativo.");
+        }
         if (obraId == null) {
             throw new RegraNegocioException("A obra é obrigatória.");
         }
@@ -54,6 +65,7 @@ public class AlocacaoEquipamento extends Auditavel {
             throw new RegraNegocioException("O responsável é obrigatório.");
         }
         exigirPrevisaoValida(dataInicio, dataPrevistaDevolucao);
+        this.auditavel = auditavel;
         this.equipamento = equipamento;
         this.obraId = obraId;
         this.responsavelId = responsavelId;

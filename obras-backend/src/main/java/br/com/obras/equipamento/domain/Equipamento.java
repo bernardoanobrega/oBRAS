@@ -1,6 +1,6 @@
 package br.com.obras.equipamento.domain;
 
-import br.com.obras.shared.domain.Auditavel;
+import br.com.obras.auditoria.domain.Auditavel;
 import br.com.obras.shared.exception.RegraNegocioException;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -14,18 +14,27 @@ import lombok.NoArgsConstructor;
 /**
  * Máquina, ferramenta ou outro equipamento controlado por unidade.
  *
- * <p>Invariante: {@code status = ALOCADO} se e somente se existe uma {@link AlocacaoEquipamento} ativa,
- * e há no máximo uma alocação ativa por equipamento. Equipamento nunca é excluído: usa-se {@code INATIVO}.
+ * <p>O id é o do {@link Auditavel} associado (id compartilhado). Invariante: {@code status = ALOCADO}
+ * se e somente se existe uma {@link AlocacaoEquipamento} ativa, e há no máximo uma alocação ativa por
+ * equipamento. Equipamento nunca é excluído: usa-se {@code INATIVO}.
  */
 @Entity
 @Table(name = "equipamento")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Equipamento extends Auditavel {
+public class Equipamento {
 
     private static final int TAMANHO_MAXIMO_CODIGO = 50;
     private static final int TAMANHO_MAXIMO_DESCRICAO = 300;
     private static final String OBSERVACAO_TRANSFERENCIA = "Transferido para outra obra.";
+
+    @Id
+    private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @MapsId
+    @JoinColumn(name = "id")
+    private Auditavel auditavel;
 
     @Column(name = "codigo_patrimonio", nullable = false, updatable = false, length = TAMANHO_MAXIMO_CODIGO)
     private String codigoPatrimonio;
@@ -45,7 +54,8 @@ public class Equipamento extends Auditavel {
     @OneToMany(mappedBy = "equipamento", fetch = FetchType.LAZY)
     private List<AlocacaoEquipamento> alocacoes = new ArrayList<>();
 
-    public Equipamento(String codigoPatrimonio, String descricao, TipoEquipamento tipo) {
+    public Equipamento(Auditavel auditavel, String codigoPatrimonio, String descricao, TipoEquipamento tipo) {
+        this.auditavel = exigirAuditavelAtivo(auditavel);
         this.codigoPatrimonio = exigirTexto(codigoPatrimonio, "Código de patrimônio", TAMANHO_MAXIMO_CODIGO);
         this.descricao = exigirTexto(descricao, "Descrição", TAMANHO_MAXIMO_DESCRICAO);
         this.tipo = exigirTipo(tipo);
@@ -77,15 +87,16 @@ public class Equipamento extends Auditavel {
         status = StatusEquipamento.DISPONIVEL;
     }
 
-    public AlocacaoEquipamento alocar(Long obraId, LocalDate dataPrevistaDevolucao, Long responsavelId,
-            String observacao) {
+    /** O {@code auditavelDaAlocacao} é o registro auditável da nova alocação, criado pelo service. */
+    public AlocacaoEquipamento alocar(Auditavel auditavelDaAlocacao, Long obraId, LocalDate dataPrevistaDevolucao,
+            Long responsavelId, String observacao) {
         if (status == StatusEquipamento.ALOCADO) {
             throw new RegraNegocioException("Equipamento já está alocado.");
         }
         if (status == StatusEquipamento.INATIVO) {
             throw new RegraNegocioException("Equipamento inativo não pode ser alocado.");
         }
-        var alocacao = new AlocacaoEquipamento(this, obraId, responsavelId, LocalDate.now(),
+        var alocacao = new AlocacaoEquipamento(auditavelDaAlocacao, this, obraId, responsavelId, LocalDate.now(),
                 dataPrevistaDevolucao, observacao);
         alocacoes.add(alocacao);
         status = StatusEquipamento.ALOCADO;
@@ -98,15 +109,16 @@ public class Equipamento extends Auditavel {
         status = StatusEquipamento.DISPONIVEL;
     }
 
-    public AlocacaoEquipamento transferir(Long obraDestinoId, LocalDate dataPrevistaDevolucao,
-            Long responsavelId, String observacao) {
+    /** O {@code auditavelDaNovaAlocacao} é o registro auditável da alocação na obra de destino. */
+    public AlocacaoEquipamento transferir(Auditavel auditavelDaNovaAlocacao, Long obraDestinoId,
+            LocalDate dataPrevistaDevolucao, Long responsavelId, String observacao) {
         AlocacaoEquipamento alocacaoAtual = exigirAlocacaoAtiva("Apenas equipamentos alocados podem ser transferidos.");
         if (alocacaoAtual.getObraId().equals(obraDestinoId)) {
             throw new RegraNegocioException("O equipamento já está alocado na obra de destino.");
         }
         LocalDate hoje = LocalDate.now();
-        var novaAlocacao = new AlocacaoEquipamento(this, obraDestinoId, responsavelId, hoje,
-                dataPrevistaDevolucao, observacao);
+        var novaAlocacao = new AlocacaoEquipamento(auditavelDaNovaAlocacao, this, obraDestinoId, responsavelId,
+                hoje, dataPrevistaDevolucao, observacao);
         alocacaoAtual.encerrar(hoje, OBSERVACAO_TRANSFERENCIA);
         alocacoes.add(novaAlocacao);
         return novaAlocacao;
@@ -134,6 +146,13 @@ public class Equipamento extends Auditavel {
         }
         return alocacaoAtiva().orElseThrow(
                 () -> new IllegalStateException("Equipamento alocado sem alocação ativa."));
+    }
+
+    private static Auditavel exigirAuditavelAtivo(Auditavel auditavel) {
+        if (auditavel == null || auditavel.isExcluido()) {
+            throw new RegraNegocioException("O equipamento exige um registro auditável ativo.");
+        }
+        return auditavel;
     }
 
     private static TipoEquipamento exigirTipo(TipoEquipamento tipo) {
