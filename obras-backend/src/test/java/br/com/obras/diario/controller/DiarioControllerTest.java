@@ -1,6 +1,8 @@
 package br.com.obras.diario.controller;
 
+import br.com.obras.diario.FotoFixtures;
 import br.com.obras.diario.dto.DiarioDto;
+import br.com.obras.diario.dto.FotoDownloadDto;
 import br.com.obras.diario.dto.FotoDto;
 import br.com.obras.diario.dto.MembroDiarioDto;
 import br.com.obras.diario.dto.OcorrenciaDto;
@@ -11,6 +13,7 @@ import br.com.obras.shared.security.JwtService;
 import br.com.obras.shared.security.PermissaoEvaluator;
 import br.com.obras.shared.security.SecurityConfig;
 import br.com.obras.shared.security.UsuarioAutenticado;
+import br.com.obras.shared.storage.ArquivoStorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -19,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +30,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,6 +44,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -48,6 +54,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -233,6 +241,134 @@ class DiarioControllerTest {
     }
 
     @Test
+    void uploadJpgValidoRetorna201() throws Exception {
+        permitir("CRIAR");
+        when(service.anexarFoto(eq(OBRA_ID), eq(7L), any(), nullable(String.class))).thenReturn(fotoDto());
+
+        mvc.perform(multipart(OBRA + "/ocorrencias/7/fotos")
+                        .file(FotoFixtures.jpg("fachada.jpg"))
+                        .with(usuarioLogado()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(30))
+                .andExpect(jsonPath("$.nomeArquivo").value("foto.jpg"));
+        verify(service).anexarFoto(eq(OBRA_ID), eq(7L), any(), isNull());
+    }
+
+    @Test
+    void uploadPngValidoRetorna201() throws Exception {
+        permitir("CRIAR");
+        when(service.anexarFoto(eq(OBRA_ID), eq(7L), any(), nullable(String.class))).thenReturn(fotoDto());
+
+        mvc.perform(multipart(OBRA + "/ocorrencias/7/fotos")
+                        .file(FotoFixtures.png("fachada.png"))
+                        .with(usuarioLogado()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(30));
+        verify(service).anexarFoto(eq(OBRA_ID), eq(7L), any(), isNull());
+    }
+
+    @Test
+    void rejeitaPdfNoMural() throws Exception {
+        permitir("CRIAR");
+        when(service.anexarFoto(eq(OBRA_ID), eq(7L), any(), nullable(String.class)))
+                .thenThrow(new RegraNegocioException("Fotos: use PNG ou JPG"));
+
+        mvc.perform(multipart(OBRA + "/ocorrencias/7/fotos")
+                        .file(FotoFixtures.pdf("invalido.pdf"))
+                        .with(usuarioLogado()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.mensagem").value("Fotos: use PNG ou JPG"));
+    }
+
+    @Test
+    void rejeitaArquivoComExtensaoFalsa() throws Exception {
+        permitir("CRIAR");
+        when(service.anexarFoto(eq(OBRA_ID), eq(7L), any(), nullable(String.class)))
+                .thenThrow(new RegraNegocioException("Formato não permitido. Use PDF, PNG ou JPG"));
+
+        mvc.perform(multipart(OBRA + "/ocorrencias/7/fotos")
+                        .file(FotoFixtures.extensaoFalsa("extensao-falsa.jpg"))
+                        .with(usuarioLogado()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.mensagem").value("Formato não permitido. Use PDF, PNG ou JPG"));
+    }
+
+    @Test
+    void rejeitaArquivoAcimaDe10Mb() throws Exception {
+        permitir("CRIAR");
+        byte[] bytes = FotoFixtures.acimaDe10Mb();
+        when(service.anexarFoto(eq(OBRA_ID), eq(7L), any(), nullable(String.class)))
+                .thenThrow(new MaxUploadSizeExceededException(ArquivoStorageService.TAMANHO_MAXIMO));
+
+        mvc.perform(multipart(OBRA + "/ocorrencias/7/fotos")
+                        .file(new MockMultipartFile("arquivo", "grande.jpg", MediaType.IMAGE_JPEG_VALUE, bytes))
+                        .with(usuarioLogado()))
+                .andExpect(status().isPayloadTooLarge())
+                .andExpect(jsonPath("$.status").value(413))
+                .andExpect(jsonPath("$.mensagem").value("Arquivo excede o limite de 10 MB"));
+        verify(service).anexarFoto(eq(OBRA_ID), eq(7L), any(), isNull());
+    }
+
+    @Test
+    void rejeitaOcorrenciaDeOutraObra() throws Exception {
+        permitir("CRIAR");
+        when(service.anexarFoto(eq(OBRA_ID), eq(7L), any(), nullable(String.class)))
+                .thenThrow(new RecursoNaoEncontradoException("Ocorrencia", 7L));
+
+        mvc.perform(multipart(OBRA + "/ocorrencias/7/fotos")
+                        .file(FotoFixtures.jpg("fachada.jpg"))
+                        .with(usuarioLogado()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
+        verify(service).anexarFoto(eq(OBRA_ID), eq(7L), any(), isNull());
+    }
+
+    @Test
+    void downloadSemPermissaoRetorna403() throws Exception {
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "VISUALIZAR")).thenReturn(false);
+
+        mvc.perform(get(OBRA + "/fotos/30").with(usuarioLogado()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403));
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void downloadRetornaBytesCorretos() throws Exception {
+        permitir("VISUALIZAR");
+        byte[] bytes = FotoFixtures.jpg();
+        when(service.buscarFoto(OBRA_ID, 30L)).thenReturn(
+                new FotoDownloadDto(new ByteArrayResource(bytes), MediaType.IMAGE_JPEG, "fachada.jpg"));
+
+        mvc.perform(get(OBRA + "/fotos/30").with(usuarioLogado()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_JPEG))
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"fachada.jpg\""))
+                .andExpect(content().bytes(bytes));
+        verify(service).buscarFoto(OBRA_ID, 30L);
+    }
+
+    @Test
+    void deleteSemTokenRetorna401() throws Exception {
+        for (String rota : rotasDeExclusao()) {
+            mvc.perform(delete(rota)).andExpect(status().isUnauthorized());
+        }
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void deleteSemPermissaoRetorna403() throws Exception {
+        when(perm.pode(OBRA_ID, "DETALHES_OBRA", "EXCLUIR")).thenReturn(false);
+
+        for (String rota : rotasDeExclusao()) {
+            mvc.perform(delete(rota).with(usuarioLogado()))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.status").value(403));
+        }
+        verifyNoInteractions(service);
+    }
+
+    @Test
     void postOcorrenciaRapidaSemClimaRetorna422() throws Exception {
         permitir("CRIAR");
         when(service.ocorrenciaRapida(eq(OBRA_ID), any()))
@@ -286,8 +422,16 @@ class DiarioControllerTest {
         return req.contentType(MediaType.APPLICATION_JSON).content(corpo);
     }
 
+    private static List<String> rotasDeExclusao() {
+        return List.of(OBRA + "/diarios/1", OBRA + "/ocorrencias/7", OBRA + "/fotos/30");
+    }
+
     private static MockMultipartFile foto() {
         return new MockMultipartFile("arquivo", "foto.jpg", MediaType.IMAGE_JPEG_VALUE, new byte[]{1, 2, 3});
+    }
+
+    private static FotoDto fotoDto() {
+        return new FotoDto(30L, 7L, "foto.jpg", null, DEZ_HORAS);
     }
 
     private static DiarioDto diarioDto() {

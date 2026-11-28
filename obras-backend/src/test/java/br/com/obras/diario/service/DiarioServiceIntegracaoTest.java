@@ -194,7 +194,7 @@ class DiarioServiceIntegracaoTest {
      */
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void duplicidadeSobConcorrenciaRetorna422() throws Exception {
+    void umDiarioPorDiaSobConcorrencia() throws Exception {
         PausaNaChecagem.barreira = new CyclicBarrier(2);
 
         TransactionTemplate transacao = new TransactionTemplate(transacoes);
@@ -226,6 +226,32 @@ class DiarioServiceIntegracaoTest {
                         () -> "deve ser 422 (RegraNegocioException), veio: " + erros.get(0)),
                 () -> assertEquals(MSG_DUPLICADO, erros.get(0).getMessage()),
                 () -> assertEquals(1L, contar("SELECT count(*) FROM registro_diario WHERE obra_id = ?", obraA))
+        );
+    }
+
+    @Test
+    void excluirDiarioNaoRemoveLinhaFisicamente() {
+        DiarioDto criado = service.criar(obraA, novo(DIA, Set.of()));
+
+        service.excluir(obraA, criado.id());
+
+        assertAll(
+                () -> assertEquals(1L, contar("SELECT count(*) FROM registro_diario WHERE id = ?", criado.id())),
+                () -> assertTrue(booleano("SELECT excluido FROM registro_diario WHERE id = ?", criado.id())),
+                () -> assertTrue(booleano("SELECT excluido FROM auditavel WHERE id = ?", criado.id()))
+        );
+    }
+
+    @Test
+    void diarioExcluidoNaoApareceNaLista() {
+        DiarioDto criado = service.criar(obraA, novo(DIA, Set.of()));
+        assertEquals(1, service.listar(obraA).size());
+
+        service.excluir(obraA, criado.id());
+
+        assertAll(
+                () -> assertTrue(service.listar(obraA).isEmpty()),
+                () -> assertEquals(1L, contar("SELECT count(*) FROM registro_diario WHERE id = ?", criado.id()))
         );
     }
 
@@ -323,5 +349,9 @@ class DiarioServiceIntegracaoTest {
 
     private long contar(String sql, Object... parametros) {
         return jdbc.queryForObject(sql, Long.class, parametros);
+    }
+
+    private boolean booleano(String sql, Object... parametros) {
+        return Boolean.TRUE.equals(jdbc.queryForObject(sql, Boolean.class, parametros));
     }
 }

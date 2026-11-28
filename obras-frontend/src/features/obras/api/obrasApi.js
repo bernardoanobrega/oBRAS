@@ -9,3 +9,22 @@ export const criarObra = (dto) => http.post('/api/obras', dto).then((r) => r.dat
 
 /** PUT /api/obras/{id} (L12) → 200 com ObraDto. Não envia status: transição é o L13. */
 export const editarObra = (obraId, dto) => http.put(`/api/obras/${obraId}`, dto).then((r) => r.data);
+
+const base = (obraId) => `/api/obras/${obraId}`;
+
+export const definirResponsavelObra = (obraId, usuarioId) =>
+  http.put(`${base(obraId)}/responsavel`, { usuarioId }).then((r) => r.data);
+
+export const iniciarObra = (obraId) => http.post(`${base(obraId)}/iniciar`).then((r) => r.data);
+export const paralisarObra = (obraId) => http.post(`${base(obraId)}/paralisar`).then((r) => r.data);
+export const retomarObra = (obraId) => http.post(`${base(obraId)}/retomar`).then((r) => r.data);
+export const concluirObra = (obraId) => http.post(`${base(obraId)}/concluir`).then((r) => r.data);
+export const cancelarObra = (obraId) => http.post(`${base(obraId)}/cancelar`).then((r) => r.data);
+
+export const ACOES_OBRA = {
+  iniciar: iniciarObra,
+  paralisar: paralisarObra,
+  retomar: retomarObra,
+  concluir: concluirObra,
+  cancelar: cancelarObra,
+};

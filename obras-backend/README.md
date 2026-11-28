@@ -28,9 +28,19 @@ Para criar o 1º admin: `BOOTSTRAP_ADMIN_ENABLED=true BOOTSTRAP_ADMIN_PASSWORD=.
 ## Estrutura
 `shared/` (segurança, exceções, storage) · um pacote por módulo com `controller/service/repository/domain/dto/mapper`.
 Módulos implementados: `usuario`, `obra` (painel, diário e adapters), `orcamento`, `compras`, `estoque`, `documento`.
-Migrations: `V1` usuários/permissões, `V2` obras/canteiros/alocações, `V3`/`V3_1` auditoria, `V4` diário, `V5` orçamento,
-`V6` materiais, `V7` compras, `V8` estoque, `V9` contratos/documentos.
+Migrations: `V1` usuários/permissões, `V2` obras/canteiros/alocações, `V3`/`V3_1` auditoria, `V4` diário,
+`V4_1` ocorrências/paralisia/fotos, `V5` orçamento, `V6` materiais, `V7` compras, `V8` estoque, `V9` contratos/documentos.
 A numeração segue a ordem em que os módulos entram na develop.
+
+## Detalhe de obra, diário e painel
+- `/api/obras/{obraId}/diarios`: CRUD de diário, uma entrada não excluída por obra/data; exclusão lógica em cascata com auditoria.
+- `/api/obras/{obraId}/ocorrencias-rapidas`: cria diário automático quando ainda não existe no dia; categoria ausente vira `OUTRO`.
+- `/api/obras/{obraId}/ocorrencias/{id}` e `/api/obras/{obraId}/fotos/{id}`: edição/exclusão com paralisação substituída por payload completo e fotos excluídas logicamente.
+- Upload no mural: `multipart/form-data` com `arquivo` e `legenda` opcional; JPG/PNG até 10 MB, validados por extensão e magic bytes.
+- Download de foto: `GET /api/obras/{obraId}/fotos/{id}`, resposta `inline` com `Content-Type` da imagem.
+- `GET /api/obras/{obraId}/painel`: agrega obra, clima do dia, KPIs simulados, equipe, mão de obra, ocorrências e fotos; KPI indisponível permanece nulo.
+- Contratos completos: [`docs/api/contratos-detalhe-obra.md`](docs/api/contratos-detalhe-obra.md).
+- Permissões por rota: [`docs/seguranca/permissoes-detalhe-obra.md`](docs/seguranca/permissoes-detalhe-obra.md).
 
 ## Orçamento (UC10 · RF-30 a RF-34, RF-74)
 - `GET /api/orcamentos`: orçamentos das obras em que o usuário tem `ORCAMENTO:VISUALIZAR`.

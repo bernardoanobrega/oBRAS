@@ -26,14 +26,14 @@
 | POST | `/api/obras/{obraId}/diarios` | CRIAR | Obra | Auditado em L34; sem reescrita |
 | GET | `/api/obras/{obraId}/diarios/{id}` | VISUALIZAR | Obra | Auditado em L34; sem reescrita |
 | PUT | `/api/obras/{obraId}/diarios/{id}` | EDITAR | Obra | Auditado em L34; sem reescrita |
-| DELETE | `/api/obras/{obraId}/diarios/{id}` | EXCLUIR | Obra | Auditado em L34; sem reescrita |
+| DELETE | `/api/obras/{obraId}/diarios/{id}` | EXCLUIR | Obra | Revisado em L36; `@PreAuthorize` no controller |
 | POST | `/api/obras/{obraId}/diarios/{id}/ocorrencias` | CRIAR | Obra | Auditado em L34; sem reescrita |
 | PUT | `/api/obras/{obraId}/ocorrencias/{id}` | EDITAR | Obra | Auditado em L34; sem reescrita |
-| DELETE | `/api/obras/{obraId}/ocorrencias/{id}` | EXCLUIR | Obra | Auditado em L34; sem reescrita |
+| DELETE | `/api/obras/{obraId}/ocorrencias/{id}` | EXCLUIR | Obra | Revisado em L36; `@PreAuthorize` no controller |
 | POST | `/api/obras/{obraId}/ocorrencias-rapidas` | CRIAR | Obra | Auditado em L34; sem reescrita |
-| POST | `/api/obras/{obraId}/ocorrencias/{id}/fotos` | CRIAR | Obra | Auditado em L34; sem reescrita |
-| GET | `/api/obras/{obraId}/fotos/{id}` | VISUALIZAR | Obra | Auditado em L34; sem reescrita |
-| DELETE | `/api/obras/{obraId}/fotos/{id}` | EXCLUIR | Obra | Auditado em L34; sem reescrita |
+| POST | `/api/obras/{obraId}/ocorrencias/{id}/fotos` | CRIAR | Obra | Revisado em L35; `@PreAuthorize` no controller |
+| GET | `/api/obras/{obraId}/fotos/{id}` | VISUALIZAR | Obra | Revisado em L35; `@PreAuthorize` no controller |
+| DELETE | `/api/obras/{obraId}/fotos/{id}` | EXCLUIR | Obra | Revisado em L36; `@PreAuthorize` no controller |
 | GET | `/api/obras/{obraId}/painel` | VISUALIZAR | Obra | Auditado em L42; sem reescrita |
 | GET | `/api/documentos/obras` | VISUALIZAR | Global ou alguma obra | Anotação adicionada no L51 |
 | GET | `/api/documentos/obras/{obraId}` | VISUALIZAR | Obra | Anotação adicionada no L51 |

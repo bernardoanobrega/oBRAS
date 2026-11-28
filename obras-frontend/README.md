@@ -9,8 +9,10 @@ copy .env.example .env     # opcional
 npm run dev                # http://localhost:5173  (proxy /api -> http://localhost:8080)
 npm run build
 npm test
+npm run test:e2e
 ```
 Suba o backend antes (`docker compose up -d db` + `mvn spring-boot:run` com perfil `dev`).
+E2E requer `E2E_LOGIN`/`E2E_SENHA` no ambiente e origem `http://localhost:5173` permitida em `CORS_ORIGINS`; `E2E_BASE_URL` é opcional.
 Login de desenvolvimento: `admin` / `Admin@12345`.
 
 ## Estrutura
@@ -33,6 +35,15 @@ decisões financeiras e cancelamento).
 **Painel de obra e diário**, **Compras** e **Estoque**.
 Demais módulos: telas "em construção" com o escopo (UCs/RFs) da documentação.
 
+## Detalhe de obra, diário e painel
+- `src/features/obras/pages/DetalheObraPage.jsx`: painel real, ações de status, edição de parâmetros, KPIs nulos com origem `SIMULADO`, equipe, ocorrências recentes e mural.
+- `src/features/obras/pages/DiarioPage.jsx`: diário do dia, ocorrências completas/rápidas, paralisação e upload de fotos JPG/PNG.
+- `src/features/obras/api/`: `painelApi`, `diarioApi` e `obrasApi` desempacotam `AxiosResponse` e preservam `mensagemErro`/`errosPorCampo`.
+- Modais compartilhados usam `useFocusTrap`: foco preso, Escape fecha e foco volta ao gatilho. Botões de ícone e campos sem texto visível têm rótulo acessível.
+- Nenhum KPI nulo é convertido em zero; `fonte: SIMULADO` aparece na interface.
+- Sem diário no dia, a página de diário mostra equipe alocada e estado vazio sem dados inventados.
+- Testes: `npm test`; compilação: `npm run build`.
+
 ## Tema (paleta do Figma)
 As cores ficam só em `tailwind.config.js`. Nas telas, use os nomes abaixo, nunca hexadecimal solto
 nem as cores padrão do Tailwind (`slate`, `red`, `amber`...).
@@ -51,7 +62,7 @@ nem as cores padrão do Tailwind (`slate`, `red`, `amber`...).
 ## Regras
 - Uma feature não importa de outra feature; o que for comum sobe para `shared/`.
 - Toda chamada passa por `shared/api/http.js`. Erros: `mensagemErro(e)` e `errosPorCampo(e)`.
-- Upload: validar com `validarArquivo` (PDF/PNG/JPG, 10 MB) antes de enviar.
+- Upload: validar com `validarArquivo` (PDF/PNG/JPG, 10 MB) antes de enviar; no mural de diário, validar somente JPG/PNG com o validador de fotos.
 
 ## Contratos e documentos
 

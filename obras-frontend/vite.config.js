@@ -10,6 +10,10 @@ export default defineConfig(({ mode }) => {
       // em dev o front chama /api e o Vite encaminha ao backend (sem CORS)
       proxy: { '/api': env.VITE_PROXY_TARGET || 'http://localhost:8080' },
     },
-    test: { environment: 'node' },
+    test: {
+      include: ['src/**/*.test.{js,jsx}'],
+      environment: 'node',
+      environmentMatchGlobs: [['**/src/test/l53AcessibilidadeDom.test.jsx', 'jsdom']],
+    },
   };
 });

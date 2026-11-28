@@ -7,6 +7,7 @@ import br.com.obras.diario.domain.CategoriaOcorrencia;
 import br.com.obras.diario.domain.Clima;
 import br.com.obras.diario.domain.Ocorrencia;
 import br.com.obras.diario.domain.RegistroDiario;
+import br.com.obras.diario.domain.RegistroFotografico;
 import br.com.obras.diario.dto.NovaOcorrenciaDto;
 import br.com.obras.diario.dto.NovaOcorrenciaRapidaDto;
 import br.com.obras.diario.dto.NovoDiarioDto;
@@ -237,6 +238,61 @@ class DiarioServiceTest {
         assertEquals("Fotos: use PNG ou JPG", e.getMessage());
         verify(storage).descartar("2026/11/x.pdf");
         verifyNoInteractions(fotos);
+    }
+
+    @Test
+    void excluirFotoMantemOcorrencia() {
+        Obra obra = obra();
+        Auditavel diarioAuditavel = auditavel(100L);
+        RegistroDiario diario = diario(diarioAuditavel, obra);
+        Auditavel ocorrenciaAuditavel = auditavel(200L);
+        Ocorrencia ocorrencia = Ocorrencia.criar(
+            ocorrenciaAuditavel, diario, alocacao(7L), DATA.atTime(9, 0), CategoriaOcorrencia.OUTRO, "Fachada"
+        );
+        ReflectionTestUtils.setField(ocorrencia, "id", 300L);
+        Auditavel fotoAuditavel = auditavel(400L);
+        RegistroFotografico foto = RegistroFotografico.criar(
+            fotoAuditavel, ocorrencia, "2026/11/foto.jpg", null
+        );
+        ReflectionTestUtils.setField(foto, "id", 400L);
+        when(fotos.buscar(OBRA_ID, 400L)).thenReturn(Optional.of(foto));
+        doAnswer(i -> {
+            i.getArgument(0, Auditavel.class).excluir();
+            return null;
+        }).when(auditoria).excluir(any(Auditavel.class));
+
+        service.excluirFoto(OBRA_ID, 400L);
+
+        assertAll(
+            () -> assertTrue(fotoAuditavel.isExcluido()),
+            () -> assertFalse(ocorrenciaAuditavel.isExcluido()),
+            () -> assertFalse(diarioAuditavel.isExcluido())
+        );
+        verify(fotos).buscar(OBRA_ID, 400L);
+        verify(fotos, never()).saveAndFlush(any());
+        verify(ocorrencias, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void exclusaoAudita() {
+        Auditavel auditavel = auditavel(400L);
+        RegistroFotografico foto = RegistroFotografico.criar(
+            auditavel,
+            Ocorrencia.criar(auditavel(200L), diario(auditavel(100L), obra()), alocacao(7L),
+                DATA.atTime(9, 0), CategoriaOcorrencia.OUTRO, "Fachada"),
+            "2026/11/foto.jpg", null
+        );
+        ReflectionTestUtils.setField(foto, "id", 400L);
+        when(fotos.buscar(OBRA_ID, 400L)).thenReturn(Optional.of(foto));
+        doAnswer(i -> {
+            i.getArgument(0, Auditavel.class).excluir();
+            return null;
+        }).when(auditoria).excluir(any(Auditavel.class));
+
+        service.excluirFoto(OBRA_ID, 400L);
+
+        verify(auditoria).excluir(auditavel);
+        assertTrue(auditavel.isExcluido());
     }
 
     @Test

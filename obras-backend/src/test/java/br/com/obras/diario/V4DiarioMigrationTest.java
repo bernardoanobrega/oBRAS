@@ -76,7 +76,7 @@ class V4DiarioMigrationTest {
     }
 
     @Test
-    void ocorrenciaExigeDiario() throws SQLException {
+    void ocorrenciaSemDiarioFalha() throws SQLException {
         setupComDependencias();
 
         assertViolacao("""
@@ -91,7 +91,7 @@ class V4DiarioMigrationTest {
     }
 
     @Test
-    void fotoExigeOcorrencia() throws SQLException {
+    void fotoSemOcorrenciaFalha() throws SQLException {
         setupComDependencias();
         long diarioId = inserirDiario(obraId, "2026-11-18", "NUBLADO");
         long ocorrenciaId = inserirOcorrencia(diarioId, alocacaoId);

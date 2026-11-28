@@ -46,6 +46,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -248,6 +249,59 @@ class OcorrenciaServiceIntegracaoTest {
         assertAll(
                 () -> assertTrue(excluido(ocorrencia) && excluido(foto)),
                 () -> assertTrue(!excluido(diario), "o diário continua ativo"),
+                () -> assertEquals(List.of("EXCLUSAO"), acoesAuditadas(foto))
+        );
+    }
+
+    @Test
+    void consultaNaoRetornaFotoExcluida() {
+        long diario = diario(obraA);
+        long ocorrencia = service.adicionarOcorrencia(obraA, diario,
+                nova(CategoriaOcorrencia.OUTRO, "Com foto", DEZ_HORAS, null)).id();
+        long foto = foto(ocorrencia);
+        assertEquals(1, service.buscar(obraA, diario).ocorrencias().get(0).fotos().size());
+
+        service.excluirFoto(obraA, foto);
+        em.flush();
+
+        assertAll(
+                () -> assertTrue(service.buscar(obraA, diario).ocorrencias().get(0).fotos().isEmpty()),
+                () -> assertEquals(1L, contar("SELECT count(*) FROM registro_fotografico WHERE id = ?", foto),
+                        "foto excluída continua no banco")
+        );
+    }
+
+    @Test
+    void exclusaoLogicaNaoApaga() {
+        long diario = diario(obraA);
+        long ocorrencia = service.adicionarOcorrencia(obraA, diario,
+                nova(CategoriaOcorrencia.OUTRO, "Com foto", DEZ_HORAS, null)).id();
+        long foto = foto(ocorrencia);
+
+        service.excluirOcorrencia(obraA, ocorrencia);
+        em.flush();
+
+        assertAll(
+                () -> assertEquals(1L, contar("SELECT count(*) FROM registro_fotografico WHERE id = ?", foto)),
+                () -> assertTrue(excluido(foto)),
+                () -> assertTrue(excluido(ocorrencia)),
+                () -> assertFalse(excluido(diario))
+        );
+    }
+
+    @Test
+    void auditoriaDeDiarioOcorrenciaFoto() {
+        long diario = diario(obraA);
+        long ocorrencia = service.adicionarOcorrencia(obraA, diario,
+                nova(CategoriaOcorrencia.OUTRO, "Com foto", DEZ_HORAS, null)).id();
+        long foto = foto(ocorrencia);
+
+        service.excluir(obraA, diario);
+        em.flush();
+
+        assertAll(
+                () -> assertEquals(List.of("CRIACAO", "EXCLUSAO"), acoesAuditadas(diario)),
+                () -> assertEquals(List.of("CRIACAO", "EXCLUSAO"), acoesAuditadas(ocorrencia)),
                 () -> assertEquals(List.of("EXCLUSAO"), acoesAuditadas(foto))
         );
     }

@@ -3,7 +3,7 @@ import { Badge } from './primitivos.jsx';
 import { BOTAO_PRIMARIO, BOTAO_SECUNDARIO } from './tokens.js';
 
 /** Cabeçalho do Painel Detalhes de Obra. Ações visuais, condicionadas por permissão; nada é persistido nesta fatia. */
-export default function ObraHeader({ obra, pode }) {
+export default function ObraHeader({ obra, pode, acoes }) {
   const campos = [
     ['ART:', obra.art],
     ['Tipologia:', obra.tipologia],
@@ -31,15 +31,19 @@ export default function ObraHeader({ obra, pode }) {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {pode('DETALHES_OBRA', 'EDITAR') && (
-          <button type="button" className={BOTAO_SECUNDARIO}>
-            <SlidersHorizontal size={13} /> Editar Parâmetros
-          </button>
-        )}
-        {pode('DETALHES_OBRA', 'CRIAR') && (
-          <button type="button" className={BOTAO_PRIMARIO}>
-            <Plus size={13} /> Nova Ocorrência
-          </button>
+        {acoes ?? (
+          <>
+            {pode('DETALHES_OBRA', 'EDITAR') && (
+              <button type="button" className={BOTAO_SECUNDARIO}>
+                <SlidersHorizontal size={13} /> Editar Parâmetros
+              </button>
+            )}
+            {pode('DETALHES_OBRA', 'CRIAR') && (
+              <button type="button" className={BOTAO_PRIMARIO}>
+                <Plus size={13} /> Nova Ocorrência
+              </button>
+            )}
+          </>
         )}
       </div>
     </section>

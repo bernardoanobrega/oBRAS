@@ -30,9 +30,15 @@ vi.mock('../features/obras/api/useDiario.js', () => ({
   useDiario: vi.fn(),
 }));
 
+vi.mock('../features/obras/hooks/usePainelObra.js', () => ({
+  usePainelObra: vi.fn(),
+}));
+
 import { usePermissao } from '../shared/auth/usePermissao.js';
 import { useDetalheObra } from '../features/obras/api/useDetalheObra.js';
 import { useDiario } from '../features/obras/api/useDiario.js';
+import { usePainelObra } from '../features/obras/hooks/usePainelObra.js';
+import { adaptarPainel } from '../features/obras/adapters/adaptarPainel.js';
 import AppShell from '../shared/components/layout/AppShell.jsx';
 import ObraLayout from '../features/obras/pages/ObraLayout.jsx';
 import DetalheObraPage from '../features/obras/pages/DetalheObraPage.jsx';
@@ -43,6 +49,7 @@ import EquipeResumo from '../features/obras/components/detalhe/EquipeResumo.jsx'
 import OcorrenciasRecentes from '../features/obras/components/detalhe/OcorrenciasRecentes.jsx';
 import MuralFotos from '../features/obras/components/detalhe/MuralFotos.jsx';
 import { OBRA, CLIMA_DIA, KPIS, EQUIPE, OCORRENCIAS, FOTOS } from '../features/obras/mocks/detalheObraMock.js';
+import { painelComDados } from '../features/obras/fixtures/painel.fixture.js';
 
 const DIARIO_REAL = {
   id: 3,
@@ -64,6 +71,33 @@ const DIARIO_REAL = {
     },
   ],
 };
+
+function painelPadrao() {
+  return adaptarPainel({
+    obra: {
+      ...OBRA,
+      status: 'EM_ANDAMENTO',
+      endereco: OBRA.localizacao,
+      inicioPrevisto: '2026-02-01',
+      fimPrevisto: '2027-11-30',
+    },
+    clima: { data: '2026-09-22', condicao: 'ENSOLARADO' },
+    kpis: KPIS,
+    equipe: EQUIPE,
+    maoDeObra: { alocados: EQUIPE.length, presentesHoje: 38, vsOntem: 3, fonte: 'DIARIO' },
+    ocorrencias: OCORRENCIAS,
+    fotos: FOTOS.map((foto) => ({ ...foto, ocorrenciaId: 1 })),
+  });
+}
+
+function painelComDiarioReal() {
+  return adaptarPainel({
+    ...painelComDados,
+    clima: { data: '2026-11-18', condicao: 'ENSOLARADO' },
+    ocorrencias: [{ ...painelComDados.ocorrencias[0], descricao: 'Ocorrência real da obra' }],
+    fotos: [{ ...painelComDados.fotos[0], legenda: 'Foto real da obra' }],
+  });
+}
 
 function renderPagina() {
   return renderToStaticMarkup(
@@ -94,6 +128,12 @@ beforeEach(() => {
     recarregar: vi.fn(),
     selecionarDiario: vi.fn(),
   });
+  usePainelObra.mockReturnValue({
+    painel: painelPadrao(),
+    carregando: false,
+    erro: null,
+    recarregar: vi.fn(),
+  });
 });
 
 function renderShell() {
@@ -115,6 +155,73 @@ describe('DetalheObraPage', () => {
     const html = renderPagina();
     expect(html).toContain('Detalhe de Obra');
     expect(html).toContain(OBRA.nome);
+  });
+
+  it('carregaPainelERenderizaObra', () => {
+    const html = renderPagina();
+    expect(html).toContain(OBRA.nome);
+    expect(html).toContain(EQUIPE[0].nome);
+    expect(html).toContain('SIMULADO');
+  });
+
+  it('loadingInicial', () => {
+    useDetalheObra.mockReturnValue({ obra: null, equipe: [], carregando: true, erro: null, recarregar: vi.fn() });
+    usePainelObra.mockReturnValue({ painel: null, carregando: true, erro: null, recarregar: vi.fn() });
+    const html = renderPagina();
+    expect(html).toContain('aria-label="Carregando"');
+    expect(html).not.toContain(OBRA.nome);
+  });
+
+  it('erroMostraErrorState', () => {
+    useDetalheObra.mockReturnValue({
+      obra: null,
+      equipe: [],
+      carregando: false,
+      erro: { response: { status: 500, data: { mensagem: 'Erro interno. Tente novamente.' } } },
+      recarregar: vi.fn(),
+    });
+    usePainelObra.mockReturnValue({
+      painel: null,
+      carregando: false,
+      erro: { response: { status: 500, data: { mensagem: 'Erro interno. Tente novamente.' } } },
+      recarregar: vi.fn(),
+    });
+    const html = renderPagina();
+    expect(html).toContain('Erro interno. Tente novamente.');
+    expect(html).toContain('Tentar novamente');
+  });
+
+  it('linkEquipeRespeitaPermissao', () => {
+    usePermissao.mockReturnValue({ pode: () => false, carregando: false });
+    expect(renderPagina()).not.toContain('Gerenciar equipe');
+
+    usePermissao.mockReturnValue({ pode: () => true, carregando: false });
+    expect(renderPagina()).toContain('Gerenciar equipe');
+  });
+
+  it('painelRespeitaPermissao', () => {
+    usePermissao.mockReturnValue({ pode: () => false, carregando: false });
+    const sem = renderPagina();
+    expect(sem).not.toContain('Editar Parâmetros');
+    expect(sem).not.toContain('Nova Ocorrência');
+
+    usePermissao.mockReturnValue({ pode: () => true, carregando: false });
+    const com = renderPagina();
+    expect(com).toContain('Editar Parâmetros');
+    expect(com).toContain('Nova Ocorrência');
+  });
+
+  it('layoutMobileSemOverflow', () => {
+    const html = renderPagina();
+    expect(html).not.toMatch(/min-w-\[/);
+    expect(html).not.toMatch(/w-\[\d+px\]/);
+  });
+
+  it('layoutTabletSemSidebarFixa', () => {
+    const html = renderPagina();
+    expect(html).toContain('md:grid-cols-3');
+    expect(html).toContain('xl:grid-cols-[1fr_400px]');
+    expect(html).not.toContain('<aside');
   });
 
   it('naoRenderizaSidebarPropria', () => {
@@ -210,6 +317,12 @@ describe('DetalheObraPage', () => {
       recarregar: vi.fn(),
       selecionarDiario: vi.fn(),
     });
+    usePainelObra.mockReturnValue({
+      painel: painelComDiarioReal(),
+      carregando: false,
+      erro: null,
+      recarregar: vi.fn(),
+    });
     const html = renderPagina();
     expect(html).toContain('18/11/2026');
     expect(html).toContain('Ensolarado');
@@ -227,6 +340,12 @@ describe('DetalheObraPage', () => {
       recarregar: vi.fn(),
       selecionarDiario: vi.fn(),
     });
+    usePainelObra.mockReturnValue({
+      painel: painelPadrao(),
+      carregando: false,
+      erro: { response: { status: 500 } },
+      recarregar: vi.fn(),
+    });
     const html = renderPagina();
     expect(html).toContain(OBRA.nome);
     expect(html).toContain(EQUIPE[0].nome);
@@ -236,6 +355,7 @@ describe('DetalheObraPage', () => {
 
   it('mostraCarregandoEnquantoApiResponde', () => {
     useDetalheObra.mockReturnValue({ obra: null, equipe: [], carregando: true, erro: null, recarregar: vi.fn() });
+    usePainelObra.mockReturnValue({ painel: null, carregando: true, erro: null, recarregar: vi.fn() });
     const html = renderPagina();
     expect(html).toContain('aria-label="Carregando"');
     expect(html).not.toContain(OBRA.nome);
@@ -245,6 +365,12 @@ describe('DetalheObraPage', () => {
     useDetalheObra.mockReturnValue({
       obra: null,
       equipe: [],
+      carregando: false,
+      erro: { response: { status: 500, data: { mensagem: 'Erro interno. Tente novamente.' } } },
+      recarregar: vi.fn(),
+    });
+    usePainelObra.mockReturnValue({
+      painel: null,
       carregando: false,
       erro: { response: { status: 500, data: { mensagem: 'Erro interno. Tente novamente.' } } },
       recarregar: vi.fn(),
@@ -262,6 +388,12 @@ describe('DetalheObraPage', () => {
       erro: { response: { status: 403 } },
       recarregar: vi.fn(),
     });
+    usePainelObra.mockReturnValue({
+      painel: null,
+      carregando: false,
+      erro: { response: { status: 403 } },
+      recarregar: vi.fn(),
+    });
     const html = renderPagina();
     expect(html).toContain('Você não tem permissão para visualizar esta obra.');
     expect(html).not.toContain('Tentar novamente');
@@ -271,6 +403,12 @@ describe('DetalheObraPage', () => {
     useDetalheObra.mockReturnValue({
       obra: null,
       equipe: [],
+      carregando: false,
+      erro: { response: { status: 404 } },
+      recarregar: vi.fn(),
+    });
+    usePainelObra.mockReturnValue({
+      painel: null,
       carregando: false,
       erro: { response: { status: 404 } },
       recarregar: vi.fn(),
