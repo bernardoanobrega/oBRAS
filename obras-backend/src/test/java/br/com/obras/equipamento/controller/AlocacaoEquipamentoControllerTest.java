@@ -1,7 +1,6 @@
 package br.com.obras.equipamento.controller;
 
 import static br.com.obras.equipamento.controller.PermissoesEquipamento.MODULO;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -37,11 +36,12 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 class AlocacaoEquipamentoControllerTest {
 
     private static final Long OBRA = 1L;
+    private static final Long OBRA_DESTINO = 2L;
     private static final String CORPO_ALOCAR =
-            "{\"canteiroId\":10,\"responsavelId\":5,\"dataPrevistaDevolucao\":\"2030-01-10\"}";
+            "{\"responsavelId\":5,\"dataPrevistaDevolucao\":\"2030-01-10\"}";
     private static final String CORPO_DEVOLVER = "{\"observacao\":\"Sem avarias\"}";
     private static final String CORPO_TRANSFERIR =
-            "{\"canteiroDestinoId\":20,\"responsavelId\":5,\"dataPrevistaDevolucao\":\"2030-01-20\"}";
+            "{\"obraDestinoId\":2,\"responsavelId\":5,\"dataPrevistaDevolucao\":\"2030-01-20\"}";
     private static final String CORPO_PRORROGAR = "{\"novaDataPrevista\":\"2030-02-01\"}";
 
     private final MockMvc mockMvc;
@@ -99,7 +99,7 @@ class AlocacaoEquipamentoControllerTest {
                 .andExpect(status().isCreated());
 
         verify(alocacaoService).alocar(OBRA, 7L,
-                new AlocarEquipamentoDto(10L, 5L, LocalDate.of(2030, 1, 10), null));
+                new AlocarEquipamentoDto(5L, LocalDate.of(2030, 1, 10), null));
     }
 
     @Test
@@ -114,14 +114,34 @@ class AlocacaoEquipamentoControllerTest {
     }
 
     @Test
-    @DisplayName("Transfere equipamento quando tem permissão de editar na obra")
-    void transfereEquipamentoQuandoTemPermissaoDeEditarNaObra() throws Exception {
+    @DisplayName("Transfere equipamento com permissão de editar na origem e de criar no destino")
+    void transfereEquipamentoComPermissaoNaOrigemENoDestino() throws Exception {
         when(perm.pode(OBRA, MODULO, "EDITAR")).thenReturn(true);
+        when(perm.pode(OBRA_DESTINO, MODULO, "CRIAR")).thenReturn(true);
 
         mockMvc.perform(requisicao("PATCH", "/api/obras/1/equipamentos/7/transferir", CORPO_TRANSFERIR))
                 .andExpect(status().isOk());
 
-        verify(alocacaoService).transferir(any(), any(), any(TransferirEquipamentoDto.class));
+        verify(alocacaoService).transferir(OBRA, 7L,
+                new TransferirEquipamentoDto(OBRA_DESTINO, 5L, LocalDate.of(2030, 1, 20), null));
+    }
+
+    @Test
+    @DisplayName("Não permite transferir sem permissão na obra de destino")
+    void retorna403AoTransferirSemPermissaoNaObraDeDestino() throws Exception {
+        when(perm.pode(OBRA, MODULO, "EDITAR")).thenReturn(true);
+
+        mockMvc.perform(requisicao("PATCH", "/api/obras/1/equipamentos/7/transferir", CORPO_TRANSFERIR))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Não permite transferir sem permissão na obra de origem")
+    void retorna403AoTransferirSemPermissaoNaObraDeOrigem() throws Exception {
+        when(perm.pode(OBRA_DESTINO, MODULO, "CRIAR")).thenReturn(true);
+
+        mockMvc.perform(requisicao("PATCH", "/api/obras/1/equipamentos/7/transferir", CORPO_TRANSFERIR))
+                .andExpect(status().isForbidden());
     }
 
     @Test
