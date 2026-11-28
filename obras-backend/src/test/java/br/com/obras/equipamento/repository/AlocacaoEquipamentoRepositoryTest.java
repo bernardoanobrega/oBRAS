@@ -21,7 +21,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
- * As chaves estrangeiras para usuário e canteiro são suspensas na transação do teste
+ * As chaves estrangeiras para usuário e obra são suspensas na transação do teste
  * (session_replication_role), isolando as regras deste módulo.
  */
 @DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=validate")
@@ -29,8 +29,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 class AlocacaoEquipamentoRepositoryTest {
 
-    private static final Long CANTEIRO_A = 100L;
-    private static final Long CANTEIRO_B = 200L;
+    private static final Long OBRA_A = 100L;
+    private static final Long OBRA_B = 200L;
     private static final Long RESPONSAVEL = 5L;
 
     @Container
@@ -57,19 +57,19 @@ class AlocacaoEquipamentoRepositoryTest {
         return entityManager.persistAndFlush(new Equipamento(codigo, "Equipamento " + codigo, TipoEquipamento.MAQUINA));
     }
 
-    private AlocacaoEquipamento alocar(Equipamento equipamento, Long canteiroId, long diasAteDevolucao) {
+    private AlocacaoEquipamento alocar(Equipamento equipamento, Long obraId, long diasAteDevolucao) {
         LocalDate dataPrevista = LocalDate.now().plusDays(diasAteDevolucao);
-        return entityManager.persistAndFlush(equipamento.alocar(canteiroId, dataPrevista, RESPONSAVEL, null));
+        return entityManager.persistAndFlush(equipamento.alocar(obraId, dataPrevista, RESPONSAVEL, null));
     }
 
     @Test
     @DisplayName("Lista o histórico do equipamento da alocação mais recente para a mais antiga")
     void listaHistoricoDaMaisRecenteParaAMaisAntiga() {
         Equipamento equipamento = persistirEquipamento("PAT-001");
-        AlocacaoEquipamento primeira = alocar(equipamento, CANTEIRO_A, 5);
+        AlocacaoEquipamento primeira = alocar(equipamento, OBRA_A, 5);
         equipamento.devolver("Sem avarias");
         entityManager.flush();
-        AlocacaoEquipamento segunda = alocar(equipamento, CANTEIRO_B, 5);
+        AlocacaoEquipamento segunda = alocar(equipamento, OBRA_B, 5);
         entityManager.clear();
 
         List<AlocacaoEquipamento> historico =
@@ -81,54 +81,51 @@ class AlocacaoEquipamentoRepositoryTest {
     }
 
     @Test
-    @DisplayName("Lista apenas alocações ativas dos canteiros informados, por data prevista")
-    void listaApenasAtivasDosCanteirosInformadosPorDataPrevista() {
+    @DisplayName("Lista apenas alocações ativas da obra, por data prevista")
+    void listaApenasAtivasDaObraPorDataPrevista() {
         Equipamento tardio = persistirEquipamento("PAT-001");
         Equipamento cedo = persistirEquipamento("PAT-002");
-        Equipamento emOutroCanteiro = persistirEquipamento("PAT-003");
+        Equipamento emOutraObra = persistirEquipamento("PAT-003");
         Equipamento devolvido = persistirEquipamento("PAT-004");
-        alocar(tardio, CANTEIRO_A, 10);
-        alocar(cedo, CANTEIRO_A, 3);
-        alocar(emOutroCanteiro, CANTEIRO_B, 5);
-        alocar(devolvido, CANTEIRO_A, 5);
+        alocar(tardio, OBRA_A, 10);
+        alocar(cedo, OBRA_A, 3);
+        alocar(emOutraObra, OBRA_B, 5);
+        alocar(devolvido, OBRA_A, 5);
         devolvido.devolver(null);
         entityManager.flush();
         entityManager.clear();
 
-        List<AlocacaoEquipamento> doCanteiroA = repository.listarAtivasPorCanteiros(List.of(CANTEIRO_A));
-        List<AlocacaoEquipamento> dosDoisCanteiros =
-                repository.listarAtivasPorCanteiros(List.of(CANTEIRO_A, CANTEIRO_B));
+        List<AlocacaoEquipamento> daObraA = repository.listarAtivasPorObra(OBRA_A);
 
-        assertThat(doCanteiroA).extracting(a -> a.getEquipamento().getCodigoPatrimonio())
+        assertThat(daObraA).extracting(a -> a.getEquipamento().getCodigoPatrimonio())
                 .containsExactly("PAT-002", "PAT-001");
-        assertThat(dosDoisCanteiros).hasSize(3);
-        assertThat(Hibernate.isInitialized(doCanteiroA.get(0).getEquipamento())).isTrue();
+        assertThat(Hibernate.isInitialized(daObraA.get(0).getEquipamento())).isTrue();
     }
 
     @Test
-    @DisplayName("Retorna lista vazia quando não há canteiros informados")
-    void retornaListaVaziaQuandoNaoHaCanteiros() {
-        alocar(persistirEquipamento("PAT-001"), CANTEIRO_A, 5);
+    @DisplayName("Retorna lista vazia quando a obra não tem equipamentos alocados")
+    void retornaListaVaziaQuandoObraNaoTemEquipamentosAlocados() {
+        alocar(persistirEquipamento("PAT-001"), OBRA_A, 5);
 
-        List<AlocacaoEquipamento> ativas = repository.listarAtivasPorCanteiros(List.of());
+        List<AlocacaoEquipamento> daObraB = repository.listarAtivasPorObra(OBRA_B);
 
-        assertThat(ativas).isEmpty();
+        assertThat(daObraB).isEmpty();
     }
 
     @Test
     @DisplayName("Persiste a transferência quando o encerramento é gravado antes da nova alocação")
     void persisteTransferenciaQuandoEncerramentoEGravadoAntesDaNovaAlocacao() {
         Equipamento equipamento = persistirEquipamento("PAT-001");
-        alocar(equipamento, CANTEIRO_A, 5);
+        alocar(equipamento, OBRA_A, 5);
 
         AlocacaoEquipamento nova = equipamento.transferir(
-                CANTEIRO_B, LocalDate.now().plusDays(14), RESPONSAVEL, null);
+                OBRA_B, LocalDate.now().plusDays(14), RESPONSAVEL, null);
         entityManager.flush();
         entityManager.persistAndFlush(nova);
         entityManager.clear();
 
-        assertThat(repository.listarAtivasPorCanteiros(List.of(CANTEIRO_A))).isEmpty();
-        assertThat(repository.listarAtivasPorCanteiros(List.of(CANTEIRO_B))).hasSize(1);
+        assertThat(repository.listarAtivasPorObra(OBRA_A)).isEmpty();
+        assertThat(repository.listarAtivasPorObra(OBRA_B)).hasSize(1);
         assertThat(repository.findByEquipamentoIdOrderByDataInicioDescIdDesc(equipamento.getId())).hasSize(2);
     }
 }
