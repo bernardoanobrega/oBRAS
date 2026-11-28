@@ -12,6 +12,7 @@ import br.com.obras.equipamento.repository.EquipamentoRepository;
 import br.com.obras.shared.exception.RecursoNaoEncontradoException;
 import br.com.obras.shared.exception.RegraNegocioException;
 import br.com.obras.shared.port.ObraPort;
+import br.com.obras.shared.port.ObraResumo;
 import br.com.obras.shared.port.UsuarioPort;
 import br.com.obras.shared.port.UsuarioResumo;
 import java.util.List;
@@ -53,7 +54,7 @@ public class AlocacaoEquipamentoService {
     @Transactional
     public AlocacaoEquipamentoDto alocar(Long obraId, Long equipamentoId, AlocarEquipamentoDto dto) {
         Equipamento equipamento = buscarEquipamento(equipamentoId);
-        exigirObraExistente(obraId);
+        exigirObraAberta(obraId);
         exigirResponsavelAtivo(dto.responsavelId());
 
         AlocacaoEquipamento alocacao = equipamento.alocar(
@@ -79,7 +80,7 @@ public class AlocacaoEquipamentoService {
     public AlocacaoEquipamentoDto transferir(Long obraId, Long equipamentoId, TransferirEquipamentoDto dto) {
         Equipamento equipamento = buscarEquipamento(equipamentoId);
         equipamento.alocacaoAtiva().ifPresent(alocacao -> exigirAlocacaoDaObra(obraId, alocacao));
-        exigirObraExistente(dto.obraDestinoId());
+        exigirObraAberta(dto.obraDestinoId());
         exigirResponsavelAtivo(dto.responsavelId());
 
         AlocacaoEquipamento nova = equipamento.transferir(
@@ -103,9 +104,12 @@ public class AlocacaoEquipamentoService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Equipamento", equipamentoId));
     }
 
-    private void exigirObraExistente(Long obraId) {
-        obraPort.buscarResumo(obraId)
+    private void exigirObraAberta(Long obraId) {
+        ObraResumo obra = obraPort.buscarResumo(obraId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Obra", obraId));
+        if (obra.estaEncerrada()) {
+            throw new RegraNegocioException("Não é possível alocar equipamento em obra concluída ou cancelada.");
+        }
     }
 
     private void exigirAlocacaoDaObra(Long obraId, AlocacaoEquipamento alocacao) {

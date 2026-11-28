@@ -75,7 +75,11 @@ class AlocacaoEquipamentoServiceTest {
     }
 
     private void obraExiste(Long obraId) {
-        when(obraPort.buscarResumo(obraId)).thenReturn(Optional.of(new ObraResumo(obraId, "Obra " + obraId)));
+        when(obraPort.buscarResumo(obraId)).thenReturn(Optional.of(new ObraResumo(obraId, "Obra " + obraId, false)));
+    }
+
+    private void obraEncerrada(Long obraId) {
+        when(obraPort.buscarResumo(obraId)).thenReturn(Optional.of(new ObraResumo(obraId, "Obra " + obraId, true)));
     }
 
     private void responsavelAtivo() {
@@ -121,6 +125,17 @@ class AlocacaoEquipamentoServiceTest {
 
         assertThatThrownBy(() -> service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar()))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
+        verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
+    }
+
+    @Test
+    @DisplayName("Lança exceção ao alocar em obra concluída ou cancelada")
+    void lancaExcecaoQuandoAlocarEmObraEncerrada() {
+        equipamentoExiste(novoEquipamento());
+        obraEncerrada(OBRA);
+
+        assertThatThrownBy(() -> service.alocar(OBRA, EQUIPAMENTO_ID, dtoAlocar()))
+                .isInstanceOf(RegraNegocioException.class);
         verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
     }
 
@@ -214,6 +229,18 @@ class AlocacaoEquipamentoServiceTest {
 
         assertThatThrownBy(() -> service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(OUTRA_OBRA)))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
+        verify(alocacaoRepository, never()).flush();
+        verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
+    }
+
+    @Test
+    @DisplayName("Lança exceção ao transferir para obra concluída ou cancelada")
+    void lancaExcecaoQuandoTransferirParaObraEncerrada() {
+        equipamentoExiste(novoEquipamentoAlocadoNaObra());
+        obraEncerrada(OUTRA_OBRA);
+
+        assertThatThrownBy(() -> service.transferir(OBRA, EQUIPAMENTO_ID, dtoTransferir(OUTRA_OBRA)))
+                .isInstanceOf(RegraNegocioException.class);
         verify(alocacaoRepository, never()).flush();
         verify(alocacaoRepository, never()).save(any(AlocacaoEquipamento.class));
     }
